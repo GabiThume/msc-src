@@ -37,7 +37,10 @@ int QuantizationMSB(Mat &I, Mat &Q, int nColors)
 	}
 	
 	// vetor para armazenar a frequencia de cada cor 
-	int freq[nColors] = {0};
+	int freq[nColors];
+	for (int i = 0; i < nColors; i++) {
+		freq[i] = 0;
+	}
 	int unique = 0;
 	
 	MatIterator_<Vec3b> it, end;
