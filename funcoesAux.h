@@ -25,6 +25,31 @@ using namespace cv;
 using namespace std;
 
 
+
+/*	Funcao Intensidade
+ Conversão de uma imagem colorida para a escala de cinza usando os canais lineares
+ Requer:
+	- imagem a ser convertida
+	- imagem onde sera armazenada a imagem convertida
+*/
+void QuantizationIntensity(Mat &I, Mat &Q, int nColors);
+
+/*	Funcao Gleam
+ Conversão de uma imagem colorida para a escala de cinza usando os canais com a correção gamma
+ Requer:
+	- imagem a ser convertida
+	- imagem onde sera armazenada a imagem convertida
+*/
+void QuantizationGleam(Mat &I, Mat &Q, int nColors);
+
+/*	Funcao Luminance
+ Conversão de uma imagem colorida para a escala de cinza usando uma combinação com pesos para cada canal
+ Requer:
+	- imagem a ser convertida
+	- imagem onde sera armazenada a imagem convertida
+*/
+void QuantizationLuminance(Mat &I, Mat &Q, int nColors);
+
 /*	Funcao QuantizationMSB
  Q uantiza uma imagem de acordo com a quantidade *de cores passada por argumento
  Requer:

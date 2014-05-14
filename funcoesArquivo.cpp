@@ -54,7 +54,7 @@ int qtdImagensTotal(const char *base, int qtdClasses, int *objClass, int *maxs)
 	
 	for (i = 1; i <= qtdClasses; i++) 
 	  {	  
-		sprintf(diretorio, "./%s/%d/", base, i);
+		sprintf(diretorio, "%s/%d/", base, i);
 	
 		int currentsize = qtdArquivos(diretorio);
 		objClass[i-1] = currentsize;
@@ -123,7 +123,7 @@ int descriptor(const char *baseImagem, int method, int nColor, double nRes, int 
 	
 	arq = fopen(nome, "w+");
 	
-	sprintf(diretorio, "./%s/", baseImagem);
+	sprintf(diretorio, "%s/", baseImagem);
 	
 	// pega a quantidade de classes (i.e. verifica quantas subpastas existem)
 	qtdClasses = qtdArquivos(diretorio); 
@@ -161,7 +161,7 @@ int descriptor(const char *baseImagem, int method, int nColor, double nRes, int 
 	for(i = 1; i <= qtdClasses; i++) {
 	  
 		// pega a quantidade de imagens de cada classe
-		sprintf(diretorio,"./%s/%d/", baseImagem, i); 
+		sprintf(diretorio,"%s/%d/", baseImagem, i); 
 		qtdImagem = qtdArquivos(diretorio);
 
 		cout << "classe " << i << " : " << diretorio << "\n";
@@ -169,7 +169,7 @@ int descriptor(const char *baseImagem, int method, int nColor, double nRes, int 
 		// para cada imagem
 		for(j = 0; j < qtdImagem; j++)	{
 			
-			sprintf(diretorio,"./%s/%d/%d.png", baseImagem, i, j); 
+			sprintf(diretorio,"%s/%d/%d.png", baseImagem, i, j); 
 			img = imread(diretorio, CV_LOAD_IMAGE_COLOR);
 			
 			if (img.empty()) { fprintf(stderr,"Erro ao abrir imagem %s\n", diretorio); return -1; }
