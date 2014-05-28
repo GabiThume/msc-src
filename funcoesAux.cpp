@@ -1,11 +1,7 @@
 /**
- * 
- *		Luciana Calixta Escobar
+ *  Biblioteca com funcoes auxiliares para extracao de caracteristicas
  *
- *
- *		A compilacao desse arquivo deve ser realizada por:
- *		@g++ -c funcoesAux.c -I /usr/include/opencv -lcv -lml -lhighgui -lcvauc
- *
+ *	Autores: Luciana Calixta Escobar, Moacir Ponti
  *
  **/
 
