@@ -21,9 +21,9 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    if (argc < 6) 
+    if (argc < 7) 
     {
-	 cout << "O programa espera: <pasta> <descritor> <quantidade de cores para quantizar a imagem> <fator de redimensionamento> <normalizacao> <descartar colunas nulas> <distancias ACC | limiar CCV>\n";
+	 cout << "O programa espera: <pasta> <descritor> <quantidade de cores para quantizar a imagem> <fator de redimensionamento> <normalizacao> <metodo quantizacao> <distancias ACC | limiar CCV>\n";
 	 cout << " - Descritores: 1 - BIC   2- GCH   3- CCV     4- Haralick    5- AutoCorrelograma (ACC)\n";
 	 cout << " - Cores: 8, 16, 32, 64 ou 256\n";
 	 cout << " - Redimensionamento - positivo, com máximo = 1 (1 = 100%)\n";
@@ -38,20 +38,21 @@ int main(int argc, char *argv[])
 	int nColor = atoi(argv[3]); // quantidade de cores
 	double nRes = atof(argv[4]); // alteracao na resolucao
 	int oNorm = atoi(argv[5]); // normalizacao
+	int quantMethod = atoi(argv[6]);
 // 	int oZero = atoi(argv[6]); // remover colunas
 	int oZero = 0; // remover colunas
 	
 	if( (descritor < 1) || (descritor > 5) ) { cout << "Descritor nao existe!!\n\n"; return -1; }
 	
-	int totalpar = (argc-6);
+	int totalpar = (argc-7);
 	
 	int *params = new int[totalpar];
 	
 	if (descritor == 3) {
-	    params[0] = atoi(argv[6]);
+	    params[0] = atoi(argv[7]);
 	} else if (descritor == 5) {
 	    for (int i = 0; i < totalpar; i++) {
-		params[i] = atoi(argv[6+i]);
+		params[i] = atoi(argv[7+i]);
 	    }
 	}
 	
@@ -64,7 +65,7 @@ int main(int argc, char *argv[])
 
 	if( (oZero != 0) && (oZero != 1) ) { cout << "Opcao descartar invalida (0, 1)\n\n"; return -1; }
 	
-	descriptor(base, descritor, nColor, nRes, oNorm, params, totalpar, oZero); 
+	descriptor(base, descritor, nColor, nRes, oNorm, params, totalpar, oZero, quantMethod);
 	
 	return 1;
 }

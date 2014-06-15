@@ -11,7 +11,7 @@
 #include <iostream>
 #include <sstream>
 #include "descritores.h"
-
+#include "funcoesAux.h"
 
 using namespace cv;
 using namespace std;
@@ -21,6 +21,6 @@ int qtdArquivos(char *diretorio);
 
 int qtdImagensTotal(const char * base, int qtdClasses);
 
-int descriptor(const char *baseImagem, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero);
+int descriptor(const char *baseImagem, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod);
 
 #endif

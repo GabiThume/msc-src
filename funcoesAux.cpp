@@ -1,7 +1,11 @@
 /**
- *  Biblioteca com funcoes auxiliares para extracao de caracteristicas
+ * 
+ *		Luciana Calixta Escobar
  *
- *	Autores: Luciana Calixta Escobar, Moacir Ponti
+ *
+ *		A compilacao desse arquivo deve ser realizada por:
+ *		@g++ -c funcoesAux.c -I /usr/include/opencv -lcv -lml -lhighgui -lcvauc
+ *
  *
  **/
 
@@ -17,7 +21,7 @@
 */
 void QuantizationIntensity(Mat &I, Mat &Q, int nColors) 
 {
-    cout << " >>> Intensity\n";
+    //cout << " >>> Intensity\n";
     vector<Mat> imColors(3);
 
     // a partir da imagem 'out' (ja convertida), separa os canais nas
@@ -58,7 +62,7 @@ void QuantizationIntensity(Mat &I, Mat &Q, int nColors)
 
 void QuantizationGleam(Mat &I, Mat &Q, int nColors) 
 {
-    cout << " >>> Gleam\n";
+    //cout << " >>> Gleam\n";
     vector<Mat> imColors(3);
     //potencia usada para a correção gamma dos canais
     double pot = 1/2.2;
@@ -121,7 +125,7 @@ void QuantizationGleam(Mat &I, Mat &Q, int nColors)
 */
 void QuantizationLuminance(Mat &I, Mat &Q, int nColors) 
 {
-    cout << " >>> Luminance\n";
+    //cout << " >>> Luminance\n";
     vector<Mat> imColors(3);
 
     // a partir da imagem 'out' (ja convertida), separa os canais nas

@@ -65,7 +65,7 @@ int qtdImagensTotal(const char *base, int qtdClasses, int *objClass, int *maxs)
 	  return contador;
 }
 
-int descriptor(const char *baseImagem, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero)
+int descriptor(const char *baseImagem, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod)
 {
 	int qtdImagem = 0;
 	int qtdClasses = 0;
@@ -85,34 +85,36 @@ int descriptor(const char *baseImagem, int method, int nColor, double nRes, int 
 	
 	int fvsize = 0; // tamanho do vetor de caracteristicas
 	
+	char *quantMethodsNames[4] = {"Intensity", "Gleam", "Luminance", "MSB"};
+	
 	if (method == 1) {
-	    sprintf(nome,"%s_BIC_%dc_%dr.txt", baseImagem, nColor, rfactor);
+	    sprintf(nome,"%s_BIC_%s_%dc_%dr.txt",baseImagem, quantMethodsNames[quantMethod-1], nColor, rfactor);
 	    fvsize = nColor*2; // bic eh numero de cores * 2
-	    cout << "BIC: ";
+	    cout << "BIC and " << quantMethodsNames[quantMethod-1] << ":";
 	}
 	else if (method == 2) {
-	    sprintf(nome,"%s_GCH_%dc_%dr.txt", baseImagem, nColor, rfactor);
+	    sprintf(nome,"%s_GCH_%s_%dc_%dr.txt",baseImagem, quantMethodsNames[quantMethod-1], nColor, rfactor);
 	    fvsize = nColor; // gch eh = numero de cores
-	    cout << "GCH: ";
+	    cout << "GCH and " << quantMethodsNames[quantMethod-1] << ":";
 	}
 	else if (method == 3) {
-	    sprintf(nome,"%s_CCV_%dc_%dr.txt", baseImagem, nColor, rfactor);
+	    sprintf(nome,"%s_CCV_%s_%dc_%dr.txt", baseImagem, quantMethodsNames[quantMethod-1],  nColor, rfactor);
 	    fvsize = nColor*2;
-	    cout << "CCV: ";
+	    cout << "CCV and " << quantMethodsNames[quantMethod-1] << ":";
 	}
 	else if (method == 4) {
-	    sprintf(nome,"%s_Haralick6_%dc_%dr.txt", baseImagem, nColor, rfactor);
+	    sprintf(nome,"%s_Haralick6_%s_%dc_%dr.txt", baseImagem, quantMethodsNames[quantMethod-1],  nColor, rfactor);
 	    Cm = (double **)calloc(nColor, sizeof(double*));
 	    for (i=0; i<nColor; i++) {
 		    Cm[i]= (double *)calloc(nColor, sizeof(double));
 	    }
 	    fvsize = 6;
-	    cout << "Haralick-6: ";
+	    cout << "Haralick-6 and " << quantMethodsNames[quantMethod-1] << ":";
 	}
 	else if (method == 5) {
-	    sprintf(nome,"%s_ACC_%dc_%dd_%dr.txt", baseImagem, nColor, nparam, rfactor);
+	    sprintf(nome,"%s_ACC_%s_%dc_%dd_%dr.txt",baseImagem, quantMethodsNames[quantMethod-1], nColor, nparam, rfactor);
 	    fvsize = (nColor*nparam);
-	    cout << "ACC c/ " << nparam << " distancias : ";
+	    cout << "ACC and " << quantMethodsNames[quantMethod-1] << " c/ " << nparam << " distancias : ";
 	}
 	
 	mdesc.create(1, fvsize, CV_64F); // aloca o vetor de caracteristicas com o tamanho fvsize
@@ -169,7 +171,7 @@ int descriptor(const char *baseImagem, int method, int nColor, double nRes, int 
 		// para cada imagem
 		for(j = 0; j < qtdImagem; j++)	{
 			
-			sprintf(diretorio,"%s/%d/%d.png", baseImagem, i, j); 
+			sprintf(diretorio,"%s/%d/%d.jpg", baseImagem, i, j); 
 			img = imread(diretorio, CV_LOAD_IMAGE_COLOR);
 			
 			if (img.empty()) { fprintf(stderr,"Erro ao abrir imagem %s\n", diretorio); return -1; }
@@ -183,6 +185,23 @@ int descriptor(const char *baseImagem, int method, int nColor, double nRes, int 
 			}
 			
 			//Quantizacao ou conversao de cores
+			switch(quantMethod){
+			  case 1:
+			    QuantizationIntensity(newimg, newimg, nColor);
+			    break;
+			  case 2:
+			    QuantizationGleam(newimg, newimg, nColor);
+			    break;
+			  case 3:
+			    QuantizationLuminance(newimg, newimg, nColor);
+			    break;
+			  case 4:
+			    QuantizationMSB(newimg, newimg, nColor);
+			    break;
+			  default: 
+			    cout << "ERRO: metodo de quantizacao nao existe!!!" << endl;
+			    exit(-1);
+			}
 			
 			// different descriptors
 			if (method == 1) {
@@ -217,6 +236,30 @@ int descriptor(const char *baseImagem, int method, int nColor, double nRes, int 
 			
 			imtotal++;
 		}
+	}
+	
+	if(method == 4 && oNorm != 0){
+  	float min, max;
+	  float normFactor = (oNorm == 1) ? 1.0 : 255.0;
+
+	  for(int j = 0; j < features.cols; ++j){
+	    min = features.at<float>(0,j); 
+	    max = features.at<float>(0,j);
+	    
+	    for(int i = 1; i < features.rows; ++i){
+	      if(features.at<float>(i,j) > max){
+	        max = features.at<float>(i,j);
+	      }
+	      
+	      if (features.at<float>(i,j) < min){
+	        min = features.at<float>(i,j);
+	      }
+	    }
+	    
+	    for(int i = 0; i < features.rows; ++i){
+	      features.at<float>(i,j) = normFactor * ((features.at<float>(i,j) - min) / (max - min));
+	    }
+	  }
 	}
 
 	cout << "Grava no arquivo " << nome << " com : " << imtotal << " imagens" << endl;
