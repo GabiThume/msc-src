@@ -1,11 +1,6 @@
 /**
  * 
- *		Luciana Calixta Escobar
- *
- *
- *		A compilacao desse arquivo deve ser realizada por:
- *		@gcc -c descritores.c -I /usr/include/opencv -lcv -lml -lhighgui -lcvauc
- *
+ * Código original por:	Luciana Calixta Escobar
  *
  **/
 

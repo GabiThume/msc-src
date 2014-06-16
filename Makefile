@@ -1,10 +1,5 @@
-#	
-#	Luciana Calixta Escobar
 #
-#	
-#	Makefile para compilar os algoritmos HARALICK, BIC, GCH
-#
-#	Para rodar:
+#	Para executar:
 #	./criaArq<NOME DO DESCRITOR> <numero do banco de imagens> <quantidade de cores para quantizar>
 #	<numero da primeira imagem> <numero da segunda imagem>
 #
