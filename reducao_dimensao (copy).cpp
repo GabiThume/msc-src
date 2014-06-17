@@ -12,8 +12,7 @@
 using namespace cv;
 using namespace std;
 
-Mat leituraCaracteristicas(const string& filename, vector<int> &classes, int *nClasses) 
-{
+Mat leituraCaracteristicas(const string& filename, vector<int> &classes){
     string linha, infos, numero_img, classe, num_caract, num_classes, objetos;
     vector<float> vec;
     float valor, caract;
@@ -32,7 +31,6 @@ Mat leituraCaracteristicas(const string& filename, vector<int> &classes, int *nC
     stringstream info(infos);
     getline(info, objetos, '\t');
     getline(info, num_classes, '\t');
-    (*nClasses) = atoi(num_classes.c_str());
     getline(info, num_caract, '\t');
 
     // Cria uma Mat com os dados do arquivo
@@ -59,19 +57,22 @@ Mat leituraCaracteristicas(const string& filename, vector<int> &classes, int *nC
     return data;
 }
 
-int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_classes, float prob){
+int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, float p){
     Mat resultados;
     CvNormalBayesClassifier classificador;
     int i, j, acertos, total, height, width, treinados, classeAnterior;
     int iTreino, iTeste, num_componentes, num_treino, num_teste, totalTreino;
+    int num_classes;
     float acuracia;
-        
+    
+    cout << "vet = " << classes << endl;
+    
     Size n = vetorCaracteristicas.size();
     height = n.height;
     width = n.width;
-    num_treino = (int)round(height*prob);
-    num_teste = (int)round(height*(1.0-prob));
-    
+    num_treino = (int)(height*p);
+    num_teste = (int)(height*(1.0-p));
+    num_classes = 10;
     // Armazena os dados de treinamento e de teste para classificação
     Mat dadosTreinamento(num_treino, width, CV_32FC1);
     Mat rotulosTreinamento(num_treino, 1, CV_32FC1);
@@ -80,7 +81,8 @@ int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_cl
 
     classeAnterior = -1; iTreino = 0; iTeste = 0;
 
-    for (i = 0; i < height; i++) {
+    for (i = 0; i < height; i++) {  
+
         if (classes[i] != classeAnterior){
             treinados = 0;
             classeAnterior = classes[i];
@@ -101,12 +103,16 @@ int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_cl
             iTeste++;
         }
     }  
-    
+
     // Treina o classificador Normal Bayes    
     classificador.train(dadosTreinamento, rotulosTreinamento);
 
+
     // Avalia o classificador Normal Bayes
     classificador.predict(dadosTeste, &resultados);
+
+    //cout <<"Rotulos = " << rotulosTeste << endl << endl;  
+    //cout <<"Classificação = " << resultados << endl;  
  
     acertos = 0;
     for (i = 0; i < resultados.size().height; i++) {
@@ -127,16 +133,15 @@ double log2(double number) {
    return log(number) / log(2) ;
 }
 
-Mat calculaEntropia(Mat data){
+Mat calculaEntropia(Mat data, int tam_janela){
 
     map<float , int> frequencias;
     map<float, int>::const_iterator iterator;
     double entropia, freq;
-    int i, j, height, width, janela, tam_janela, fimJanela;
+    int i, j, height, width, janela, fimJanela;
         
     height = data.size().height;
     width = data.size().width;
-    tam_janela = 4;
     Mat vetorEntropia(height, ceil(width/tam_janela), CV_32FC1);
     
     for (i = 0; i < height; i++){
@@ -182,16 +187,24 @@ Mat calculaPCA(Mat data, int nComponents){
     return projecao;
 }
 
+//  ./<executavel> <diretorio> <tipo_execucao> [lista_parametros]
+//  Opcoes:
+//      PCA: usa o pca
+//          - nAtributos: numero de atributos da projecao
+//      Entropy: usa entropia
+//          - tJanela: tamanho da janela
+//      ALL: roda todos os metodos
+//          - nAtributos: numero de atributos da projecao
+//          - tJanela: tamanho da janela
+//      Caso nao seja passado parametro somente o Naive Bayes sera usado
 
-int main(int argc, const char *argv[]) 
-{
+int main(int argc, const char *argv[]){
     Mat vetorEntropia, projecao, data;
     vector<int> classes;
     DIR *diretorio;
     struct dirent *arq;
     ifstream arquivo;
     string nome_arq, nome_dir;
-    int nClasses;
 
     nome_dir = "caracteristicas/";
     diretorio = opendir(nome_dir.c_str());
@@ -203,16 +216,17 @@ int main(int argc, const char *argv[])
 
             if(arquivo.good()){
 
-                data = leituraCaracteristicas(nome_arq.c_str(), classes, &nClasses);
+                data = leituraCaracteristicas(nome_arq.c_str(), classes);
                 if (data.size().height != 0){
 
                     cout << endl << nome_arq << endl;
 
-                    //projecao = calculaPCA(data, 35);
-                    //classificacaoBayes(projecao, classes, nClasses, 0.2);
-                    
-                    vetorEntropia = calculaEntropia(data);
-                    classificacaoBayes(vetorEntropia, classes, nClasses, 0.2);
+                    projecao = calculaPCA(data, 35);
+                    cout << "dsdada" << endl;
+                    classificacaoBayes(projecao, classes, 0.7);
+                    //vetorEntropia = calculaEntropia(data, 4);
+                    //classificacaoBayes(vetorEntropia, classes);
+
                 }
             }
             arquivo.close();
@@ -220,4 +234,3 @@ int main(int argc, const char *argv[])
     }
     return 0;
 }
-

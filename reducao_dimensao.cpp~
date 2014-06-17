@@ -212,7 +212,7 @@ int main(int argc, const char *argv[])
                     //classificacaoBayes(projecao, classes, nClasses, 0.2);
                     
                     vetorEntropia = calculaEntropia(data);
-                    classificacaoBayes(vetorEntropia, classes, nClasses, 0.2);
+                    classificacaoBayes(projecao, classes, nClasses, 0.2);
                 }
             }
             arquivo.close();

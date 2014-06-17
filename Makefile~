@@ -26,7 +26,7 @@ funcoesAux:
 funcoesArquivo:
 	@g++ -c -g funcoesArquivo.cpp -I /usr/include/opencv `pkg-config opencv --libs`
 
-reducao_dimensao: reducao_dimensao.cpp
+reducao_dimensao:
 	@g++ -o reducao_dimensao reducao_dimensao.cpp -I /usr/include/opencv `pkg-config opencv --libs`
 
 clean:
