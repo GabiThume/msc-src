@@ -8,7 +8,7 @@
 #
 
 
-all: descritores funcoesAux funcoesArquivo
+all: descritores funcoesAux funcoesArquivo reducao_dimensao
 	@g++ descritores.o funcoesAux.o funcoesArquivo.o mainDescritor.cpp -o mainDescritor -I /usr/include/opencv `pkg-config opencv --libs`
 
 debug: descritores funcoesAux funcoesArquivo
@@ -25,8 +25,11 @@ funcoesAux:
 	
 funcoesArquivo:
 	@g++ -c -g funcoesArquivo.cpp -I /usr/include/opencv `pkg-config opencv --libs`
-	
+
+reducao_dimensao:
+	@g++ -o reducao_dimensao reducao_dimensao.cpp -I /usr/include/opencv `pkg-config opencv --libs`
+
 clean:
-	rm *.o *.*~ teste *~ mainDescritor
+	rm *.o *.*~ teste *~ mainDescritor reducao_dimensao
 
 

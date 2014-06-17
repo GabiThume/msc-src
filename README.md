@@ -20,6 +20,12 @@ Descritores:
     Haralick
     ACC
 
+Redução de dimensionalidade dos vetores de características extraídos.
+
+Métodos de redução:
+    
+    PCA
+
 
 Uso
 ---
@@ -35,3 +41,9 @@ Para compilar o código, apenas rodar o Makefile:
 Para executar e gerar todos os descritores:
 
     ./runAllDescriptors.sh
+    
+Para executar o PCA sobre os vetores, após gerar os descritores:
+    
+    ./reducao_dimensao
+    
+    
