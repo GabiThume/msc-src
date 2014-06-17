@@ -5,6 +5,9 @@
 #include <sstream>
 #include <iostream>
 #include <dirent.h>
+#include <map>
+#include <cmath>
+#include <vector>
 
 using namespace cv;
 using namespace std;
@@ -55,24 +58,21 @@ Mat leituraCaracteristicas(const string& filename, vector<int> &classes)
     return data;
 }
 
-int classificacaoBayes(Mat projecao, vector<int> classes){
+int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes){
 
     Mat resultados;
     CvNormalBayesClassifier classificador;
     int i, j, acertos, total, height, width, treinados, classeAnterior;
     int iTreino, iTeste, num_componentes, num_treino, num_teste, totalTreino;
+    int num_classes;
     float acuracia;
     
-    Size n = projecao.size();
+    Size n = vetorCaracteristicas.size();
     height = n.height;
     width = n.width;
     num_treino = (int)(height*0.2);
     num_teste = (int)(height*0.8);
-    
-    if (height == 0) {
-        return 0;
-    }
-    
+    num_classes = 10;
     // Armazena os dados de treinamento e de teste para classificação
     Mat dadosTreinamento(num_treino, width, CV_32FC1);
     Mat rotulosTreinamento(num_treino, 1, CV_32FC1);
@@ -88,16 +88,16 @@ int classificacaoBayes(Mat projecao, vector<int> classes){
             classeAnterior = classes[i];
         }
 
-        if (treinados < 20) {
+        if (treinados < num_treino/num_classes) {
             for (j = 0; j < width; j++) {
-                dadosTreinamento.at<float>(iTreino, j) = projecao.at<float>(i, j);  
+                dadosTreinamento.at<float>(iTreino, j) = vetorCaracteristicas.at<float>(i, j);  
             }  
             rotulosTreinamento.at<float>(iTreino, 0) = classes[i];
             treinados++;
             iTreino++;
         } else {
             for (j = 0; j < width; j++) {  
-                dadosTeste.at<float>(iTeste, j) = projecao.at<float>(i, j);  
+                dadosTeste.at<float>(iTeste, j) = vetorCaracteristicas.at<float>(i, j);  
             }  
             rotulosTeste.at<float>(iTeste, 0) = classes[i];
             iTeste++;
@@ -106,6 +106,7 @@ int classificacaoBayes(Mat projecao, vector<int> classes){
 
     // Treina o classificador Normal Bayes    
     classificador.train(dadosTreinamento, rotulosTreinamento);
+
 
     // Avalia o classificador Normal Bayes
     classificador.predict(dadosTeste, &resultados);
@@ -128,36 +129,78 @@ int classificacaoBayes(Mat projecao, vector<int> classes){
     return 0;
 }
 
-Mat realizaPCA(string nome_arq, vector<int>& classes){
+double log2(double number) {
+   return log(number) / log(2) ;
+}
 
-    Mat projecao, autovetores, data;
-    int num_componentes;
+Mat calculaEntropia(Mat data){
 
-    data = leituraCaracteristicas(nome_arq.c_str(), classes);
-    if (data.size().height != 0){
-        cout << endl << nome_arq.c_str() << endl;
-     
-        num_componentes = 10;
-        PCA pca(data, Mat(), CV_PCA_DATA_AS_ROW, num_componentes);
-        autovetores = pca.eigenvectors.clone();
-        projecao = pca.project(data);
+    map<float , int> frequencias;
+    map<float, int>::const_iterator iterator;
+    double entropia, freq;
+    int i, j, height, width, janela, tam_janela, fimJanela;
+        
+    height = data.size().height;
+    width = data.size().width;
+    tam_janela = 4;
+    Mat vetorEntropia(height, ceil(width/tam_janela), CV_32FC1);
+    
+    for (i = 0; i < height; i++){
+        janela = 0;
+        int iJanela = 0;
+
+        while (janela < width){
+            entropia = 0;
+            frequencias.clear();
+
+            fimJanela = janela+tam_janela;
+            if (fimJanela > width)
+                fimJanela = width;
+            
+            for (j = janela; j < fimJanela; j++) {
+                frequencias[data.at<float>(i, j)]++;
+            }
+
+            for (iterator = frequencias.begin(); iterator != frequencias.end(); ++iterator) {
+                freq = static_cast<double>(iterator->second) / width ;
+                entropia += freq * log2( freq ) ;
+            }
+            entropia *= -1;
+            //cout << "Entropia = " << entropia << endl;
+
+            vetorEntropia.at<float>(i,iJanela) = (float)entropia;
+            iJanela++;
+
+            janela += tam_janela;
+        }
+
     }
+    return vetorEntropia;
+}
+
+Mat calculaPCA(Mat data){
+
+    Mat projecao, autovetores;
+    int num_componentes;
+     
+    num_componentes = 10;
+    PCA pca(data, Mat(), CV_PCA_DATA_AS_ROW, num_componentes);
+    autovetores = pca.eigenvectors.clone();
+    projecao = pca.project(data);
+
     return projecao;
 }
 
 
 int main(int argc, const char *argv[]) 
 {
-    Mat resultados, autovetores, projecao, data;
+    Mat vetorEntropia, projecao, data;
     vector<int> classes;
-
-    //data = leituraCaracteristicas("caracteristicas/BaseImagens_Haralick6_Luminance_256c_100r.txt", classes);
-
     DIR *diretorio;
     struct dirent *arq;
     ifstream arquivo;
-
     string nome_arq, nome_dir;
+
     nome_dir = "caracteristicas/";
     diretorio = opendir(nome_dir.c_str());
 
@@ -167,16 +210,21 @@ int main(int argc, const char *argv[])
             arquivo.open(nome_arq.c_str());
 
             if(arquivo.good()){
-                
-                projecao = realizaPCA(nome_arq, classes);
-                classificacaoBayes(projecao, classes);
-                //cout << nome_arq << endl;
+
+                data = leituraCaracteristicas(nome_arq.c_str(), classes);
+                if (data.size().height != 0){
+
+                    cout << endl << nome_arq << endl;
+
+                    projecao = calculaPCA(data);
+                    classificacaoBayes(projecao, classes);
+                    //vetorEntropia = calculaEntropia(data);
+                    //classificacaoBayes(vetorEntropia, classes);
+
+                }
             }
             arquivo.close();
        }
     }
-
-    
-    
     return 0;
 }
