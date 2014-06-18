@@ -12,8 +12,8 @@
 using namespace cv;
 using namespace std;
 
-Mat leituraCaracteristicas(const string& filename, vector<int> &classes, int *nClasses) 
-{
+Mat leituraCaracteristicas(const string& filename, vector<int> &classes, int *nClasses) {
+
     string linha, infos, numero_img, classe, num_caract, num_classes, objetos;
     vector<float> vec;
     float valor, caract;
@@ -59,7 +59,8 @@ Mat leituraCaracteristicas(const string& filename, vector<int> &classes, int *nC
     return data;
 }
 
-int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_classes, float prob){
+int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_classes, float prob) {
+
     Mat resultados;
     CvNormalBayesClassifier classificador;
     int i, j, acertos, total, height, width, treinados, classeAnterior;
@@ -88,7 +89,7 @@ int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_cl
 
         if (treinados < num_treino/num_classes) {
             for (j = 0; j < width; j++) {
-                dadosTreinamento.at<float>(iTreino, j) = vetorCaracteristicas.at<float>(i, j);  
+                dadosTreinamento.at<float>(iTreino, j) = vetorCaracteristicas.at<float>(i, j);
             }  
             rotulosTreinamento.at<float>(iTreino, 0) = classes[i];
             treinados++;
@@ -101,7 +102,7 @@ int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_cl
             iTeste++;
         }
     }  
-    
+
     // Treina o classificador Normal Bayes    
     classificador.train(dadosTreinamento, rotulosTreinamento);
 
@@ -127,92 +128,159 @@ double log2(double number) {
    return log(number) / log(2) ;
 }
 
-Mat calculaEntropia(Mat data){
+Mat calculaEntropia(Mat data, int tam_janela, string nome_arquivo) {
 
-    map<float , int> frequencias;
+    map<float, int> frequencias;
     map<float, int>::const_iterator iterator;
     double entropia, freq;
-    int i, j, height, width, janela, tam_janela, fimJanela;
+    int i, j, height, width, janela, fim_janela, indice_janela;
+    string arq_saida;
+    stringstream tam;
+    tam << tam_janela;
         
     height = data.size().height;
     width = data.size().width;
-    tam_janela = 4;
-    Mat vetorEntropia(height, ceil(width/tam_janela), CV_32FC1);
-    
+    Mat vetorEntropia(height, ceil((float)width/tam_janela), CV_32FC1);
+
+    arq_saida = "entropia/ENTROPIA_" + tam.str() + "_"  + nome_arquivo; 
+    ofstream arq(arq_saida.c_str());
+   
     for (i = 0; i < height; i++){
         janela = 0;
-        int iJanela = 0;
-
+        indice_janela = 0;
+        
         while (janela < width){
             entropia = 0;
-            frequencias.clear();
 
-            fimJanela = janela+tam_janela;
-            if (fimJanela > width)
-                fimJanela = width;
+            fim_janela = janela+tam_janela;
+            if (fim_janela > width)
+                fim_janela = width;
             
-            for (j = janela; j < fimJanela; j++) {
-                frequencias[data.at<float>(i, j)]++;
+            frequencias.clear();
+            for (j = janela; j < fim_janela; j++){
+                float valor =  trunc(1000*data.at<float>(i, j))/1000;
+                frequencias[valor]++;
             }
-
+            
             for (iterator = frequencias.begin(); iterator != frequencias.end(); ++iterator) {
-                freq = static_cast<double>(iterator->second) / width ;
+                freq = static_cast<double>(iterator->second) / (fim_janela -janela) ;
                 entropia += freq * log2( freq ) ;
             }
+
             entropia *= -1;
-            //cout << "Entropia = " << entropia << endl;
-
-            vetorEntropia.at<float>(i,iJanela) = (float)entropia;
-            iJanela++;
-
+            vetorEntropia.at<float>(i, indice_janela) = (float)entropia;
+            indice_janela++;
             janela += tam_janela;
         }
-
     }
+    arq << vetorEntropia;
+    cout << endl << arq_saida << endl;
+    arq.close();    
     return vetorEntropia;
 }
 
-Mat calculaPCA(Mat data, int nComponents){
+Mat calculaPCA(Mat data, int nComponents, string nome_arquivo) {
+
     Mat projecao, autovetores;
+    stringstream n;
+    n << nComponents;
+
+    string arq_saida = "pca/PCA_" + n.str() + "_" + nome_arquivo; 
+    ofstream arq(arq_saida.c_str());
 
     PCA pca(data, Mat(), CV_PCA_DATA_AS_ROW, nComponents);
     autovetores = pca.eigenvectors.clone();
     projecao = pca.project(data);
 
+    arq << projecao;
+    cout << endl << arq_saida << endl;
+    arq.close();    
+
     return projecao;
 }
 
+void erroEntrada(){
+    cout << "Esse programa espera: <diretorio> <metodo> <atributos para o PCA | tamanho da janela para Entropia>\n";
+    cout << "\tMétodo: 0-Nenhum, 1-PCA, 2-Entropia ou 3-Todos\n";
+    exit(0);
+}
 
-int main(int argc, const char *argv[]) 
-{
+int main(int argc, const char *argv[]) {
+
     Mat vetorEntropia, projecao, data;
     vector<int> classes;
     DIR *diretorio;
     struct dirent *arq;
     ifstream arquivo;
-    string nome_arq, nome_dir;
-    int nClasses;
+    string nome_arq, nome_dir, nome;
+    int nClasses, metodo, atributos, janela;
 
-    nome_dir = "caracteristicas/";
+    if (argc < 3)
+        erroEntrada();
+
+	nome_dir = argv[1];
+
+	metodo = atoi(argv[2]); // descritor a ser utilizado
+    switch(metodo){
+    case 0: // Somente classificação
+        break;
+    case 1: // PCA
+        if (argc < 4) 
+            erroEntrada();
+        atributos = atoi(argv[3]);
+        break;
+    case 2: // Entropia
+        if (argc < 4) 
+            erroEntrada();
+        janela = atoi(argv[3]);
+        break;
+    case 3: // PCA + Entropia
+        if (argc < 5) 
+            erroEntrada();
+        atributos = atoi(argv[3]);
+        janela = atoi(argv[4]);
+        break;
+    default:
+        break;
+    }
+
+    // Para cada arquivo no diretório de entrada, realiza as operações	    
     diretorio = opendir(nome_dir.c_str());
-
     if (diretorio != NULL){
        while (arq = readdir(diretorio)){
-            nome_arq = nome_dir + arq->d_name;
-            arquivo.open(nome_arq.c_str());
+
+            nome_arq = arq->d_name;
+            nome = nome_dir + arq->d_name;
+            arquivo.open(nome.c_str());
 
             if(arquivo.good()){
-
-                data = leituraCaracteristicas(nome_arq.c_str(), classes, &nClasses);
+                // Lê os dados dos vetores de características do arquivo
+                data = leituraCaracteristicas(nome.c_str(), classes, &nClasses);
                 if (data.size().height != 0){
 
-                    cout << endl << nome_arq << endl;
+                    //cout << endl << nome_arq << endl;
 
-                    //projecao = calculaPCA(data, 35);
-                    //classificacaoBayes(projecao, classes, nClasses, 0.2);
-                    
-                    vetorEntropia = calculaEntropia(data);
-                    classificacaoBayes(vetorEntropia, classes, nClasses, 0.2);
+                    switch(metodo){
+                    case 0: // Somente classificação
+                        classificacaoBayes(data, classes, nClasses, 0.2);
+                        break;
+                    case 1: // PCA
+                        projecao = calculaPCA(data, atributos, nome_arq);
+                        classificacaoBayes(projecao, classes, nClasses, 0.2);
+                        break;
+                    case 2: // Entropia
+                        vetorEntropia = calculaEntropia(data, janela, nome_arq);
+                        classificacaoBayes(vetorEntropia, classes, nClasses, 0.2);
+                        break;
+                    case 3: // PCA + Entropia
+                        projecao = calculaPCA(data, atributos, nome_arq);
+                        classificacaoBayes(projecao, classes, nClasses, 0.2);
+                        vetorEntropia = calculaEntropia(data, janela, nome_arq);
+                        classificacaoBayes(vetorEntropia, classes, nClasses, 0.2);
+                        break;
+                    default:
+                        break;
+                    }
                 }
             }
             arquivo.close();

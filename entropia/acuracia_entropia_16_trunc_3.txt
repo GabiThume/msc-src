@@ -1,0 +1,60 @@
+
+entropia/ENTROPIA_16_BaseImagens_BIC_Luminance_256c_100r.txt
+Acurácia: 29.125 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_CCV_Intensity_256c_100r.txt
+Acurácia: 37.25 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_GCH_Gleam_256c_100r.txt
+Acurácia: 13.625 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_GCH_Luminance_256c_100r.txt
+Acurácia: 29.625 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_CCV_Gleam_256c_100r.txt
+Acurácia: 24.875 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_ACC_Luminance_256c_4d_100r.txt
+Acurácia: 36.25 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_Haralick6_Intensity_256c_100r.txt
+Acurácia: 9.625 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_BIC_MSB_256c_100r.txt
+Acurácia: 21.75 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_CCV_Luminance_256c_100r.txt
+Acurácia: 37 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_Haralick6_MSB_256c_100r.txt
+Acurácia: 9.75 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_CCV_MSB_256c_100r.txt
+Acurácia: 32.125 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_ACC_Gleam_256c_4d_100r.txt
+Acurácia: 10 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_GCH_MSB_256c_100r.txt
+Acurácia: 27.875 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_Haralick6_Luminance_256c_100r.txt
+Acurácia: 11.625 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_BIC_Gleam_256c_100r.txt
+Acurácia: 28.25 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_ACC_Intensity_256c_4d_100r.txt
+Acurácia: 39.25 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_BIC_Intensity_256c_100r.txt
+Acurácia: 30.625 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_ACC_MSB_256c_4d_100r.txt
+Acurácia: 41.125 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_GCH_Intensity_256c_100r.txt
+Acurácia: 28.875 Para a execução de: 800 testes e 200 treinos.
+
+entropia/ENTROPIA_16_BaseImagens_Haralick6_Gleam_256c_100r.txt
+Acurácia: 10 Para a execução de: 800 testes e 200 treinos.
