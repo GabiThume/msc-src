@@ -63,9 +63,15 @@ int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_cl
 
     Mat resultados;
     CvNormalBayesClassifier classificador;
-    int i, j, acertos, total, height, width, treinados, classeAnterior;
+    int i, j, acertos, total, height, width, treinados, classe_atual;
     int iTreino, iTeste, num_componentes, num_treino, num_teste, totalTreino;
-    float acuracia;
+    int conjunto_treino, inicio, dados_classe, pos, repeticoes, num_repeticoes;
+    float desvio_padrao, variancia, media;
+    vector<float> acuracia;
+    vector<int> vetor_rand;
+    srand(time(0)); 
+    
+    num_repeticoes = 20;
         
     Size n = vetorCaracteristicas.size();
     height = n.height;
@@ -79,48 +85,97 @@ int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_cl
     Mat dadosTeste(num_teste, width, CV_32FC1);
     Mat rotulosTeste(num_teste, 1, CV_32FC1);
 
-    classeAnterior = -1; iTreino = 0; iTeste = 0;
+    // Repeated random sub-sampling validation
 
-    for (i = 0; i < height; i++) {
-        if (classes[i] != classeAnterior){
-            treinados = 0;
-            classeAnterior = classes[i];
+    // A cada repetição, particiona-se aleatoriamente o conjunto em treinamento 
+    // e teste.
+    conjunto_treino = num_treino/num_classes;
+
+    // Supondo que as classes estão balanceadas, a quantidade de dados é
+    // igual ao total dividido pelo número de classes - Simplificação
+    dados_classe = height/num_classes;
+
+    for(repeticoes = 0; repeticoes < num_repeticoes; repeticoes++) {
+
+        classe_atual = classes[0]; 
+        iTreino = 0; iTeste = 0; treinados = 0;
+
+        for (i = 0; i < height; i++) {
+
+            if (classes[i] != classe_atual){
+                treinados = 0;
+                classe_atual = classes[i];
+            }
+            
+            inicio = (classe_atual-1)*dados_classe;
+
+            if (treinados < conjunto_treino) {
+                // Gera uma posição aleatória para um dado de treino
+                pos = inicio + (rand() % (dados_classe));
+
+                if (!count(vetor_rand.begin(), vetor_rand.end(), pos)){
+                    vetor_rand.push_back(pos);
+                    // Copia o vetor de pos para os dados de treinamento
+                    Mat treino = dadosTreinamento.row(iTreino); 
+                    vetorCaracteristicas.row(pos).copyTo(treino);
+                    rotulosTreinamento.at<float>(iTreino, 0) = classes[i];
+                    treinados++;
+                    iTreino++;
+                }
+            }
+        }  
+        
+        // Após selecionados o conjunto de treino, o conjunto de teste será o
+        // restante - as posições que não estão em vetor_rand
+        for (i = 0; i < height; i++) {
+            if (!count(vetor_rand.begin(), vetor_rand.end(), i)){
+                Mat teste = dadosTeste.row(iTeste);
+                vetorCaracteristicas.row(i).copyTo(teste);
+                rotulosTeste.at<float>(iTeste, 0) = classes[i];
+                iTeste++;
+            }
         }
+        vetor_rand.clear();
 
-        if (treinados < num_treino/num_classes) {
-            for (j = 0; j < width; j++) {
-                dadosTreinamento.at<float>(iTreino, j) = vetorCaracteristicas.at<float>(i, j);
-            }  
-            rotulosTreinamento.at<float>(iTreino, 0) = classes[i];
-            treinados++;
-            iTreino++;
-        } else {
-            for (j = 0; j < width; j++) {  
-                dadosTeste.at<float>(iTeste, j) = vetorCaracteristicas.at<float>(i, j);  
-            }  
-            rotulosTeste.at<float>(iTeste, 0) = classes[i];
-            iTeste++;
+        // Treina o classificador Normal Bayes    
+        classificador.train(dadosTreinamento, rotulosTreinamento);
+
+        // Avalia o classificador Normal Bayes
+        classificador.predict(dadosTeste, &resultados);
+     
+        acertos = 0;
+        for (i = 0; i < resultados.size().height; i++) {
+            if (rotulosTeste.at<float>(i, 0) == resultados.at<float>(i, 0)) {
+                acertos++;        
+            }
         }
-    }  
-
-    // Treina o classificador Normal Bayes    
-    classificador.train(dadosTreinamento, rotulosTreinamento);
-
-    // Avalia o classificador Normal Bayes
-    classificador.predict(dadosTeste, &resultados);
- 
-    acertos = 0;
-    for (i = 0; i < resultados.size().height; i++) {
-        if (rotulosTeste.at<float>(i, 0) == resultados.at<float>(i, 0)) {
-            acertos++;        
-        }
+            
+        total = resultados.size().height;
+        totalTreino = rotulosTreinamento.size().height;
+        acuracia.push_back(acertos*100.0/total);
     }
-    
-    total = resultados.size().height;
-    totalTreino = rotulosTreinamento.size().height;
-    acuracia = acertos*100.0/total;
-    cout << "Acurácia: " << acuracia << " Para a execução de: " << total << " testes e " << totalTreino << " treinos." << endl;
 
+    media = acuracia[0];
+    for (i = 1; i < acuracia.size(); i++){
+        media = (media+acuracia[i])/2;
+    }
+
+    variancia = 0;
+    for (i = 0; i < acuracia.size(); i++){
+        variancia += pow(acuracia[i]-media, 2);
+    }
+    variancia = variancia/acuracia.size();
+    desvio_padrao = sqrt(variancia);
+
+    cout << "Validação da classificação do conjunto " << total << " testes e " << totalTreino << " treinos com "<<acuracia.size()<<" repetições:" << endl;
+    cout << "\tMédia = " << media << endl;
+    cout << "\tVariância = " << variancia << endl;
+    cout << "\tDesvio Padrão = " << desvio_padrao << endl << endl; 
+
+    dadosTreinamento.release();
+    dadosTeste.release();
+    rotulosTeste.release();
+    rotulosTreinamento.release();
     return 0;
 }
 
@@ -142,7 +197,7 @@ Mat calculaEntropia(Mat data, int tam_janela, string nome_arquivo) {
     width = data.size().width;
     Mat vetorEntropia(height, ceil((float)width/tam_janela), CV_32FC1);
 
-    arq_saida = "entropia/ENTROPIA_" + tam.str() + "_"  + nome_arquivo; 
+    arq_saida = "Resultados de entropia/ENTROPIA_" + tam.str() + "_"  + nome_arquivo; 
     ofstream arq(arq_saida.c_str());
    
     for (i = 0; i < height; i++){
@@ -185,7 +240,7 @@ Mat calculaPCA(Mat data, int nComponents, string nome_arquivo) {
     stringstream n;
     n << nComponents;
 
-    string arq_saida = "pca/PCA_" + n.str() + "_" + nome_arquivo; 
+    string arq_saida = "Resultados de pca/PCA_" + n.str() + "_" + nome_arquivo; 
     ofstream arq(arq_saida.c_str());
 
     PCA pca(data, Mat(), CV_PCA_DATA_AS_ROW, nComponents);
