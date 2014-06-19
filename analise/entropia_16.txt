@@ -1,60 +1,140 @@
 
-entropia/ENTROPIA_16_BaseImagens_BIC_Luminance_256c_100r.txt
-Acurácia: 29.125 Para a execução de: 800 testes e 200 treinos.
+Resultados de entropia/ENTROPIA_16_BaseImagens_BIC_Luminance_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 33.6044
+	Variância = 7.36778
+	Desvio Padrão = 2.71437
 
-entropia/ENTROPIA_16_BaseImagens_CCV_Intensity_256c_100r.txt
-Acurácia: 37.25 Para a execução de: 800 testes e 200 treinos.
 
-entropia/ENTROPIA_16_BaseImagens_GCH_Gleam_256c_100r.txt
-Acurácia: 13.625 Para a execução de: 800 testes e 200 treinos.
+Resultados de entropia/ENTROPIA_16_BaseImagens_CCV_Intensity_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 36.4345
+	Variância = 1.91023
+	Desvio Padrão = 1.38211
 
-entropia/ENTROPIA_16_BaseImagens_GCH_Luminance_256c_100r.txt
-Acurácia: 29.625 Para a execução de: 800 testes e 200 treinos.
 
-entropia/ENTROPIA_16_BaseImagens_CCV_Gleam_256c_100r.txt
-Acurácia: 24.875 Para a execução de: 800 testes e 200 treinos.
+Resultados de entropia/ENTROPIA_16_BaseImagens_GCH_Gleam_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 18.7052
+	Variância = 8.59773
+	Desvio Padrão = 2.93219
 
-entropia/ENTROPIA_16_BaseImagens_ACC_Luminance_256c_4d_100r.txt
-Acurácia: 36.25 Para a execução de: 800 testes e 200 treinos.
 
-entropia/ENTROPIA_16_BaseImagens_Haralick6_Intensity_256c_100r.txt
-Acurácia: 9.625 Para a execução de: 800 testes e 200 treinos.
+Resultados de entropia/ENTROPIA_16_BaseImagens_GCH_Luminance_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 28.0045
+	Variância = 4.31944
+	Desvio Padrão = 2.07833
 
-entropia/ENTROPIA_16_BaseImagens_BIC_MSB_256c_100r.txt
-Acurácia: 21.75 Para a execução de: 800 testes e 200 treinos.
 
-entropia/ENTROPIA_16_BaseImagens_CCV_Luminance_256c_100r.txt
-Acurácia: 37 Para a execução de: 800 testes e 200 treinos.
+Resultados de entropia/ENTROPIA_16_BaseImagens_CCV_Gleam_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 22.0369
+	Variância = 14.1318
+	Desvio Padrão = 3.75922
 
-entropia/ENTROPIA_16_BaseImagens_Haralick6_MSB_256c_100r.txt
-Acurácia: 9.75 Para a execução de: 800 testes e 200 treinos.
 
-entropia/ENTROPIA_16_BaseImagens_CCV_MSB_256c_100r.txt
-Acurácia: 32.125 Para a execução de: 800 testes e 200 treinos.
+Resultados de entropia/ENTROPIA_16_BaseImagens_ACC_Luminance_256c_4d_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 37.4784
+	Variância = 7.21207
+	Desvio Padrão = 2.68553
 
-entropia/ENTROPIA_16_BaseImagens_ACC_Gleam_256c_4d_100r.txt
-Acurácia: 10 Para a execução de: 800 testes e 200 treinos.
 
-entropia/ENTROPIA_16_BaseImagens_GCH_MSB_256c_100r.txt
-Acurácia: 27.875 Para a execução de: 800 testes e 200 treinos.
+Resultados de entropia/ENTROPIA_16_BaseImagens_Haralick6_Intensity_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 10.5199
+	Variância = 0.284215
+	Desvio Padrão = 0.533118
 
-entropia/ENTROPIA_16_BaseImagens_Haralick6_Luminance_256c_100r.txt
-Acurácia: 11.625 Para a execução de: 800 testes e 200 treinos.
 
-entropia/ENTROPIA_16_BaseImagens_BIC_Gleam_256c_100r.txt
-Acurácia: 28.25 Para a execução de: 800 testes e 200 treinos.
+Resultados de entropia/ENTROPIA_16_BaseImagens_BIC_MSB_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 33.3849
+	Variância = 33.2855
+	Desvio Padrão = 5.76936
 
-entropia/ENTROPIA_16_BaseImagens_ACC_Intensity_256c_4d_100r.txt
-Acurácia: 39.25 Para a execução de: 800 testes e 200 treinos.
 
-entropia/ENTROPIA_16_BaseImagens_BIC_Intensity_256c_100r.txt
-Acurácia: 30.625 Para a execução de: 800 testes e 200 treinos.
+Resultados de entropia/ENTROPIA_16_BaseImagens_CCV_Luminance_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 37.8763
+	Variância = 2.89134
+	Desvio Padrão = 1.70039
 
-entropia/ENTROPIA_16_BaseImagens_ACC_MSB_256c_4d_100r.txt
-Acurácia: 41.125 Para a execução de: 800 testes e 200 treinos.
 
-entropia/ENTROPIA_16_BaseImagens_GCH_Intensity_256c_100r.txt
-Acurácia: 28.875 Para a execução de: 800 testes e 200 treinos.
+Resultados de entropia/ENTROPIA_16_BaseImagens_Haralick6_MSB_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 10.0879
+	Variância = 0.0806347
+	Desvio Padrão = 0.283962
 
-entropia/ENTROPIA_16_BaseImagens_Haralick6_Gleam_256c_100r.txt
-Acurácia: 10 Para a execução de: 800 testes e 200 treinos.
+
+Resultados de entropia/ENTROPIA_16_BaseImagens_CCV_MSB_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 37.0314
+	Variância = 7.80004
+	Desvio Padrão = 2.79285
+
+
+Resultados de entropia/ENTROPIA_16_BaseImagens_ACC_Gleam_256c_4d_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 10
+	Variância = 0
+	Desvio Padrão = 0
+
+
+Resultados de entropia/ENTROPIA_16_BaseImagens_GCH_MSB_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 23.4695
+	Variância = 8.49218
+	Desvio Padrão = 2.91414
+
+
+Resultados de entropia/ENTROPIA_16_BaseImagens_Haralick6_Luminance_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 10.7261
+	Variância = 0.429268
+	Desvio Padrão = 0.655185
+
+
+Resultados de entropia/ENTROPIA_16_BaseImagens_BIC_Gleam_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 26.0098
+	Variância = 14.1514
+	Desvio Padrão = 3.76183
+
+
+Resultados de entropia/ENTROPIA_16_BaseImagens_ACC_Intensity_256c_4d_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 36.1347
+	Variância = 7.38512
+	Desvio Padrão = 2.71756
+
+
+Resultados de entropia/ENTROPIA_16_BaseImagens_BIC_Intensity_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 32.6908
+	Variância = 13.2105
+	Desvio Padrão = 3.63463
+
+
+Resultados de entropia/ENTROPIA_16_BaseImagens_ACC_MSB_256c_4d_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 51.0362
+	Variância = 10.4258
+	Desvio Padrão = 3.22891
+
+
+Resultados de entropia/ENTROPIA_16_BaseImagens_GCH_Intensity_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 27.3243
+	Variância = 8.40195
+	Desvio Padrão = 2.89861
+
+
+Resultados de entropia/ENTROPIA_16_BaseImagens_Haralick6_Gleam_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 9.8786
+	Variância = 0.00811194
+	Desvio Padrão = 0.0900663
+

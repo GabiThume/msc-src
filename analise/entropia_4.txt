@@ -105,3 +105,36 @@ Validação da classificação do conjunto 800 testes e 200 treinos com 20 repet
 
 
 Resultados de entropia/ENTROPIA_4_BaseImagens_ACC_Intensity_256c_4d_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 28.2403
+	Variância = 18.4994
+	Desvio Padrão = 4.30109
+
+
+Resultados de entropia/ENTROPIA_4_BaseImagens_BIC_Intensity_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 48.4816
+	Variância = 1.57654
+	Desvio Padrão = 1.2556
+
+
+Resultados de entropia/ENTROPIA_4_BaseImagens_ACC_MSB_256c_4d_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 36.9626
+	Variância = 25.9749
+	Desvio Padrão = 5.09656
+
+
+Resultados de entropia/ENTROPIA_4_BaseImagens_GCH_Intensity_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 38.6712
+	Variância = 5.42958
+	Desvio Padrão = 2.33015
+
+
+Resultados de entropia/ENTROPIA_4_BaseImagens_Haralick6_Gleam_256c_100r.txt
+Validação da classificação do conjunto 800 testes e 200 treinos com 20 repetições:
+	Média = 9.96471
+	Variância = 0.00260596
+	Desvio Padrão = 0.0510486
+

@@ -65,5 +65,18 @@ Opcões para métodos e parâmetros:
     [3] Todos:
         - <nAtributos>: número de atributos da projeção
         - <tJanela>: tamanho da janela
-      
+
+A análise da classificação (utilizando Naive Bayes e validação cruzada por Repeated subsampling) está sendo impressa no terminal. Assim, para gravar em um arquivo os resultados dessa análise:
+
+    ./reducao_dimensao <DIRETORIO DOS VETORES> <METODO> <LISTA DE PARAMETROS> > analise/<METODO>_<PARAMETRO>.txt
+
+Exemplos:
+
+    ./reducao_dimensao caracteristicas/ 1 35 > analise/PCA_35.txt
+    ./reducao_dimensao caracteristicas/ 2 4 > analise/entropia_4.txt
+
+
+
+
+
 
