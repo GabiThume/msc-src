@@ -1,0 +1,140 @@
+
+Resultados de pca/PCA_20_BaseImagens_BIC_Luminance_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 47.8848
+	Variância = 4.83808
+	Desvio Padrão = 2.19956
+
+
+Resultados de pca/PCA_20_BaseImagens_CCV_Intensity_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 48.1904
+	Variância = 2.84222
+	Desvio Padrão = 1.68589
+
+
+Resultados de pca/PCA_20_BaseImagens_GCH_Gleam_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 36.2725
+	Variância = 6.89787
+	Desvio Padrão = 2.62638
+
+
+Resultados de pca/PCA_20_BaseImagens_GCH_Luminance_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 49.1689
+	Variância = 3.48528
+	Desvio Padrão = 1.86689
+
+
+Resultados de pca/PCA_20_BaseImagens_CCV_Gleam_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 41.8945
+	Variância = 14.5092
+	Desvio Padrão = 3.80909
+
+
+Resultados de pca/PCA_20_BaseImagens_ACC_Luminance_256c_4d_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 62.2744
+	Variância = 3.00333
+	Desvio Padrão = 1.73301
+
+
+Resultados de pca/PCA_20_BaseImagens_Haralick6_Intensity_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 49.6699
+	Variância = 4.78298
+	Desvio Padrão = 2.187
+
+
+Resultados de pca/PCA_20_BaseImagens_BIC_MSB_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 72.6621
+	Variância = 12.7608
+	Desvio Padrão = 3.57223
+
+
+Resultados de pca/PCA_20_BaseImagens_CCV_Luminance_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 48.3877
+	Variância = 3.94669
+	Desvio Padrão = 1.98663
+
+
+Resultados de pca/PCA_20_BaseImagens_Haralick6_MSB_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 59.0215
+	Variância = 2.16335
+	Desvio Padrão = 1.47083
+
+
+Resultados de pca/PCA_20_BaseImagens_CCV_MSB_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 70.1621
+	Variância = 8.6087
+	Desvio Padrão = 2.93406
+
+
+Resultados de pca/PCA_20_BaseImagens_ACC_Gleam_256c_4d_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 10
+	Variância = 0
+	Desvio Padrão = 0
+
+
+Resultados de pca/PCA_20_BaseImagens_GCH_MSB_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 22.2705
+	Variância = 9.56985
+	Desvio Padrão = 3.09352
+
+
+Resultados de pca/PCA_20_BaseImagens_Haralick6_Luminance_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 51.459
+	Variância = 2.48156
+	Desvio Padrão = 1.5753
+
+
+Resultados de pca/PCA_20_BaseImagens_BIC_Gleam_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 48.2383
+	Variância = 13.9626
+	Desvio Padrão = 3.73666
+
+
+Resultados de pca/PCA_20_BaseImagens_ACC_Intensity_256c_4d_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 59.1455
+	Variância = 7.48465
+	Desvio Padrão = 2.73581
+
+
+Resultados de pca/PCA_20_BaseImagens_BIC_Intensity_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 45.8721
+	Variância = 5.13961
+	Desvio Padrão = 2.26707
+
+
+Resultados de pca/PCA_20_BaseImagens_ACC_MSB_256c_4d_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 57.1689
+	Variância = 5.07171
+	Desvio Padrão = 2.25204
+
+
+Resultados de pca/PCA_20_BaseImagens_GCH_Intensity_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 47.7656
+	Variância = 4.35024
+	Desvio Padrão = 2.08572
+
+
+Resultados de pca/PCA_20_BaseImagens_Haralick6_Gleam_256c_100r.txt
+Validação da classificação do conjunto 200 testes e 800 treinos com 10 repetições:
+	Média = 53.79
+	Variância = 4.24604
+	Desvio Padrão = 2.06059
+

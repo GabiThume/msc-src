@@ -70,14 +70,13 @@ int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_cl
     vector<float> acuracia;
     vector<int> vetor_rand;
     srand(time(0)); 
-    
-    num_repeticoes = 20;
+    num_repeticoes = 10;
         
     Size n = vetorCaracteristicas.size();
     height = n.height;
     width = n.width;
-    num_treino = (int)round(height*prob);
-    num_teste = (int)round(height*(1.0-prob));
+    num_treino = ceil(height*prob);
+    num_teste = height-num_treino;
     
     // Armazena os dados de treinamento e de teste para classificação
     Mat dadosTreinamento(num_treino, width, CV_32FC1);
@@ -96,37 +95,28 @@ int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_cl
     dados_classe = height/num_classes;
 
     for(repeticoes = 0; repeticoes < num_repeticoes; repeticoes++) {
-
-        classe_atual = classes[0]; 
-        iTreino = 0; iTeste = 0; treinados = 0;
-
-        for (i = 0; i < height; i++) {
-
-            if (classes[i] != classe_atual){
-                treinados = 0;
-                classe_atual = classes[i];
-            }
-            
+        iTreino = 0; treinados = 0;
+        for (i = 0; i < num_classes; i++) {
+            treinados = 0;
+            classe_atual = i+1;
             inicio = (classe_atual-1)*dados_classe;
-
-            if (treinados < conjunto_treino) {
+            while (treinados < conjunto_treino) {
                 // Gera uma posição aleatória para um dado de treino
                 pos = inicio + (rand() % (dados_classe));
-
                 if (!count(vetor_rand.begin(), vetor_rand.end(), pos)){
                     vetor_rand.push_back(pos);
                     // Copia o vetor de pos para os dados de treinamento
                     Mat treino = dadosTreinamento.row(iTreino); 
                     vetorCaracteristicas.row(pos).copyTo(treino);
-                    rotulosTreinamento.at<float>(iTreino, 0) = classes[i];
+                    rotulosTreinamento.at<float>(iTreino, 0) = classes[pos];
                     treinados++;
                     iTreino++;
                 }
             }
         }  
-        
         // Após selecionados o conjunto de treino, o conjunto de teste será o
         // restante - as posições que não estão em vetor_rand
+        iTeste = 0;
         for (i = 0; i < height; i++) {
             if (!count(vetor_rand.begin(), vetor_rand.end(), i)){
                 Mat teste = dadosTeste.row(iTeste);
@@ -242,13 +232,13 @@ Mat calculaPCA(Mat data, int nComponents, string nome_arquivo) {
 
     string arq_saida = "Resultados de pca/PCA_" + n.str() + "_" + nome_arquivo; 
     ofstream arq(arq_saida.c_str());
+    cout << endl << arq_saida << endl;
 
     PCA pca(data, Mat(), CV_PCA_DATA_AS_ROW, nComponents);
     autovetores = pca.eigenvectors.clone();
     projecao = pca.project(data);
 
     arq << projecao;
-    cout << endl << arq_saida << endl;
     arq.close();    
 
     return projecao;
@@ -299,7 +289,7 @@ int main(int argc, const char *argv[]) {
             break;
     }
     
-    float prob = 0.7;
+    float prob = 0.5;
 
     // Para cada arquivo no diretório de entrada, realiza as operações	    
     diretorio = opendir(nome_dir.c_str());
