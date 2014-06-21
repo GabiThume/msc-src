@@ -277,27 +277,29 @@ int main(int argc, const char *argv[]) {
 
 	metodo = atoi(argv[2]); // descritor a ser utilizado
     switch(metodo){
-    case 0: // Somente classificação
-        break;
-    case 1: // PCA
-        if (argc < 4) 
-            erroEntrada();
-        atributos = atoi(argv[3]);
-        break;
-    case 2: // Entropia
-        if (argc < 4) 
-            erroEntrada();
-        janela = atoi(argv[3]);
-        break;
-    case 3: // PCA + Entropia
-        if (argc < 5) 
-            erroEntrada();
-        atributos = atoi(argv[3]);
-        janela = atoi(argv[4]);
-        break;
-    default:
-        break;
+        case 0: // Somente classificação
+            break;
+        case 1: // PCA
+            if (argc < 4) 
+                erroEntrada();
+            atributos = atoi(argv[3]);
+            break;
+        case 2: // Entropia
+            if (argc < 4) 
+                erroEntrada();
+            janela = atoi(argv[3]);
+            break;
+        case 3: // PCA + Entropia
+            if (argc < 5) 
+                erroEntrada();
+            atributos = atoi(argv[3]);
+            janela = atoi(argv[4]);
+            break;
+        default:
+            break;
     }
+    
+    float prob = 0.7;
 
     // Para cada arquivo no diretório de entrada, realiza as operações	    
     diretorio = opendir(nome_dir.c_str());
@@ -316,25 +318,26 @@ int main(int argc, const char *argv[]) {
                     //cout << endl << nome_arq << endl;
 
                     switch(metodo){
-                    case 0: // Somente classificação
-                        classificacaoBayes(data, classes, nClasses, 0.2);
-                        break;
-                    case 1: // PCA
-                        projecao = calculaPCA(data, atributos, nome_arq);
-                        classificacaoBayes(projecao, classes, nClasses, 0.2);
-                        break;
-                    case 2: // Entropia
-                        vetorEntropia = calculaEntropia(data, janela, nome_arq);
-                        classificacaoBayes(vetorEntropia, classes, nClasses, 0.2);
-                        break;
-                    case 3: // PCA + Entropia
-                        projecao = calculaPCA(data, atributos, nome_arq);
-                        classificacaoBayes(projecao, classes, nClasses, 0.2);
-                        vetorEntropia = calculaEntropia(data, janela, nome_arq);
-                        classificacaoBayes(vetorEntropia, classes, nClasses, 0.2);
-                        break;
-                    default:
-                        break;
+                        case 0: // Somente classificação
+                            classificacaoBayes(data, classes, nClasses, prob);
+                            break;
+                        case 1: // PCA
+                            projecao = calculaPCA(data, atributos, nome_arq);
+                            classificacaoBayes(projecao, classes, nClasses, prob);
+                            break;
+                        case 2: // Entropia
+                            vetorEntropia = calculaEntropia(data, janela, nome_arq);
+                            classificacaoBayes(vetorEntropia, classes, nClasses, prob);
+                            break;
+                        case 3: // PCA + Entropia
+                            classificacaoBayes(data, classes, nClasses, prob);
+                            projecao = calculaPCA(data, atributos, nome_arq);
+                            classificacaoBayes(projecao, classes, nClasses, prob);
+                            vetorEntropia = calculaEntropia(data, janela, nome_arq);
+                            classificacaoBayes(vetorEntropia, classes, nClasses, prob);
+                            break;
+                        default:
+                            break;
                     }
                 }
             }

@@ -73,7 +73,7 @@ int descriptor(char const *baseImagem, int method, int nColor, double nRes, int 
 	
 	int fvsize = 0; // tamanho do vetor de caracteristicas
 	
-    char *diretorioDescritores = (char *)"caracteristicas";
+  char *diretorioDescritores = (char *)"caracteristicas_caltech600";
 	char *quantMethodsNames[4] = {(char *)"Intensity", (char *)"Gleam", (char *)"Luminance", (char *)"MSB"};
 	
 	switch (method) {

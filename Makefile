@@ -8,7 +8,7 @@
 #
 
 
-all: descritores funcoesAux funcoesArquivo reducao_dimensao
+all: descritores funcoesAux funcoesArquivo reducao_dimensao merge_datasets
 	@g++ descritores.o funcoesAux.o funcoesArquivo.o mainDescritor.cpp -o mainDescritor -I /usr/include/opencv `pkg-config opencv --libs`
 
 debug: descritores funcoesAux funcoesArquivo
@@ -28,8 +28,11 @@ funcoesArquivo:
 
 reducao_dimensao: reducao_dimensao.cpp
 	@g++ -o reducao_dimensao reducao_dimensao.cpp -I /usr/include/opencv `pkg-config opencv --libs`
+	
+merge_datasets: mergeDataSets.cpp	
+	@g++ -o mergeDataSets mergeDataSets.cpp
 
 clean:
-	rm *.o *.*~ teste *~ mainDescritor reducao_dimensao
+	rm *.o *.*~ teste *~ mainDescritor reducao_dimensao mergeDataSets
 
 

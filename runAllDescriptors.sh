@@ -15,12 +15,12 @@ do
     do
       # Se o descritor for CCV, passa o parâmetro de threshold
       if [ $i == 3 ] ; then
-          ./mainDescritor BaseImagens $i 256 1 1 $j 25
+          ./mainDescritor Caltech_600 $i 256 1 1 $j 25
       # Se o descritor for ACC, passa como parâmetros as distâncias
       elif [ $i == 5 ] ; then
-          ./mainDescritor BaseImagens $i 256 1 1 $j 1 3 5 7
+          ./mainDescritor Caltech_600 $i 256 1 1 $j 1 3 5 7
       else
-          ./mainDescritor BaseImagens $i 256 1 1 $j
+          ./mainDescritor Caltech_600 $i 256 1 1 $j
       fi
     done
 done
