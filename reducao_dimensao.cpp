@@ -19,7 +19,6 @@ Mat leituraCaracteristicas(const string& filename, vector<int> &classes, int *nC
     float valor, caract;
     size_t n, d;
     int i, j;
-         
     ifstream arquivo(filename.c_str());
     if(!arquivo)
         throw exception();
@@ -39,7 +38,7 @@ Mat leituraCaracteristicas(const string& filename, vector<int> &classes, int *nC
     n = atoi(objetos.c_str());
     d = atoi(num_caract.c_str());
     Mat data(n, d, CV_32FC1);
-
+    
     while (getline(arquivo, linha)) {
 
         stringstream vetor_caract(linha);
@@ -187,7 +186,7 @@ Mat calculaEntropia(Mat data, int tam_janela, string nome_arquivo) {
     width = data.size().width;
     Mat vetorEntropia(height, ceil((float)width/tam_janela), CV_32FC1);
 
-    arq_saida = "Resultados de entropia/ENTROPIA_" + tam.str() + "_"  + nome_arquivo; 
+    arq_saida = "entropia/ENTROPIA_" + tam.str() + "_"  + nome_arquivo; 
     ofstream arq(arq_saida.c_str());
    
     for (i = 0; i < height; i++){
@@ -219,7 +218,6 @@ Mat calculaEntropia(Mat data, int tam_janela, string nome_arquivo) {
         }
     }
     arq << vetorEntropia;
-    cout << endl << arq_saida << endl;
     arq.close();    
     return vetorEntropia;
 }
@@ -230,9 +228,8 @@ Mat calculaPCA(Mat data, int nComponents, string nome_arquivo) {
     stringstream n;
     n << nComponents;
 
-    string arq_saida = "Resultados de pca/PCA_" + n.str() + "_" + nome_arquivo; 
+    string arq_saida = "pca/PCA_" + n.str() + "_" + nome_arquivo; 
     ofstream arq(arq_saida.c_str());
-    cout << endl << arq_saida << endl;
 
     PCA pca(data, Mat(), CV_PCA_DATA_AS_ROW, nComponents);
     autovetores = pca.eigenvectors.clone();
@@ -309,20 +306,26 @@ int main(int argc, const char *argv[]) {
 
                     switch(metodo){
                         case 0: // Somente classificação
+                            cout << endl << "Classificação para "<< nome.c_str() << endl;
                             classificacaoBayes(data, classes, nClasses, prob);
                             break;
                         case 1: // PCA
+                            cout << endl << "PCA para "<< nome.c_str() << " com " << atributos << " atributos" << endl;
                             projecao = calculaPCA(data, atributos, nome_arq);
                             classificacaoBayes(projecao, classes, nClasses, prob);
                             break;
                         case 2: // Entropia
+                            cout << endl << "Entropia para "<< nome.c_str() << " com janela = " << janela << endl;
                             vetorEntropia = calculaEntropia(data, janela, nome_arq);
                             classificacaoBayes(vetorEntropia, classes, nClasses, prob);
                             break;
-                        case 3: // PCA + Entropia
+                        case 3: // PCA, Entropia, Classificação
+                            cout << endl << "Classificação para "<< nome.c_str() << endl;
                             classificacaoBayes(data, classes, nClasses, prob);
+                            cout << endl << "PCA para "<< nome.c_str() << " com " << atributos << " atributos" << endl;
                             projecao = calculaPCA(data, atributos, nome_arq);
                             classificacaoBayes(projecao, classes, nClasses, prob);
+                            cout << endl << "Entropia para "<< nome.c_str() << " com janela = " << janela << endl;
                             vetorEntropia = calculaEntropia(data, janela, nome_arq);
                             classificacaoBayes(vetorEntropia, classes, nClasses, prob);
                             break;

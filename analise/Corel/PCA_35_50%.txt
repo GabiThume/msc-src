@@ -1,0 +1,140 @@
+
+PCA para caracteristicas/BaseImagens_BIC_Luminance_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 55.1816
+	Variância = 4.84165
+	Desvio Padrão = 2.20038
+
+
+PCA para caracteristicas/BaseImagens_CCV_Intensity_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 53.3855
+	Variância = 1.60941
+	Desvio Padrão = 1.26863
+
+
+PCA para caracteristicas/BaseImagens_GCH_Gleam_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 39.1531
+	Variância = 9.36207
+	Desvio Padrão = 3.05975
+
+
+PCA para caracteristicas/BaseImagens_GCH_Luminance_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 52.6352
+	Variância = 2.88618
+	Desvio Padrão = 1.69888
+
+
+PCA para caracteristicas/BaseImagens_CCV_Gleam_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 45.0957
+	Variância = 13.9757
+	Desvio Padrão = 3.73841
+
+
+PCA para caracteristicas/BaseImagens_ACC_Luminance_256c_4d_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 61.6793
+	Variância = 1.74202
+	Desvio Padrão = 1.31986
+
+
+PCA para caracteristicas/BaseImagens_Haralick6_Intensity_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 49.2027
+	Variância = 3.95366
+	Desvio Padrão = 1.98838
+
+
+PCA para caracteristicas/BaseImagens_BIC_MSB_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 26.3016
+	Variância = 4.59194
+	Desvio Padrão = 2.14288
+
+
+PCA para caracteristicas/BaseImagens_CCV_Luminance_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 48.5242
+	Variância = 2.41668
+	Desvio Padrão = 1.55457
+
+
+PCA para caracteristicas/BaseImagens_Haralick6_MSB_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 57.6621
+	Variância = 3.10592
+	Desvio Padrão = 1.76236
+
+
+PCA para caracteristicas/BaseImagens_CCV_MSB_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 29.0117
+	Variância = 23.4018
+	Desvio Padrão = 4.83754
+
+
+PCA para caracteristicas/BaseImagens_ACC_Gleam_256c_4d_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 10
+	Variância = 0
+	Desvio Padrão = 0
+
+
+PCA para caracteristicas/BaseImagens_GCH_MSB_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 56.916
+	Variância = 5.2819
+	Desvio Padrão = 2.29824
+
+
+PCA para caracteristicas/BaseImagens_Haralick6_Luminance_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 48.7141
+	Variância = 2.18869
+	Desvio Padrão = 1.47942
+
+
+PCA para caracteristicas/BaseImagens_BIC_Gleam_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 46.1352
+	Variância = 5.7819
+	Desvio Padrão = 2.40456
+
+
+PCA para caracteristicas/BaseImagens_ACC_Intensity_256c_4d_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 62.3531
+	Variância = 9.37158
+	Desvio Padrão = 3.0613
+
+
+PCA para caracteristicas/BaseImagens_BIC_Intensity_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 50.6066
+	Variância = 2.24328
+	Desvio Padrão = 1.49776
+
+
+PCA para caracteristicas/BaseImagens_ACC_MSB_256c_4d_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 58.7055
+	Variância = 8.81519
+	Desvio Padrão = 2.96904
+
+
+PCA para caracteristicas/BaseImagens_GCH_Intensity_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 47.8469
+	Variância = 2.35219
+	Desvio Padrão = 1.53369
+
+
+PCA para caracteristicas/BaseImagens_Haralick6_Gleam_256c_100r.txt com 35 atributos
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 52.6039
+	Variância = 1.65039
+	Desvio Padrão = 1.28468
+

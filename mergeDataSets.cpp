@@ -44,13 +44,13 @@ int main (int argc, char **argv){
   
   for(i = 0; i < nInstances; ++i){
     if(i == 0){
-      fprintf(fout, "%d %d %d\n", nInstances, nClasses, nAttrs);
+      fprintf(fout, "%d\t%d\t%d\n", nInstances, nClasses, nAttrs);
     }
     
     for(j = 0; j < nFiles; ++j){
-      fscanf(files[j], "%d %d", &nInst, &label);
+      fscanf(files[j], "%d\t%d", &nInst, &label);
       if(j == 0){
-        fprintf(fout, "%d %d", nInst, label);
+        fprintf(fout, "%d\t%d\t", nInst, label);
       }
       
       for(k = 0; k < nAttrsDataSets[j]; ++k){
