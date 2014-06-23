@@ -1,28 +1,28 @@
 
 PCA para caracteristicas_caltech600/all/Caltech_600_ALL_Intensity_256c_4d_100r.txt com 50 atributos
 Validação da classificação do conjunto 300 testes e 300 treinos com 10 repetições:
-	Média = 47.4225
-	Variância = 12.4033
-	Desvio Padrão = 3.52183
+	Média = 47.0111
+	Variância = 11.3188
+	Desvio Padrão = 3.36435
 
 
 PCA para caracteristicas_caltech600/all/Caltech_600_ALL_MSB_256c_4d_100r.txt com 50 atributos
 Validação da classificação do conjunto 300 testes e 300 treinos com 10 repetições:
-	Média = 51.4727
-	Variância = 12.6909
-	Desvio Padrão = 3.56242
+	Média = 49.7253
+	Variância = 12.064
+	Desvio Padrão = 3.47333
 
 
 PCA para caracteristicas_caltech600/all/Caltech_600_ALL_Luminance_256c_4d_100r.txt com 50 atributos
 Validação da classificação do conjunto 300 testes e 300 treinos com 10 repetições:
-	Média = 47.4961
-	Variância = 7.19646
-	Desvio Padrão = 2.68262
+	Média = 47.9271
+	Variância = 10.4602
+	Desvio Padrão = 3.23422
 
 
 PCA para caracteristicas_caltech600/all/Caltech_600_ALL_Gleam_256c_4d_100r.txt com 50 atributos
 Validação da classificação do conjunto 300 testes e 300 treinos com 10 repetições:
-	Média = 49.7721
-	Variância = 4.052
-	Desvio Padrão = 2.01296
+	Média = 49.2728
+	Variância = 6.50271
+	Desvio Padrão = 2.55004
 

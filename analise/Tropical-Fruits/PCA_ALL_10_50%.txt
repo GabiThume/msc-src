@@ -1,28 +1,28 @@
 
 PCA para caracteristicas_tropical_fruits1400/all/tropical_fruits1400_ALL_Gleam_256c_4d_100r.txt com 10 atributos
 Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
-	Média = 47.8212
-	Variância = 2.39728
-	Desvio Padrão = 1.54831
+	Média = 47.4085
+	Variância = 2.48771
+	Desvio Padrão = 1.57725
 
 
 PCA para caracteristicas_tropical_fruits1400/all/tropical_fruits1400_ALL_Luminance_256c_4d_100r.txt com 10 atributos
 Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
-	Média = 89.1744
-	Variância = 2.10775
-	Desvio Padrão = 1.45181
+	Média = 90.1797
+	Variância = 0.756109
+	Desvio Padrão = 0.869545
 
 
 PCA para caracteristicas_tropical_fruits1400/all/tropical_fruits1400_ALL_Intensity_256c_4d_100r.txt com 10 atributos
 Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
-	Média = 90.5603
-	Variância = 0.670215
-	Desvio Padrão = 0.818666
+	Média = 91.6071
+	Variância = 2.34414
+	Desvio Padrão = 1.53106
 
 
 PCA para caracteristicas_tropical_fruits1400/all/tropical_fruits1400_ALL_MSB_256c_4d_100r.txt com 10 atributos
 Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
-	Média = 88.8005
-	Variância = 2.24812
-	Desvio Padrão = 1.49937
+	Média = 88.356
+	Variância = 1.09385
+	Desvio Padrão = 1.04587
 

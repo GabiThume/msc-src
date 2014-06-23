@@ -1,0 +1,140 @@
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_CCV_Gleam_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 39.7536
+	Variância = 2.18123
+	Desvio Padrão = 1.4769
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_Haralick6_Luminance_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 80.0008
+	Variância = 3.50521
+	Desvio Padrão = 1.87222
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_BIC_Gleam_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 41.0142
+	Variância = 1.51938
+	Desvio Padrão = 1.23263
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_GCH_Luminance_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 53.3393
+	Variância = 0.737055
+	Desvio Padrão = 0.858519
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_BIC_Intensity_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 72.1141
+	Variância = 2.64549
+	Desvio Padrão = 1.6265
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_GCH_MSB_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 88.8789
+	Variância = 1.08456
+	Desvio Padrão = 1.04142
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_CCV_Luminance_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 75.3596
+	Variância = 0.883518
+	Desvio Padrão = 0.939956
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_ACC_Intensity_256c_4d_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 71.9757
+	Variância = 8.06817
+	Desvio Padrão = 2.84045
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_CCV_Intensity_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 75.988
+	Variância = 2.9884
+	Desvio Padrão = 1.7287
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_GCH_Gleam_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 41.6883
+	Variância = 3.33755
+	Desvio Padrão = 1.8269
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_Haralick6_Intensity_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 80.5061
+	Variância = 2.75343
+	Desvio Padrão = 1.65935
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_BIC_MSB_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 87.8276
+	Variância = 0.860536
+	Desvio Padrão = 0.927651
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_ACC_Luminance_256c_4d_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 72.4364
+	Variância = 1.09706
+	Desvio Padrão = 1.04741
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_CCV_MSB_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 89.6412
+	Variância = 1.37779
+	Desvio Padrão = 1.17379
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_Haralick6_MSB_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 70.6035
+	Variância = 1.26343
+	Desvio Padrão = 1.12402
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_GCH_Intensity_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 54.8326
+	Variância = 1.15781
+	Desvio Padrão = 1.07602
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_BIC_Luminance_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 72.0555
+	Variância = 6.35088
+	Desvio Padrão = 2.52009
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_Haralick6_Gleam_256c_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 64.3507
+	Variância = 1.80542
+	Desvio Padrão = 1.34366
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_ACC_Gleam_256c_4d_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 7.14286
+	Variância = 0
+	Desvio Padrão = 0
+
+
+PCA para caracteristicas_tropical_fruits1400/tropical_fruits1400_ACC_MSB_256c_4d_100r.txt com 10 atributos
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 85.1337
+	Variância = 0.949002
+	Desvio Padrão = 0.974167
+

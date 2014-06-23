@@ -1,0 +1,140 @@
+
+Entropia para caracteristicas_corel/BaseImagens_BIC_Luminance_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 34.8027
+	Variância = 20.9915
+	Desvio Padrão = 4.58165
+
+
+Entropia para caracteristicas_corel/BaseImagens_CCV_Intensity_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 27.4762
+	Variância = 3.9081
+	Desvio Padrão = 1.97689
+
+
+Entropia para caracteristicas_corel/BaseImagens_GCH_Gleam_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 12.5594
+	Variância = 2.38053
+	Desvio Padrão = 1.5429
+
+
+Entropia para caracteristicas_corel/BaseImagens_GCH_Luminance_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 33.1289
+	Variância = 6.67646
+	Desvio Padrão = 2.58388
+
+
+Entropia para caracteristicas_corel/BaseImagens_CCV_Gleam_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 24.5449
+	Variância = 26.1098
+	Desvio Padrão = 5.10978
+
+
+Entropia para caracteristicas_corel/BaseImagens_ACC_Luminance_256c_4d_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 38.3219
+	Variância = 8.18673
+	Desvio Padrão = 2.86125
+
+
+Entropia para caracteristicas_corel/BaseImagens_Haralick6_Intensity_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 9.76133
+	Variância = 0.0581362
+	Desvio Padrão = 0.241114
+
+
+Entropia para caracteristicas_corel/BaseImagens_BIC_MSB_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 36.3477
+	Variância = 30.2254
+	Desvio Padrão = 5.49776
+
+
+Entropia para caracteristicas_corel/BaseImagens_CCV_Luminance_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 27.4918
+	Variância = 1.72469
+	Desvio Padrão = 1.31327
+
+
+Entropia para caracteristicas_corel/BaseImagens_Haralick6_MSB_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 10
+	Variância = 0
+	Desvio Padrão = 0
+
+
+Entropia para caracteristicas_corel/BaseImagens_CCV_MSB_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 44.023
+	Variância = 4.14642
+	Desvio Padrão = 2.03628
+
+
+Entropia para caracteristicas_corel/BaseImagens_ACC_Gleam_256c_4d_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 10
+	Variância = 0
+	Desvio Padrão = 0
+
+
+Entropia para caracteristicas_corel/BaseImagens_GCH_MSB_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 31.6457
+	Variância = 8.4792
+	Desvio Padrão = 2.91191
+
+
+Entropia para caracteristicas_corel/BaseImagens_Haralick6_Luminance_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 10
+	Variância = 0
+	Desvio Padrão = 0
+
+
+Entropia para caracteristicas_corel/BaseImagens_BIC_Gleam_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 21.1902
+	Variância = 16.0574
+	Desvio Padrão = 4.00716
+
+
+Entropia para caracteristicas_corel/BaseImagens_ACC_Intensity_256c_4d_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 35.9996
+	Variância = 6.16928
+	Desvio Padrão = 2.4838
+
+
+Entropia para caracteristicas_corel/BaseImagens_BIC_Intensity_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 37.5621
+	Variância = 1.92581
+	Desvio Padrão = 1.38774
+
+
+Entropia para caracteristicas_corel/BaseImagens_ACC_MSB_256c_4d_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 42.2547
+	Variância = 1.39199
+	Desvio Padrão = 1.17983
+
+
+Entropia para caracteristicas_corel/BaseImagens_GCH_Intensity_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 32.2
+	Variância = 4.616
+	Desvio Padrão = 2.14849
+
+
+Entropia para caracteristicas_corel/BaseImagens_Haralick6_Gleam_256c_100r.txt com janela = 8
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 10
+	Variância = 0
+	Desvio Padrão = 0
+

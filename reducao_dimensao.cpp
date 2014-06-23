@@ -37,23 +37,23 @@ Mat leituraCaracteristicas(const string& filename, vector<int> &classes, int *nC
     // Cria uma Mat com os dados do arquivo
     n = atoi(objetos.c_str());
     d = atoi(num_caract.c_str());
+
     Mat data(n, d, CV_32FC1);
-    
+
     while (getline(arquivo, linha)) {
 
         stringstream vetor_caract(linha);
-
         getline(vetor_caract, numero_img, '\t');
         getline(vetor_caract, classe, '\t');
         i = atoi(numero_img.c_str());
         j = 0;
-
         while(vetor_caract >> caract) {
             data.at<float>(i, j) = (float)caract;
             j++;
         }
         classes.push_back(atoi(classe.c_str()));
     }    
+
     arquivo.close();
     return data;
 }
@@ -110,7 +110,7 @@ int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_cl
                     rotulosTreinamento.at<float>(iTreino, 0) = classes[pos];
                     treinados++;
                     iTreino++;
-                }
+               }
             }
         }  
         // Após selecionados o conjunto de treino, o conjunto de teste será o
@@ -176,7 +176,7 @@ Mat calculaEntropia(Mat data, int tam_janela, string nome_arquivo) {
 
     map<float, int> frequencias;
     map<float, int>::const_iterator iterator;
-    double entropia, freq;
+    double entropia, prob;
     int i, j, height, width, janela, fim_janela, indice_janela;
     string arq_saida;
     stringstream tam;
@@ -202,16 +202,17 @@ Mat calculaEntropia(Mat data, int tam_janela, string nome_arquivo) {
             
             frequencias.clear();
             for (j = janela; j < fim_janela; j++){
-                float valor =  trunc(1000*data.at<float>(i, j))/1000;
+                float valor =  trunc(10000*data.at<float>(i, j))/10000;
                 frequencias[valor]++;
             }
             
             for (iterator = frequencias.begin(); iterator != frequencias.end(); ++iterator) {
-                freq = static_cast<double>(iterator->second) / (fim_janela -janela) ;
-                entropia += freq * log2( freq ) ;
+                prob = static_cast<double>(iterator->second) / (fim_janela -janela) ;
+                entropia += prob * log2( prob ) ;
             }
 
-            entropia *= -1;
+            if (entropia != 0)
+                entropia *= -1;
             vetorEntropia.at<float>(i, indice_janela) = (float)entropia;
             indice_janela++;
             janela += tam_janela;
@@ -237,7 +238,6 @@ Mat calculaPCA(Mat data, int nComponents, string nome_arquivo) {
 
     arq << projecao;
     arq.close();    
-
     return projecao;
 }
 

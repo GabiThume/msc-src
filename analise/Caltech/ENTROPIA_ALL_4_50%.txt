@@ -1,2 +1,0 @@
-
-Entropia para caracteristicas_caltech600/all/Caltech_600_ALL_Intensity_256c_4d_100r.txt com janela = 4

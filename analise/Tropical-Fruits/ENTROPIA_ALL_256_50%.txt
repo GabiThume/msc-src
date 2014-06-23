@@ -1,0 +1,28 @@
+
+Entropia para caracteristicas_tropical_fruits1400/all/tropical_fruits1400_ALL_Gleam_256c_4d_100r.txt com janela = 256
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 20.3273
+	Variância = 6.74172
+	Desvio Padrão = 2.59648
+
+
+Entropia para caracteristicas_tropical_fruits1400/all/tropical_fruits1400_ALL_Luminance_256c_4d_100r.txt com janela = 256
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 72.8312
+	Variância = 24.3528
+	Desvio Padrão = 4.93486
+
+
+Entropia para caracteristicas_tropical_fruits1400/all/tropical_fruits1400_ALL_Intensity_256c_4d_100r.txt com janela = 256
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 73.5988
+	Variância = 10.4078
+	Desvio Padrão = 3.22611
+
+
+Entropia para caracteristicas_tropical_fruits1400/all/tropical_fruits1400_ALL_MSB_256c_4d_100r.txt com janela = 256
+Validação da classificação do conjunto 700 testes e 700 treinos com 10 repetições:
+	Média = 55.8842
+	Variância = 9.29374
+	Desvio Padrão = 3.04856
+

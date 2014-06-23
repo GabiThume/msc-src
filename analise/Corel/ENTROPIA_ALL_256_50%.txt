@@ -1,0 +1,28 @@
+
+Entropia para caracteristicas_corel/all/BaseImagens_ALL_Intensity_256c_4d_100r.txt com janela = 256
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 49.4852
+	Variância = 19.7831
+	Desvio Padrão = 4.44782
+
+
+Entropia para caracteristicas_corel/all/BaseImagens_ALL_MSB_256c_4d_100r.txt com janela = 256
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 25.3668
+	Variância = 12.2568
+	Desvio Padrão = 3.50097
+
+
+Entropia para caracteristicas_corel/all/BaseImagens_ALL_Luminance_256c_4d_100r.txt com janela = 256
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 49.0082
+	Variância = 9.06681
+	Desvio Padrão = 3.01111
+
+
+Entropia para caracteristicas_corel/all/BaseImagens_ALL_Gleam_256c_4d_100r.txt com janela = 256
+Validação da classificação do conjunto 500 testes e 500 treinos com 10 repetições:
+	Média = 11.7914
+	Variância = 25.9922
+	Desvio Padrão = 5.09826
+
