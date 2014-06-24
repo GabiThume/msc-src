@@ -1,9 +1,0 @@
-
-Entropia para caracteristicas_caltech600/all/Caltech_600_ALL_Intensity_256c_4d_100r.txt com janela = 8
-Validação da classificação do conjunto 300 testes e 300 treinos com 10 repetições:
-	Média = 43.5189
-	Variância = 10.8097
-	Desvio Padrão = 3.28781
-
-
-Entropia para caracteristicas_caltech600/all/Caltech_600_ALL_MSB_256c_4d_100r.txt com janela = 8
