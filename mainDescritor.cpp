@@ -11,8 +11,8 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    if (argc < 7){
-        cout << "O programa espera: <pasta> <descritor> <quantidade de cores para quantizar a imagem> <fator de redimensionamento> <normalizacao> <metodo quantizacao> <distancias ACC | limiar CCV>\n";
+    if (argc < 8){
+        cout << "O programa espera: <pasta> <pasta_descritor> <descritor> <quantidade de cores para quantizar a imagem> <fator de redimensionamento> <normalizacao> <metodo quantizacao> <distancias ACC | limiar CCV>\n";
         cout << " - Descritores: 1 - BIC   2- GCH   3- CCV     4- Haralick    5- AutoCorrelograma (ACC)\n";
         cout << " - Cores: 8, 16, 32, 64 ou 256\n";
         cout << " - Redimensionamento - positivo, com máximo = 1 (1 = 100%)\n";
@@ -23,11 +23,12 @@ int main(int argc, char *argv[])
     } 
 
 	const char *base = argv[1]; // pasta com base de imagens
-	int descritor = atoi(argv[2]); // descritor a ser utilizado
-	int nColor = atoi(argv[3]); // quantidade de cores
-	double nRes = atof(argv[4]); // alteracao na resolucao
-	int oNorm = atoi(argv[5]); // normalizacao
-	int quantMethod = atoi(argv[6]);
+	const char *dir = argv[2]; 
+	int descritor = atoi(argv[3]); // descritor a ser utilizado
+	int nColor = atoi(argv[4]); // quantidade de cores
+	double nRes = atof(argv[5]); // alteracao na resolucao
+	int oNorm = atoi(argv[6]); // normalizacao
+	int quantMethod = atoi(argv[7]);
 // 	int oZero = atoi(argv[6]); // remover colunas
 	int oZero = 0;
 	
@@ -36,15 +37,15 @@ int main(int argc, char *argv[])
 	    return -1; 
 	}
 	
-	int totalpar = (argc-7);
+	int totalpar = (argc-8);
 	
 	int *params = new int[totalpar];
 	
 	if (descritor == 3) {
-	    params[0] = atoi(argv[7]);
+	    params[0] = atoi(argv[6]);
 	} else if (descritor == 5) {
         for (int i = 0; i < totalpar; i++)
-            params[i] = atoi(argv[7+i]);
+            params[i] = atoi(argv[6+i]);
 	}
 	
 	if( (nColor != 8) && (nColor != 16) && (nColor != 32) && (nColor != 64) && (nColor != 128) && (nColor != 256) ) 
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
 
 	if( (oZero != 0) && (oZero != 1) ) { cout << "Opcao descartar invalida (0, 1)\n\n"; return -1; }
 	
-	descriptor(base, descritor, nColor, nRes, oNorm, params, totalpar, oZero, quantMethod);
+	descriptor(base, dir, descritor, nColor, nRes, oNorm, params, totalpar, oZero, quantMethod);
 	
 	return 1;
 }

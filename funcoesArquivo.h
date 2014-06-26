@@ -21,6 +21,6 @@ int qtdArquivos(char *diretorio);
 
 int qtdImagensTotal(const char * base, int qtdClasses);
 
-int descriptor(const char *baseImagem, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod);
+int descriptor(const char *baseImagem, char const *diretorioDescritores, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod);
 
 #endif

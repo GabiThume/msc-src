@@ -9,18 +9,35 @@
 # Metodo de quantizacao: 1-Intensity 2-Gleam 3-Luminance 4-MSB
 # Parametros: Sequencia de distancias para ACC ou limiar do CCV
 
-for i in {1..5}
+cor[0]=256
+cor[1]=128
+cor[2]=64
+cor[3]=32
+cor[4]=16
+cor[5]=8
+
+for cores in {0..5}
 do
-    for j in {1..4}
-    do
-      # Se o descritor for CCV, passa o parâmetro de threshold
-      if [ $i == 3 ] ; then
-          ./mainDescritor Caltech_600 $i 256 1 1 $j 25
-      # Se o descritor for ACC, passa como parâmetros as distâncias
-      elif [ $i == 5 ] ; then
-          ./mainDescritor Caltech_600 $i 256 1 1 $j 1 3 5 7
-      else
-          ./mainDescritor Caltech_600 $i 256 1 1 $j
-      fi
-    done
+	for i in {1..5}
+	do
+		for j in {1..4}
+		do
+		# Se o descritor for CCV, passa o parâmetro de threshold
+		if [ $i == 3 ] ; then
+		  ./mainDescritor BaseCorel caracteristicas_corel/${cor[cores]} $i ${cor[cores]} 1 1 $j 25
+		  ./mainDescritor BaseCaltech caracteristicas_caltech600/${cor[cores]} $i ${cor[cores]} 1 1 $j 25
+		  ./mainDescritor BaseTropical caracteristicas_tropical_fruits1400/${cor[cores]} $i ${cor[cores]} 1 1 $j 25
+		# Se o descritor for ACC, passa como parâmetros as distâncias
+		elif [ $i == 5 ] ; then
+		  ./mainDescritor BaseCorel caracteristicas_corel/${cor[cores]} $i ${cor[cores]} 1 1 $j 1 3 5 7
+		  ./mainDescritor BaseCaltech caracteristicas_caltech600/${cor[cores]} $i ${cor[cores]} 1 1 $j 1 3 5 7
+		  ./mainDescritor BaseTropical caracteristicas_tropical_fruits1400/${cor[cores]} $i ${cor[cores]} 1 1 $j 1 3 5 7
+		else
+		  ./mainDescritor BaseCorel caracteristicas_corel/${cor[cores]} $i ${cor[cores]} 1 1 $j
+		  ./mainDescritor BaseCaltech caracteristicas_caltech600/${cor[cores]} $i ${cor[cores]} 1 1 $j
+		  ./mainDescritor BaseTropical caracteristicas_tropical_fruits1400/${cor[cores]} $i ${cor[cores]} 1 1 $j
+		fi
+		done
+		done
 done
+

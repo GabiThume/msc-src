@@ -53,7 +53,7 @@ int qtdImagensTotal(const char *base, int qtdClasses, int *objClass, int *maxs)
 	return contador;
 }
 
-int descriptor(char const *baseImagem, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod)
+int descriptor(char const *baseImagem, char const *diretorioDescritores, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod)
 {
 	int qtdImagem = 0;
 	int qtdClasses = 0;
@@ -73,7 +73,7 @@ int descriptor(char const *baseImagem, int method, int nColor, double nRes, int 
 	
 	int fvsize = 0; // tamanho do vetor de caracteristicas
 	
-  char *diretorioDescritores = (char *)"caracteristicas_caltech600";
+  	//char *diretorioDescritores = (char *)"caracteristicas_caltech600";
 	char *quantMethodsNames[4] = {(char *)"Intensity", (char *)"Gleam", (char *)"Luminance", (char *)"MSB"};
 	
 	switch (method) {
