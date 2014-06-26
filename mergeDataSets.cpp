@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <iostream>
+using namespace std;
 // Entrada:
 //  ./<executavel> <arquivo_saida> <numero_datasets> <dataset_1> ... <dataset_N>
 
@@ -14,8 +15,8 @@ int main (int argc, char **argv){
   int nFiles, i, j, k, *nAttrsDataSets, nInstances, nClasses, nAttrs, nInstancesAux, nClassesAux, nAttrsAux, label, nInst;
   double attrVal;
   FILE **files, *fout;
-  
   if(argc < 5){
+    cout << argc<<endl;
     error();
     exit(-1);
   }
@@ -31,7 +32,7 @@ int main (int argc, char **argv){
   nAttrsDataSets = (int*)malloc(nFiles * sizeof(int));
   
   nAttrs = 0;
-  for(i = 0; i < nFiles; ++i){
+  for(i = 0; i < nFiles; ++i){ 
     files[i] = fopen(argv[i + 3], "r");
     fscanf(files[i], "%d %d %d", &nInstancesAux, &nClassesAux, &nAttrsAux);
     nAttrsDataSets[i] = nAttrsAux;
