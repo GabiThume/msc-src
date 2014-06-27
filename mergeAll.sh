@@ -1,3 +1,4 @@
+cor[0]=256
 cor[1]=128
 cor[2]=64
 cor[3]=32
@@ -12,7 +13,7 @@ baseimg[0]="corel"
 baseimg[1]="tropical_fruits1400"
 baseimg[2]="caltech600"
 
-for i in {1..5}
+for i in {0..5}
 do
 	for j in {0..2}
 	do
