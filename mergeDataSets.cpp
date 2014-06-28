@@ -44,9 +44,10 @@ int main (int argc, char **argv){
   fout = fopen(argv[1], "w");
   
   for(i = 0; i < nInstances; ++i){
-    if(i == 0){
-      fprintf(fout, "%d\t%d\t%d\n", nInstances, nClasses, nAttrs);
-    }
+    // Linha comentada para gerar os CSVs, descomente para ter os dados na primeira linha
+    //if(i == 0){
+    //  fprintf(fout, "%d\t%d\t%d\n", nInstances, nClasses, nAttrs);
+    //}
     
     for(j = 0; j < nFiles; ++j){
       fscanf(files[j], "%d\t%d", &nInst, &label);
