@@ -1,24 +1,33 @@
 /**
- * 
- *		Luciana Calixta Escobar
+ * Auxiliar Functions for Feature Extraction:
+ *	Image enhancement
+ *	Image quantization
+ *	Normalization
+ * 	Distance Functions
  *
- *
- *		A compilacao desse arquivo deve ser realizada por:
- *		@g++ -c funcoesAux.c -I /usr/include/opencv -lcv -lml -lhighgui -lcvauc
- *
- *
+ *	Authors: Moacir Ponti, Luciana Escobar
+ *	Universidade de São Paulo / ICMC / 2012-2014
  **/
 
 
 #include "funcoesAux.h"
 
+/* 
+  Gamma correction function
+  Requires:
+	- img : image to be processed
+	- gamma : parameter for apply gamma correction
+  Returns:
+	- gamma-corrected image
+*/
 Mat correctGamma( Mat& img, double gamma ) {
-    double inverse_gamma = 1.0 / gamma;
+    //double inverse_gamma = 1.0 / gamma;
     
     Mat lut_matrix(1, 256, CV_8UC1 );
-    uchar * ptr = lut_matrix.ptr();
-    for( int i = 0; i < 256; i++ )
-	  ptr[i] = (int)( pow( (double) i / 255.0, inverse_gamma ) * 255.0 );
+    uchar *ptr = lut_matrix.ptr();
+    for( int i = 0; i < 256; i++ ) {
+	  ptr[i] = (int)( pow( (double) i / 255.0, gamma ) * 255.0 );
+    }
     
     Mat result;
     LUT( img, lut_matrix, result );
@@ -26,55 +35,56 @@ Mat correctGamma( Mat& img, double gamma ) {
     return result;
 }
 
-/*	Funcao Intensidade
- Conversão de uma imagem colorida para a escala de cinza usando os canais lineares
- Requer:
-	- imagem a ser convertida
-	- imagem onde sera armazenada a imagem convertida
+/*
+  Function to reduce the number of colors in a single channel image
+  Requires:
+	- I: input image to be modified
+	- nColors: final number of colors
+*/
+void reduceImageColors(Mat &I, int nColors) {
+
+	if (nColors >= 256) return;
+
+	double min, max;
+	Point maxLoc, minLoc;
+      	minMaxLoc(I, &min, &max, &minLoc, &maxLoc);
+      	double stretch = ((double)((nColors-1)) / (max - min ));
+      	I = I - min;
+      	I = I * stretch;
+}
+
+
+/*
+  Image quantization by Gamma corrected Intensity 
+  Requires
+	- I : image to be converted
+	- Q : image to store quantized version
+	- nColors : number of colors after quantization
 */
 void QuantizationIntensity(Mat &I, Mat &Q, int nColors) 
 {
-    //cout << " >>> Intensity\n";
     vector<Mat> imColors(3);
 
-    // a partir da imagem 'out' (ja convertida), separa os canais nas
-    // tres matrizes definidas em imColors
+    // separate input image into RGB channels
     split(I, imColors);
 
-    //somatorio de 1/3 de cada canal em cada pixel
+    // Compute Intensity image
     Q = (imColors[0]/3) + (imColors[1]/3) + (imColors[2]/3);
+    // Gamma function
+    Q = correctGamma(Q, 1/2.2);
 
-    Q = correctGamma(Q, 1/0.454);
-
-   if (nColors < 256) {
-      double min, max;
-      Point maxLoc, minLoc;
-      minMaxLoc(Q, &min, &max, &minLoc, &maxLoc);
-      double stretch = ((double)((nColors-1)) / (max - min ));
-
-      Q = Q - min;
-      Q = Q * stretch;
-
-      /*// se nao funcionar, use a funcao com loop
-      int x, y;
-      for (x = 0; x < imSize.height; x++) {
-         for (y = 0; y < imSize.width; y++) {
-             IMAGEM.at<uchar>(x,y) = (uchar) ((double)IMAGEM.at<uchar>(x,y) - (min)) * stretch;
-         }
-      }*/  
-    }  
-    
-//     imshow("convertida", Q);                   // mostra imagem reduzida
-//     waitKey(0);
+    // reduce number of colors
+    if (nColors < 256) reduceImageColors(Q,nColors);
 }
 
-/*	Funcao Gleam
- Conversão de uma imagem colorida para a escala de cinza usando os canais com a correção gamma
- Requer:
-	- imagem a ser convertida
-	- imagem onde sera armazenada a imagem convertida
-*/
 
+/*
+  Image quantization by Gleam
+   Requires
+	- I : image to be converted
+	- Q : image to store quantized version
+	- nColors : number of colors after quantization
+*/
 void QuantizationGleam(Mat &I, Mat &Q, int nColors) 
 {
     //cout << " >>> Gleam\n";
@@ -86,162 +96,107 @@ void QuantizationGleam(Mat &I, Mat &Q, int nColors)
     // tres matrizes definidas em imColors
     split(I, imColors);
 
-    Mat res0_32;
-    Mat res1_32;
-    Mat res2_32;
-    
-    imColors[0].convertTo(res0_32, CV_32F);
-    imColors[1].convertTo(res1_32, CV_32F);
-    imColors[2].convertTo(res2_32, CV_32F);
-    
-    pow(res0_32,pot,res0_32);
-    pow(res1_32,pot,res1_32);
-    pow(res2_32,pot,res2_32);
-    
-    res0_32.convertTo(imColors[0], CV_8U);
-    res1_32.convertTo(imColors[1], CV_8U);
-    res2_32.convertTo(imColors[2], CV_8U);
-    
-    //res2_32.convertTo(imColors[2], CV_8U);
+    imColors[0] = correctGamma(imColors[0], 1/2.2);
+    imColors[1] = correctGamma(imColors[1], 1/2.2);
+    imColors[2] = correctGamma(imColors[2], 1/2.2);
     
     //somatorio de 1/3 de cada canal com a correção gamma em cada pixel
     Q = imColors[0]/(3.0) + imColors[1]/(3.0) + imColors[2]/(3.0);
 
-    //Q = res0_32/(3.0) + res1_32/(3.0) + res2_32/(3.0);
-    
-    if (nColors < 256) {
-      double min, max;
-      Point maxLoc, minLoc;
-      minMaxLoc(Q, &min, &max, &minLoc, &maxLoc);
-      double stretch = ((double)((nColors-1)) / (max - min ));
-
-      Q = Q - min;
-      Q = Q * stretch;
-
-      /*// se nao funcionar, use a funcao com loop
-      int x, y;
-      for (x = 0; x < imSize.height; x++) {
-         for (y = 0; y < imSize.width; y++) {
-             IMAGEM.at<uchar>(x,y) = (uchar) ((double)IMAGEM.at<uchar>(x,y) - (min)) * stretch;
-         }
-      }*/  
-    }
-    
-//     imshow("convertida", Q);                   // mostra imagem reduzida
-//     waitKey(0);
+    // reduce number of colors
+    if (nColors < 256) reduceImageColors(Q,nColors);
 }
 
 
-/*	Funcao Luminance
- Conversão de uma imagem colorida para a escala de cinza usando uma combinação com pesos para cada canal
- Requer:
-	- imagem a ser convertida
-	- imagem onde sera armazenada a imagem convertida
+/*
+  Image quantization by gamma-corrected Luminance
+   Requires
+	- I : image to be converted
+	- Q : image to store quantized version
+	- nColors : number of colors after quantization
 */
 void QuantizationLuminance(Mat &I, Mat &Q, int nColors) 
 {
-    //cout << " >>> Luminance\n";
     vector<Mat> imColors(3);
 
-    // a partir da imagem 'out' (ja convertida), separa os canais nas
-    // tres matrizes definidas em imColors
+    // split image in RGB channels
     split(I, imColors);
 
-    //somatorio de cada canal com seu respectivo peso em cada pixel
+    // Luminance image computation
     Q = (0.299*imColors[2]) + (0.587*imColors[1]) + (0.114*imColors[0]);
-    
-    Q = correctGamma(Q, 1/0.454);
+    // Gamma correction
+    Q = correctGamma(Q, 1/2.2);
 
-    if (nColors < 256) {
-      double min, max;
-      Point maxLoc, minLoc;
-      minMaxLoc(Q, &min, &max, &minLoc, &maxLoc);
-      double stretch = ((double)((nColors-1)) / (max - min ));
-
-      Q = Q - min;
-      Q = Q * stretch;
-
-      /*// se nao funcionar, use a funcao com loop
-      int x, y;
-      for (x = 0; x < imSize.height; x++) {
-         for (y = 0; y < imSize.width; y++) {
-             IMAGEM.at<uchar>(x,y) = (uchar) ((double)IMAGEM.at<uchar>(x,y) - (min)) * stretch;
-         }
-      }*/  
-    }
-    
-//     imshow("convertida", Q);                   // mostra imagem reduzida
-//     waitKey(0);
+    // reduce number of colors
+    if (nColors < 256) reduceImageColors(Q,nColors);
 }
 
 
-/*	Funcao QuantizationMSB
- Quantiza uma imagem de acordo com a quantidade de cores passada por argumento
- Requer:
-	- imagem a ser quantizada
-	- imagem onde sera armazenada a imagem quantizada
-	- quantidade de cores 
- Retorna: 
-	- quantidade unicas de cores da imagem quantizada */
-int QuantizationMSB(Mat &I, Mat &Q, int nColors) 
+/*
+  Image quantization using the Most Significant Bits (MSB)
+  Require:
+	- I : image to be converted
+	- Q : image to store quantized version
+	- nColors : number of colors after quantization
+*/
+void QuantizationMSB(Mat &I, Mat &Q, int nColors) 
 {
-	// pega tamanho da imagem
+		// get image size
 	Size imgSize = I.size();
+		
+		// computes number of bits needed to obtain nColors
+	int bitsc = log(nColors)/log(2); 
+
+	// computers number of bits per channel
+	int cc = (int)(bitsc/3);
+	int GRBb[3]={cc,cc,cc}; 
 	
-	int bitsc = log(nColors)/log(2); // calcula numero de bits necessarios
-	int cc = (int)(bitsc/3); // calcula numero de bits por canal
-	int RGBb[3]={cc,cc,cc}; // atribui os bits por canal
-	int rest = (bitsc % 3); // verifica se ha sobra de bits, armazena o resto
+	// check if there are bits left after equal division
+	int rest = (bitsc % 3); 
 	int k;
-	// atribui os bits restantes aos canais R, G e B, em sequencia
 	for (k = 0 ;rest > 0; rest--, k = (k+1)%3) {
-		RGBb[k]++;
+		GRBb[k]++;
 	}
-	
-	// vetor para armazenar a frequencia de cada cor 
-	int freq[nColors];
-	for (int i = 0; i < nColors; i++) {
-		freq[i] = 0;
-	}
-	int unique = 0;
 	
 	MatIterator_<Vec3b> it, end;
 	MatIterator_<uchar> it2, end2;
 	for( it2 = Q.begin<uchar>(), end2 = Q.end<uchar>(), it = I.begin<Vec3b>(), end = I.end<Vec3b>(); it != end; ++it, ++it2)
 	{
-		uchar dR = (8-RGBb[0]);
-		uchar dG = (8-RGBb[1]);
-		uchar dB = (8-RGBb[2]);
-		// mascara para realizar AND em cada canal
-		uchar Ra = ((int)(pow(2,RGBb[0]))-1) << dR;
-		uchar Ga = ((int)(pow(2,RGBb[1]))-1) << dG;
-		uchar Ba = ((int)(pow(2,RGBb[2]))-1) << dB;
+		uchar dR = (8-GRBb[1]);
+		uchar dG = (8-GRBb[0]);
+		uchar dB = (8-GRBb[2]);
+		// obtain mask for each channel
+		uchar Ra = ((int)(pow(2,GRBb[1]))-1) << dR;
+		uchar Ga = ((int)(pow(2,GRBb[0]))-1) << dG;
+		uchar Ba = ((int)(pow(2,GRBb[2]))-1) << dB;
 		
-		uchar R = (*it)[0];
+		// get pixels of individual channels
+		uchar R = (*it)[2];
 		uchar G = (*it)[1];
-		uchar B = (*it)[2];
+		uchar B = (*it)[0];
 		
-		// operacao para obter MSBs em cada canal
-		uchar C1 = (R & Ra) >> dR;                  // extrai MSBs de R e move p/ o final 
-		uchar C2 = (G & Ga) >> (dR-RGBb[1]);        // extrai MSBs de G e move p/ apos C1
-		uchar C3 = (B & Ba) >> (dR-RGBb[1]-RGBb[2]);// extrai MSBs de B e move p/ apos C2
+		// generate codes for each channel
+		uchar C1 = (G & Ga) >> dG;                  // extract MSBs from G 
+		uchar C2 = (R & Ra) >> (dG-GRBb[1]);        // extract MSBs from R and move it
+		uchar C3 = (B & Ba) >> (dG-GRBb[1]-GRBb[2]);// extract MSBs from B and move it
 		
-		uchar newcolor = C1 | C2 | C3; // operador | equivalente a 'OU', faz a fusao dos tres componentes
+		// operator OR to merge the tree bit codes
+		uchar newcolor = C1 | C2 | C3; 
 		
+		// store in the Matrix
 		(*it2) = newcolor;
 		
+		// check for overflow
 		if (newcolor > 255) cout << "color overflow: " << newcolor << endl;
-		
-		// conta quantas cores unicas foram obtidas
-		if (freq[newcolor] == 0) unique++;
-		
-		// frequencia de cada cor quantizada
-		freq[newcolor]++;
 	}	
-	
-	return unique;
+
 }
 
+/* 
+  Remove null columns in feature space
+  (under construction)
+
+*/
 void RemoveNullColumns(Mat &Feat) {
       int height = Feat.size().height;
       int width = Feat.size().width;
@@ -255,52 +210,55 @@ void RemoveNullColumns(Mat &Feat) {
       }
 }
 
-/* Normaliza um histograma
- * Funcao para normalizar (entre 0 e 255) o histograma gerado pelo descritor BIC
- * Requer:
- *	- o histograma a ser normalizado
- *	- um histograma ja alocado, para guardar o resultado
- *	- o tamanho do vetor
- *	- fator de normalizacao */
-void NormalizeHist(long int *hist, float *histnorm, int nColor, int fator) 
+/* 
+   Histogram Normalization
+   Requires:
+	- hist: histogram to be normalized
+	- histnorm: allocated histogram to store the result
+	- vector size
+	- normalization factor (1 for unity sum, > 1 for maximum*factor)
+*/
+void NormalizeHist(long int *hist, float *histnorm, int size, int factor) 
 {
 	int i;
 	long int sum = 0;
 	long int max = hist[0];
 	float e = 0.01;
 	
-	
-	for (i = 0; i < nColor ; i++)
+	for (i = 0; i < size ; i++)
 	{
-		//sum += hist[i]*hist[i];
 		sum += hist[i];
 		max = (hist[i] > max) ? hist[i] : max;
 	}
 	
-	if (fator == 1)
+	// factor == 1 -> vector with unity sum
+	if (factor == 1)
 	{
-		for (i = 0; i < nColor ; i++) 
+		for (i = 0; i < size ; i++) 
 		{
 			histnorm[i] = hist[i]/((float)sum+e);
 		}
 	} 
-	else if (fator > 1) 
+
+	// factor > 1 -> vector with maximum value == factor
+	else if (factor > 1) 
 	{
-		for (i = 0; i < nColor ; i++) 
+		for (i = 0; i < size ; i++) 
 		{
-			histnorm[i] = (hist[i]/(float)max)*(float)fator;
+			histnorm[i] = (hist[i]/(float)max)*(float)factor;
 		}
 	}
 }
 
 
-/*	Funcao distManhattan
- * Calcula a diferenca entre dois histrogramas atraves da distancia Manhattan
- * Requer:
- *	- dois histogramas, com o mesmo tamanho, ja preenchidos com valores
- *	- tamanho do histograma 
- * Retorna:
- *	- a distancia entre os dois histogramas */
+/*	
+  Distance Function Manhattan (l1-norm)
+  Require:
+ 	- two histograms 'p' and 'q' to be compared
+ 	- size: histogram size
+  Retorns:
+ 	- distance between 'p' and 'q'
+*/
 double distManhattan(double *p, double *q, int size) 
 {
 	int i;
@@ -315,13 +273,14 @@ double distManhattan(double *p, double *q, int size)
 }
 
 
-/*	Funcao distEuclid
- * Calcula a diferenca entre dois histrogramas atraves da distancia Euclidiana
- * Requer:
- *	- dois histogramas, com o mesmo tamanho, ja preenchidos com valores
- *	- tamanho do histograma 
- * Retorna:
- *	- a distancia entre os dois histogramas */
+/*	
+  Distance Function Euclidian (l2-norm)
+  Require:
+ 	- two histograms 'p' and 'q' to be compared
+ 	- size: histogram size
+  Retorns:
+ 	- distance between 'p' and 'q'
+*/
 double distEuclid(double *q, double *p, int size)
 {
 	int i;
@@ -338,13 +297,14 @@ double distEuclid(double *q, double *p, int size)
 }
 
 
-/*	Funcao distChessboard
- * Calcula a diferenca entre dois histrogramas atraves da distancia Chessboard
- * Requer:
- *	- dois histogramas, com o mesmo tamanho, ja preenchidos com valores
- *	- tamanho do histograma 
- * Retorna:
- *	- a distancia entre os dois histogramas */
+/*	
+  Distance Function Chessboard (l_\infty-norm)
+  Require:
+ 	- two histograms 'p' and 'q' to be compared
+ 	- size: histogram size
+  Retorns:
+ 	- distance between 'p' and 'q'
+*/
 double distChessboard(double *p, double *q, int size)
 {
 	int i;

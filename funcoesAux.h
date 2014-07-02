@@ -1,22 +1,19 @@
-/*
-	Luciana Calixta Escobar
-	
-	
-	Biblioteca que contem as seguintes funcoes auxiliares:
-	- QuantizationMSB
-	- distManhattan
-	- distEuclid
-	- distChessboard
-*/
-
-
+/**
+ * Auxiliar Functions for Feature Extraction:
+ *	Image enhancement
+ *	Image quantization
+ *	Normalization
+ * 	Distance Functions
+ *
+ *	Authors: Moacir Ponti, Luciana Escobar
+ *	Universidade de São Paulo / ICMC / 2012-2014
+ **/
 #ifndef _FUNCOESAUX_H
 #define _FUNCOESAUX_H
 
-#include "cv.h"
-#include "highgui.h"
-#include <stdio.h>
-#include <math.h>
+#include "opencv2/core/core.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -24,82 +21,113 @@
 using namespace cv;
 using namespace std;
 
+/* 
+  Gamma correction function
+  Requires:
+	- img : image to be processed
+	- gamma : parameter for apply gamma correction
+  Returns:
+	- gamma-corrected image
+*/
+Mat correctGamma( Mat& img, double gamma );
 
+/*
+  Function to reduce the number of colors in a single channel image
+  Requires:
+	- I: input image to be modified
+	- nColors: final number of colors
+*/
+void reduceImageColors(Mat &I, int nColors);
 
-/*	Funcao Intensidade
- Conversão de uma imagem colorida para a escala de cinza usando os canais lineares
- Requer:
-	- imagem a ser convertida
-	- imagem onde sera armazenada a imagem convertida
+/*
+  Image quantization by Gamma corrected Intensity 
+  Requires
+	- I : image to be converted
+	- Q : image to store quantized version
+	- nColors : number of colors after quantization
 */
 void QuantizationIntensity(Mat &I, Mat &Q, int nColors);
 
-/*	Funcao Gleam
- Conversão de uma imagem colorida para a escala de cinza usando os canais com a correção gamma
- Requer:
-	- imagem a ser convertida
-	- imagem onde sera armazenada a imagem convertida
+
+/*
+  Image quantization by Gleam
+   Requires
+	- I : image to be converted
+	- Q : image to store quantized version
+	- nColors : number of colors after quantization
 */
 void QuantizationGleam(Mat &I, Mat &Q, int nColors);
 
-/*	Funcao Luminance
- Conversão de uma imagem colorida para a escala de cinza usando uma combinação com pesos para cada canal
- Requer:
-	- imagem a ser convertida
-	- imagem onde sera armazenada a imagem convertida
+
+/*
+  Image quantization by gamma-corrected Luminance
+   Requires
+	- I : image to be converted
+	- Q : image to store quantized version
+	- nColors : number of colors after quantization
 */
 void QuantizationLuminance(Mat &I, Mat &Q, int nColors);
 
-/*	Funcao QuantizationMSB
- Q uantiza uma imagem de acordo com a quantidade *de cores passada por argumento
- Requer:
- - imagem a ser quantizada
- - imagem onde sera armazenada a imagem quantizada
- - quantidade de cores 
- Retorna: 
- - quantidade unicas de cores da imagem quantizada */
-int QuantizationMSB(Mat &I, Mat &Q, int nColors);
+
+/*
+  Image quantization using the Most Significant Bits (MSB)
+  Require:
+	- I : image to be converted
+	- Q : image to store quantized version
+	- nColors : number of colors after quantization
+*/
+void QuantizationMSB(Mat &I, Mat &Q, int nColors); 
 
 
+/* 
+  Remove null columns in feature space
+  (under construction)
+
+*/
 void RemoveNullColumns(Mat &Feat);
 
-/* Normaliza um histograma
- * Funcao para normalizar (entre 0 e 255) o histograma gerado pelo descritor BIC
- * Requer:
- *	- o histograma a ser normalizado
- *	- um histograma ja alocado, para guardar o resultado
- *	- o tamanho do vetor
- *	- fator de normalizacao */
-void NormalizeHist(long int *hist, float *histnorm, int nColor, int fator);
+
+/* 
+   Histogram Normalization
+   Requires:
+	- hist: histogram to be normalized
+	- histnorm: allocated histogram to store the result
+	- vector size
+	- normalization factor (1 for unity sum, > 1 for maximum*factor)
+*/
+void NormalizeHist(long int *hist, float *histnorm, int size, int factor);
 
 
-/*	Funcao distManhattan
-	Calcula a diferenca entre dois histrogramas atraves da distancia Manhattan
-	Requer:
-		- dois histogramas, com o mesmo tamanho, ja preenchidos com valores
-		- tamanho do histograma 
-	Retorna:
-		- a distancia entre os dois histogramas */
+/*	
+  Distance Function Manhattan (l1-norm)
+  Require:
+ 	- two histograms 'p' and 'q' to be compared
+ 	- size: histogram size
+  Retorns:
+ 	- distance between 'p' and 'q'
+*/
 double distManhattan(double *p, double *q, int size);
 
 
-/*	Funcao distEuclid
-	Calcula a diferenca entre dois histrogramas atraves da distancia Euclidiana
-	Requer:
-		- dois histogramas, com o mesmo tamanho, ja preenchidos com valores
-		- tamanho do histograma 
-	Retorna:
-		- a distancia entre os dois histogramas */
+/*	
+  Distance Function Euclidian (l2-norm)
+  Require:
+ 	- two histograms 'p' and 'q' to be compared
+ 	- size: histogram size
+  Retorns:
+ 	- distance between 'p' and 'q'
+*/
 double distEuclid(double *q, double *p, int size);
 
 
-/*	Funcao distChessboard
-	Calcula a diferenca entre dois histrogramas atraves da distancia Chessboard
-	Requer:
-		- dois histogramas, com o mesmo tamanho, ja preenchidos com valores
-		- tamanho do histograma 
-	Retorna:
-		- a distancia entre os dois histogramas */
+/*	
+  Distance Function Chessboard (l_\infty-norm)
+  Require:
+ 	- two histograms 'p' and 'q' to be compared
+ 	- size: histogram size
+  Retorns:
+ 	- distance between 'p' and 'q'
+*/
 double distChessboard(double *p, double *q, int size);
 
 
