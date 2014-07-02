@@ -12,6 +12,19 @@
 
 #include "funcoesAux.h"
 
+Mat correctGamma( Mat& img, double gamma ) {
+    double inverse_gamma = 1.0 / gamma;
+    
+    Mat lut_matrix(1, 256, CV_8UC1 );
+    uchar * ptr = lut_matrix.ptr();
+    for( int i = 0; i < 256; i++ )
+	  ptr[i] = (int)( pow( (double) i / 255.0, inverse_gamma ) * 255.0 );
+    
+    Mat result;
+    LUT( img, lut_matrix, result );
+    
+    return result;
+}
 
 /*	Funcao Intensidade
  Conversão de uma imagem colorida para a escala de cinza usando os canais lineares
@@ -30,7 +43,9 @@ void QuantizationIntensity(Mat &I, Mat &Q, int nColors)
 
     //somatorio de 1/3 de cada canal em cada pixel
     Q = (imColors[0]/3) + (imColors[1]/3) + (imColors[2]/3);
-    
+
+    Q = correctGamma(Q, 1/0.454);
+
    if (nColors < 256) {
       double min, max;
       Point maxLoc, minLoc;
@@ -133,8 +148,10 @@ void QuantizationLuminance(Mat &I, Mat &Q, int nColors)
     split(I, imColors);
 
     //somatorio de cada canal com seu respectivo peso em cada pixel
-    Q = (0.3*imColors[0]) + (0.59*imColors[1]) + (0.11*imColors[2]);
+    Q = (0.299*imColors[2]) + (0.587*imColors[1]) + (0.114*imColors[0]);
     
+    Q = correctGamma(Q, 1/0.454);
+
     if (nColors < 256) {
       double min, max;
       Point maxLoc, minLoc;
