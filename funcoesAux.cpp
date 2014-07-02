@@ -176,9 +176,9 @@ void QuantizationMSB(Mat &I, Mat &Q, int nColors)
 		uchar B = (*it)[0];
 		
 		// generate codes for each channel
-		uchar C1 = (G & Ga) >> dG;                  // extract MSBs from G 
+		uchar C1 = (B & Ba) >> dG;                  // extract MSBs from G 
 		uchar C2 = (R & Ra) >> (dG-GRBb[1]);        // extract MSBs from R and move it
-		uchar C3 = (B & Ba) >> (dG-GRBb[1]-GRBb[2]);// extract MSBs from B and move it
+		uchar C3 = (G & Ga) >> (dG-GRBb[1]-GRBb[2]);// extract MSBs from B and move it
 		
 		// operator OR to merge the tree bit codes
 		uchar newcolor = C1 | C2 | C3; 
