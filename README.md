@@ -1,19 +1,19 @@
 
-Descrição
----------
+Description
+-----------
 
 
-1. __Extração de características de imagens, utilizando alguns métodos de quantização e descritores.__
+1. __Image feature extraction, using some quantization techniques and image descriptors.__
 
 
-Métodos de quantização:
+Quantization Techniques:
 
     Gleam
     Intensity
     Luminance
     MSB
 
-Descritores:
+Descriptors:
 
     BIC
     GCH
@@ -21,59 +21,59 @@ Descritores:
     Haralick
     ACC
 
-2. __Redução de dimensionalidade dos vetores de características extraídos.__
+2. __Dimensionality reduction of extracted feature vectors.__
 
-Métodos de redução:
+Dimensionality Reduction Techniques:
     
     PCA
     Entropia
 
-3. __Classificação das imagens utilizando os vetores reduzidos.__
+3. __Image classification using the generated reduced vectors.__
 
-Classificador:
+Classifier:
 
     Naive Bayes
 
 
-Uso
+Use
 ---
 
-Antes de executar, crie um link simbólico para o diretório de imagens:
+Before running the code, create a symbolic link to the images directory:
 
-    ln -s <SEU DIRETORIO DA BASE DE IMAGENS> BaseImagens
-    
-Para compilar o código, apenas rodar o Makefile:
+    ln -s <IMAGES DIRECTORY> BaseImagens
+
+Makefile will compile the code for you:
 
     make
     
-Para executar e gerar todos os descritores:
+To run all descriptors and generate the feature vectores:
 
     ./runAllDescriptors.sh
     
-Para reduzir a dimensão dos vetores e aplicar a classificação, após terem sido gerados os descritores:
+After the previous command, to reduce the vectors dimension and apply the classification, run:
 
-    ./reducao_dimensao <DIRETORIO DOS VETORES> <METODO> <LISTA DE PARAMETROS>
+    ./dimensionReduction <VECTORS DIRECTORY> <TECHNIQUE> <PARAMETERS LIST>
 
-Opcões para métodos e parâmetros:
+Options for techniques and parameters:
 
-    [0] Nenhum:
-        Somente o classificador será utilizado, sobre os vetores extraídos sem redução.
+    [0] None:
+        Just the classifier is going to be used, with the extracted vectors without dimensionality reduction.
     [1] PCA: 
-        - <nAtributos>: número de atributos da projeção
-    [2] Entropia:
-        - <tJanela>: tamanho da janela
-    [3] Todos:
-        - <nAtributos>: número de atributos da projeção
-        - <tJanela>: tamanho da janela
+        - <nAttributes>: number of attributes to keep on PCA
+    [2] Entropy:
+        - <tWindow>: window size
+    [3] All:
+        - <nAttributes>: number of attributes to keep on PCA
+        - <tWindow>: window size
 
-A análise da classificação (utilizando Naive Bayes e validação cruzada por Repeated subsampling) está sendo impressa no terminal. Assim, para gravar em um arquivo os resultados dessa análise:
+The classification analysis (using Naive Bayes classifier and Repeated subsampling as a cross validation method) is going to be printed on the terminal. So, to write on a file the results of the analysis:
 
-    ./reducao_dimensao <DIRETORIO DOS VETORES> <METODO> <LISTA DE PARAMETROS> > analise/<METODO>_<PARAMETRO>.txt
+    ./dimensionReduction <VECTORS DIRECTORY> <TECHNIQUE> <PARAMETERS LIST>  >  analysis/<TECHNIQUE>_<PARAMETERS>.txt
 
-Exemplos:
+Examples:
 
-    ./reducao_dimensao caracteristicas/ 1 35 > analise/PCA_35.txt
-    ./reducao_dimensao caracteristicas/ 2 4 > analise/entropia_4.txt
+    ./dimensionReduction features/ 1 35 > analysis/PCA_35.txt
+    ./dimensionReduction features/ 2 4 > analysis/entropy_4.txt
 
 
 
