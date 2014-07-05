@@ -1,3 +1,15 @@
+/**
+ * Functions for Dimensionality Reduction:
+ *	PCA
+ *	Entropy
+ *
+ * Classifier:
+ *      Normal Bayes
+ *
+ *	Author: Gabriela Thumé
+ *	Universidade de São Paulo / ICMC / 2014
+ **/
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/ml/ml.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -12,20 +24,19 @@
 using namespace cv;
 using namespace std;
 
-Mat leituraCaracteristicas(const string& filename, vector<int> &classes, int *nClasses) {
+Mat readFeatures(const string& filename, vector<int> &classes, int *nClasses) {
 
     string linha, infos, numero_img, classe, num_caract, num_classes, objetos;
     vector<float> vec;
     float valor, caract;
     size_t n, d;
     int i, j;
-    ifstream arquivo(filename.c_str());
-    if(!arquivo)
+    ifstream my_file(filename.c_str());
+    if(!my_file)
         throw exception();
 
-    // Leitura da primeira linha que contém a quantidade de objetos
-    // o número de classes e o número de características
-    getline(arquivo, infos);
+    // Read the first line, which contains the number of objects, classes and features
+    getline(my_file, infos);
     if (infos == "")
         return Mat();
     stringstream info(infos);
@@ -34,137 +45,133 @@ Mat leituraCaracteristicas(const string& filename, vector<int> &classes, int *nC
     (*nClasses) = atoi(num_classes.c_str());
     getline(info, num_caract, '\t');
 
-    // Cria uma Mat com os dados do arquivo
+    // Create a Mat with the file data
     n = atoi(objetos.c_str());
     d = atoi(num_caract.c_str());
-
     Mat data(n, d, CV_32FC1);
 
-    while (getline(arquivo, linha)) {
+    while (getline(my_file, linha)) {
 
-        stringstream vetor_caract(linha);
-        getline(vetor_caract, numero_img, '\t');
-        getline(vetor_caract, classe, '\t');
+        stringstream vector_caract(linha);
+        getline(vector_caract, numero_img, '\t');
+        getline(vector_caract, classe, '\t');
         i = atoi(numero_img.c_str());
         j = 0;
-        while(vetor_caract >> caract) {
+        while(vector_caract >> caract) {
             data.at<float>(i, j) = (float)caract;
             j++;
         }
         classes.push_back(atoi(classe.c_str()));
     }    
 
-    arquivo.close();
+    my_file.close();
     return data;
 }
 
-int classificacaoBayes(Mat vetorCaracteristicas, vector<int> classes, int num_classes, float prob) {
+int bayesClassifier(Mat vectorFeatures, vector<int> classes, int num_classes, float prob) {
 
     Mat resultados;
     CvNormalBayesClassifier classificador;
     int i, j, acertos, total, height, width, treinados, classe_atual;
-    int iTreino, iTeste, num_componentes, num_treino, num_teste, totalTreino;
-    int conjunto_treino, inicio, dados_classe, pos, repeticoes, num_repeticoes;
-    float desvio_padrao, variancia, media;
-    vector<float> acuracia;
-    vector<int> vetor_rand;
+    int iTreino, iTesting, num_componentes, num_treino, num_Testing, totalTreino;
+    int conjunto_treino, inicio, data_classe, pos, repetition, num_repetition;
+    float deviation_standard, variance, media;
+    vector<float> acuracy;
+    vector<int> vector_rand;
     srand(time(0)); 
-    num_repeticoes = 10;
+    num_repetition = 10;
         
-    Size n = vetorCaracteristicas.size();
+    Size n = vectorFeatures.size();
     height = n.height;
     width = n.width;
     num_treino = ceil(height*prob);
-    num_teste = height-num_treino;
+    num_Testing = height-num_treino;
     
-    // Armazena os dados de treinamento e de teste para classificação
-    Mat dadosTreinamento(num_treino, width, CV_32FC1);
-    Mat rotulosTreinamento(num_treino, 1, CV_32FC1);
-    Mat dadosTeste(num_teste, width, CV_32FC1);
-    Mat rotulosTeste(num_teste, 1, CV_32FC1);
+    Mat dataTraining(num_treino, width, CV_32FC1);
+    Mat rotulosTraining(num_treino, 1, CV_32FC1);
+    Mat dataTesting(num_Testing, width, CV_32FC1);
+    Mat rotulosTesting(num_Testing, 1, CV_32FC1);
 
-    // Repeated random sub-sampling validation
+    /* Repeated random sub-sampling validation */
 
-    // A cada repetição, particiona-se aleatoriamente o conjunto em treinamento 
-    // e teste.
+    // For each repetition, divide randomly the set in training and testing
     conjunto_treino = num_treino/num_classes;
 
-    // Supondo que as classes estão balanceadas, a quantidade de dados é
-    // igual ao total dividido pelo número de classes - Simplificação
-    dados_classe = height/num_classes;
+    // This supose the classes are in balanced number - Simplification
+    data_classe = height/num_classes;
 
-    for(repeticoes = 0; repeticoes < num_repeticoes; repeticoes++) {
+    for(repetition = 0; repetition < num_repetition; repetition++) {
+
         iTreino = 0; treinados = 0;
+
         for (i = 0; i < num_classes; i++) {
+
             treinados = 0;
             classe_atual = i+1;
-            inicio = (classe_atual-1)*dados_classe;
+            inicio = (classe_atual-1)*data_classe;
             while (treinados < conjunto_treino) {
-                // Gera uma posição aleatória para um dado de treino
-                pos = inicio + (rand() % (dados_classe));
-                if (!count(vetor_rand.begin(), vetor_rand.end(), pos)){
-                    vetor_rand.push_back(pos);
-                    // Copia o vetor de pos para os dados de treinamento
-                    Mat treino = dadosTreinamento.row(iTreino); 
-                    vetorCaracteristicas.row(pos).copyTo(treino);
-                    rotulosTreinamento.at<float>(iTreino, 0) = classes[pos];
+                // Generate a random position for a training data
+                pos = inicio + (rand() % (data_classe));
+                if (!count(vector_rand.begin(), vector_rand.end(), pos)){
+                    vector_rand.push_back(pos);
+                    Mat treino = dataTraining.row(iTreino); 
+                    vectorFeatures.row(pos).copyTo(treino);
+                    rotulosTraining.at<float>(iTreino, 0) = classes[pos];
                     treinados++;
                     iTreino++;
                }
             }
         }  
-        // Após selecionados o conjunto de treino, o conjunto de teste será o
-        // restante - as posições que não estão em vetor_rand
-        iTeste = 0;
+
+	// After selecting the training set, the testing set it is going to be the rest of the whole set
+        iTesting = 0;
         for (i = 0; i < height; i++) {
-            if (!count(vetor_rand.begin(), vetor_rand.end(), i)){
-                Mat teste = dadosTeste.row(iTeste);
-                vetorCaracteristicas.row(i).copyTo(teste);
-                rotulosTeste.at<float>(iTeste, 0) = classes[i];
-                iTeste++;
+            if (!count(vector_rand.begin(), vector_rand.end(), i)){
+                Mat Testing = dataTesting.row(iTesting);
+                vectorFeatures.row(i).copyTo(Testing);
+                rotulosTesting.at<float>(iTesting, 0) = classes[i];
+                iTesting++;
             }
         }
-        vetor_rand.clear();
+        vector_rand.clear();
 
-        // Treina o classificador Normal Bayes    
-        classificador.train(dadosTreinamento, rotulosTreinamento);
-
-        // Avalia o classificador Normal Bayes
-        classificador.predict(dadosTeste, &resultados);
+        // Train and predict using the Normal Bayes classifier    
+        classificador.train(dataTraining, rotulosTraining);
+        classificador.predict(dataTesting, &resultados);
      
         acertos = 0;
         for (i = 0; i < resultados.size().height; i++) {
-            if (rotulosTeste.at<float>(i, 0) == resultados.at<float>(i, 0)) {
+            if (rotulosTesting.at<float>(i, 0) == resultados.at<float>(i, 0)) {
                 acertos++;        
             }
         }
             
         total = resultados.size().height;
-        totalTreino = rotulosTreinamento.size().height;
-        acuracia.push_back(acertos*100.0/total);
+        totalTreino = rotulosTraining.size().height;
+        acuracy.push_back(acertos*100.0/total);
     }
 
-    media = acuracia[0];
-    for (i = 1; i < acuracia.size(); i++){
-        media = (media+acuracia[i])/2;
+    media = acuracy[0];
+    for (i = 1; i < acuracy.size(); i++){
+        media = (media+acuracy[i])/2;
     }
 
-    variancia = 0;
-    for (i = 0; i < acuracia.size(); i++){
-        variancia += pow(acuracia[i]-media, 2);
+    variance = 0;
+    for (i = 0; i < acuracy.size(); i++){
+        variance += pow(acuracy[i]-media, 2);
     }
-    variancia = variancia/acuracia.size();
-    desvio_padrao = sqrt(variancia);
+    variance = variance/acuracy.size();
+    deviation_standard = sqrt(variance);
 
-    cout << "Validação da classificação do conjunto " << total << " testes e " << totalTreino << " treinos com "<<acuracia.size()<<" repetições:" << endl;
-    cout << "\tMédia = " << media << endl;
-    cout << "\tVariância = " << variancia << endl;
-    cout << "\tDesvio Padrão = " << desvio_padrao << endl << endl; 
+    cout << "Cross validation for set " << total << " Testings and " << totalTreino << " Training with "<<acuracy.size()<<" repetitions:" << endl;
+    cout << "\tMean = " << media << endl;
+    cout << "\tVariance = " << variance << endl;
+    cout << "\tStandard Deviation = " << deviation_standard << endl << endl; 
 
-    dadosTreinamento.release();
-    dadosTeste.release();
-    rotulosTeste.release();
-    rotulosTreinamento.release();
+    dataTraining.release();
+    dataTesting.release();
+    rotulosTesting.release();
+    rotulosTraining.release();
     return 0;
 }
 
@@ -172,11 +179,11 @@ double log2(double number) {
    return log(number) / log(2) ;
 }
 
-Mat calculaEntropia(Mat data, int tam_janela, string nome_arquivo) {
+Mat entropyReduction(Mat data, int tam_janela, string nome_my_file) {
 
     map<float, int> frequencias;
     map<float, int>::const_iterator iterator;
-    double entropia, prob;
+    double entropy, prob;
     int i, j, height, width, janela, fim_janela, indice_janela;
     string arq_saida;
     stringstream tam;
@@ -184,9 +191,9 @@ Mat calculaEntropia(Mat data, int tam_janela, string nome_arquivo) {
         
     height = data.size().height;
     width = data.size().width;
-    Mat vetorEntropia(height, ceil((float)width/tam_janela), CV_32FC1);
+    Mat vectorEntropy(height, ceil((float)width/tam_janela), CV_32FC1);
 
-    arq_saida = "entropia/ENTROPIA_" + tam.str() + "_"  + nome_arquivo; 
+    arq_saida = "entropy/ENTROPIA_" + tam.str() + "_"  + nome_my_file; 
     ofstream arq(arq_saida.c_str());
    
     for (i = 0; i < height; i++){
@@ -194,7 +201,7 @@ Mat calculaEntropia(Mat data, int tam_janela, string nome_arquivo) {
         indice_janela = 0;
         
         while (janela < width){
-            entropia = 0;
+            entropy = 0;
 
             fim_janela = janela+tam_janela;
             if (fim_janela > width)
@@ -208,32 +215,32 @@ Mat calculaEntropia(Mat data, int tam_janela, string nome_arquivo) {
             
             for (iterator = frequencias.begin(); iterator != frequencias.end(); ++iterator) {
                 prob = static_cast<double>(iterator->second) / (fim_janela -janela) ;
-                entropia += prob * log2( prob ) ;
+                entropy += prob * log2( prob ) ;
             }
 
-            if (entropia != 0)
-                entropia *= -1;
-            vetorEntropia.at<float>(i, indice_janela) = (float)entropia;
+            if (entropy != 0)
+                entropy *= -1;
+            vectorEntropy.at<float>(i, indice_janela) = (float)entropy;
             indice_janela++;
             janela += tam_janela;
         }
     }
-    arq << vetorEntropia;
+    arq << vectorEntropy;
     arq.close();    
-    return vetorEntropia;
+    return vectorEntropy;
 }
 
-Mat calculaPCA(Mat data, int nComponents, string nome_arquivo) {
+Mat pcaReduction(Mat data, int nComponents, string nome_my_file) {
 
-    Mat projecao, autovetores;
+    Mat projecao, autovectores;
     stringstream n;
     n << nComponents;
 
-    string arq_saida = "pca/PCA_" + n.str() + "_" + nome_arquivo; 
+    string arq_saida = "pca/PCA_" + n.str() + "_" + nome_my_file; 
     ofstream arq(arq_saida.c_str());
 
     PCA pca(data, Mat(), CV_PCA_DATA_AS_ROW, nComponents);
-    autovetores = pca.eigenvectors.clone();
+    autovectores = pca.eigenvectors.clone();
     projecao = pca.project(data);
 
     arq << projecao;
@@ -241,44 +248,43 @@ Mat calculaPCA(Mat data, int nComponents, string nome_arquivo) {
     return projecao;
 }
 
-void erroEntrada(){
-    cout << "Esse programa espera: <diretorio> <metodo> <atributos para o PCA | tamanho da janela para Entropia>\n";
-    cout << "\tMétodo: 0-Nenhum, 1-PCA, 2-Entropia ou 3-Todos\n";
+void inputError(){
+    cout << "This programs waits: <directory> <technique> <attributes for PCA | window size for Entropy>\n";
+    cout << "\tTechnique: 0-None, 1-PCA, 2-Entropy ou 3-All\n";
     exit(0);
 }
 
 int main(int argc, const char *argv[]) {
 
-    Mat vetorEntropia, projecao, data;
+    Mat vectorEntropy, projecao, data;
     vector<int> classes;
-    DIR *diretorio;
+    DIR *directory;
     struct dirent *arq;
-    ifstream arquivo;
+    ifstream my_file;
     string nome_arq, nome_dir, nome;
     int nClasses, metodo, atributos, janela;
 
     if (argc < 3)
-        erroEntrada();
-
+        inputError();
 	nome_dir = argv[1];
+	metodo = atoi(argv[2]);
 
-	metodo = atoi(argv[2]); // descritor a ser utilizado
     switch(metodo){
-        case 0: // Somente classificação
+        case 0: // Just classification
             break;
         case 1: // PCA
             if (argc < 4) 
-                erroEntrada();
+                inputError();
             atributos = atoi(argv[3]);
             break;
-        case 2: // Entropia
+        case 2: // Entropy
             if (argc < 4) 
-                erroEntrada();
+                inputError();
             janela = atoi(argv[3]);
             break;
-        case 3: // PCA + Entropia
+        case 3: // PCA + Entropy
             if (argc < 5) 
-                erroEntrada();
+                inputError();
             atributos = atoi(argv[3]);
             janela = atoi(argv[4]);
             break;
@@ -288,53 +294,51 @@ int main(int argc, const char *argv[]) {
     
     float prob = 0.5;
 
-    // Para cada arquivo no diretório de entrada, realiza as operações	    
-    diretorio = opendir(nome_dir.c_str());
-    if (diretorio != NULL){
-       while (arq = readdir(diretorio)){
+    // For each file on input directory, do the following operations	    
+    directory = opendir(nome_dir.c_str());
+    if (directory != NULL){
+       while (arq = readdir(directory)){
 
             nome_arq = arq->d_name;
             nome = nome_dir + arq->d_name;
-            arquivo.open(nome.c_str());
+            my_file.open(nome.c_str());
 
-            if(arquivo.good()){
-                // Lê os dados dos vetores de características do arquivo
-                data = leituraCaracteristicas(nome.c_str(), classes, &nClasses);
+            if(my_file.good()){
+                // Read the feature vectors
+                data = readFeatures(nome.c_str(), classes, &nClasses);
                 if (data.size().height != 0){
 
-                    //cout << endl << nome_arq << endl;
-
                     switch(metodo){
-                        case 0: // Somente classificação
-                            cout << endl << "Classificação para "<< nome.c_str() << endl;
-                            classificacaoBayes(data, classes, nClasses, prob);
+                        case 0: // Just classification
+                            cout << endl << "Classification for "<< nome.c_str() << endl;
+                            bayesClassifier(data, classes, nClasses, prob);
                             break;
                         case 1: // PCA
-                            cout << endl << "PCA para "<< nome.c_str() << " com " << atributos << " atributos" << endl;
-                            projecao = calculaPCA(data, atributos, nome_arq);
-                            classificacaoBayes(projecao, classes, nClasses, prob);
+                            cout << endl << "PCA for "<< nome.c_str() << " com " << atributos << " atributos" << endl;
+                            projecao = pcaReduction(data, atributos, nome_arq);
+                            bayesClassifier(projecao, classes, nClasses, prob);
                             break;
-                        case 2: // Entropia
-                            cout << endl << "Entropia para "<< nome.c_str() << " com janela = " << janela << endl;
-                            vetorEntropia = calculaEntropia(data, janela, nome_arq);
-                            classificacaoBayes(vetorEntropia, classes, nClasses, prob);
+                        case 2: // Entropy
+                            cout << endl << "Entropy for "<< nome.c_str() << " com janela = " << janela << endl;
+                            vectorEntropy = entropyReduction(data, janela, nome_arq);
+                            bayesClassifier(vectorEntropy, classes, nClasses, prob);
                             break;
-                        case 3: // PCA, Entropia, Classificação
-                            cout << endl << "Classificação para "<< nome.c_str() << endl;
-                            classificacaoBayes(data, classes, nClasses, prob);
-                            cout << endl << "PCA para "<< nome.c_str() << " com " << atributos << " atributos" << endl;
-                            projecao = calculaPCA(data, atributos, nome_arq);
-                            classificacaoBayes(projecao, classes, nClasses, prob);
-                            cout << endl << "Entropia para "<< nome.c_str() << " com janela = " << janela << endl;
-                            vetorEntropia = calculaEntropia(data, janela, nome_arq);
-                            classificacaoBayes(vetorEntropia, classes, nClasses, prob);
+                        case 3: // PCA, Entropy
+                            cout << endl << "Classification for "<< nome.c_str() << endl;
+                            bayesClassifier(data, classes, nClasses, prob);
+                            cout << endl << "PCA for "<< nome.c_str() << " com " << atributos << " atributos" << endl;
+                            projecao = pcaReduction(data, atributos, nome_arq);
+                            bayesClassifier(projecao, classes, nClasses, prob);
+                            cout << endl << "Entropy for "<< nome.c_str() << " com janela = " << janela << endl;
+                            vectorEntropy = entropyReduction(data, janela, nome_arq);
+                            bayesClassifier(vectorEntropy, classes, nClasses, prob);
                             break;
                         default:
                             break;
                     }
                 }
             }
-            arquivo.close();
+            my_file.close();
        }
     }
     return 0;

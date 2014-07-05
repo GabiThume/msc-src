@@ -72,8 +72,8 @@ The classification analysis (using Naive Bayes classifier and Repeated subsampli
 
 Examples:
 
-    ./dimensionReduction features/ 1 35 > analysis/PCA_35.txt
-    ./dimensionReduction features/ 2 4 > analysis/entropy_4.txt
+    ./dimensionReduction caracteristicas_corel/256/ 1 35 > analysis/Corel/PCA_50.txt
+    ./dimensionReduction caracteristicas_corel/256/ 2 4 > analysis/Corel/ENTROPY_4.txt
 
 
 
