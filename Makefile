@@ -1,4 +1,4 @@
-all: descritores funcoesAux funcoesArquivo dimensionReduction merge_datasets classifier smote smoteTest
+all: descritores funcoesAux funcoesArquivo dimensionReduction merge_datasets classifier smote smoteTest rebalance rebalanceTest
 	@g++ descritores.o funcoesAux.o funcoesArquivo.o mainDescritor.cpp -o mainDescritor -I /usr/include/opencv `pkg-config opencv --libs`
 
 debug: descritores funcoesAux funcoesArquivo
@@ -23,7 +23,7 @@ merge_datasets: mergeDataSets.cpp
 	@g++ -o mergeDataSets mergeDataSets.cpp
 
 smoteTest: smoteTest.cpp
-	@g++ -Wall descritores.o funcoesAux.o funcoesArquivo.o classifier.o smote.o smoteTest.cpp -o smote -I /usr/include/opencv `pkg-config opencv --libs`
+	@g++ -Wall descritores.o funcoesAux.o funcoesArquivo.o classifier.o smote.o smoteTest.cpp -o smoteTest -I /usr/include/opencv `pkg-config opencv --libs`
 
 smote:
 	@g++ -Wall -c -g smote.cpp -I /usr/include/opencv `pkg-config opencv --libs`
@@ -31,7 +31,13 @@ smote:
 classifier:
 	@g++ -Wall -c -g classifier.cpp -I /usr/include/opencv `pkg-config opencv --libs`
 
+rebalanceTest: rebalanceTest.cpp
+	@g++ -Wall rebalance.o descritores.o funcoesAux.o funcoesArquivo.o classifier.o rebalanceTest.cpp -o rebalanceTest -I /usr/include/opencv `pkg-config opencv --libs`
+
+rebalance:
+	@g++ -Wall -c -g rebalance.cpp -std=c++0x -I /usr/include/opencv `pkg-config opencv --libs`
+
 clean:
-	rm *.o *.*~ teste *~ mainDescritor dimensionReduction mergeDataSets smote
+	rm *.o *.*~ teste *~ mainDescritor dimensionReduction mergeDataSets smoteTest rebalanceTest
 
 

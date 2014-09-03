@@ -146,10 +146,16 @@ int main(int argc, char const *argv[]){
     string nameFile, name, nameDir;
     Mat data, minorityClass, classes, minorityOverSampled, majority, majorityClasses, newClasses, total, synthetic;
 
-    /* Feature extraction from images */
-    descriptor("imagesSmote", "features", 4, 256, 1, 0, 0, 0, 0, 4);
+    if (argc != 3){
+        cout << "\nUsage: ./smoteTest (1) (2)\n\n\t(1) Image Directory" << endl;
+        cout << "\t(2) Features Directory\n" << endl;
+        exit(-1);
+    }
 
-    nameDir = "features/";
+    /* Feature extraction from images */
+    descriptor(argv[1], argv[2], 4, 256, 1, 0, 0, 0, 0, 4);
+
+    nameDir = string(argv[1]) + "/";
     directory = opendir(nameDir.c_str());
 
     if (directory != NULL){

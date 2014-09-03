@@ -9,35 +9,41 @@
 
 void Classifier::printAccuracy(vector<float> accuracy, int totalTest, int totalTrain, int smaller, int numClasses){
 
-    float media, variance, deviationStandard;
+    float mean, variance, standardDeviation;
     int i;
 
-    media = 0;
+    /* Calculate accuracy's mean */
+    mean = 0;
     for (i = 0; i < (int) accuracy.size(); i++){
-        media += accuracy[i];
+        mean += accuracy[i];
     }
-    media = media/accuracy.size();
+    mean = mean/accuracy.size();
 
+    /* Calculate accuracy's variance and std */
     variance = 0;
     for (i = 0; i < (int) accuracy.size(); i++){
-        variance += pow(accuracy[i]-media, 2);
+        variance += pow(accuracy[i]-mean, 2);
     }
     variance = variance/accuracy.size();
-    deviationStandard = sqrt(variance);
+    standardDeviation = sqrt(variance);
 
-    cout << endl << "\tNumber of classes: " << numClasses << endl;
-    cout << "\tMinority class samples: " << smaller << endl;
-    cout << "\tTotal samples: " << totalTest + totalTrain << " for each class: " << (totalTest + totalTrain)/numClasses;
-    cout << endl << "\tTest samples: " << totalTest << " for each class: " << totalTest/numClasses << endl;
-    cout << "\tTrain samples: " << totalTrain << " for each class: " << totalTrain/numClasses << endl;
-    cout <<  "\tCross validation with "<<accuracy.size()<<" k-fold:" << endl;
-    cout << "\t\tMean = " << media << endl;
-    cout << "\t\tVariance = " << variance << endl;
-    cout << "\t\tStandard Deviation = " << deviationStandard << endl << endl;
+    cout << "\n---------------------------------------------------------------------------------------" << endl;
+    cout << "Image classification using Normal Bayes classifier" << endl;
+    cout << "--------------------------------------------------------------------------------------" << endl;
+    cout << "Number of classes: " << numClasses << endl;
+    cout << "Minority class samples: " << smaller << endl;
+    cout << "Total samples: " << totalTest + totalTrain << " for each class: " << (totalTest + totalTrain)/numClasses;
+    cout << endl << "Test samples: " << totalTest << " for each class: " << totalTest/numClasses << endl;
+    cout << "Train samples: " << totalTrain << " for each class: " << totalTrain/numClasses << endl;
+    cout <<  "Cross validation with "<<accuracy.size()<<" k-fold:" << endl;
+    cout << "\tMean = " << mean << endl;
+    cout << "\tVariance = " << variance << endl;
+    cout << "\tStandard Deviation = " << standardDeviation << endl;
+    cout << "---------------------------------------------------------------------------------------" << endl;
 
 }
 
-void Classifier::bayes(Mat vectorFeatures, Mat classes, int numClasses, float prob, int numRepetition){
+void Classifier::bayes(Mat vectorFeatures, Mat classes, int numClasses, float trainingRatio, int numRepetition){
 
     Mat result;
     CvNormalBayesClassifier classifier;
@@ -47,18 +53,17 @@ void Classifier::bayes(Mat vectorFeatures, Mat classes, int numClasses, float pr
     vector<float> accuracy;
     vector<int> vectorRand, dataClasse(numClasses, 0);
     srand(time(0));
-    numRepetition = 10;
 
     Size n = vectorFeatures.size();
     height = n.height;
     width = n.width;
 
-    /* Discover the number of samples for each class */
+    /* Count how many samples exists for each class */
     for(i = 0; i < height; i++){
         dataClasse[classes.at<float>(i,0)-1]++;
     }
 
-    /* Find out which is the minority class, if exists */
+    /* Find out what is the lowest number of samples */
     smaller = height+1;
     for(i = 0; i < numClasses; i++){
         if(dataClasse[i] < smaller){
@@ -66,12 +71,13 @@ void Classifier::bayes(Mat vectorFeatures, Mat classes, int numClasses, float pr
         }
     }
 
-    trainingSet = (ceil(smaller*prob))*numClasses;
+    /* Calculate the size of both training and testing sets, given a ratio */
+    trainingSet = (ceil(smaller*trainingRatio))*numClasses;
     testingSet = height-trainingSet;
 
     /* Repeated random sub-sampling validation */
 
-    /* For each repetition, divide randomly the set into training and testing sets*/
+    /* For each repetition, randomly divide the set into training and testing sets */
     totalTraining = trainingSet/numClasses;
 
     for(repetition = 0; repetition < numRepetition; repetition++) {
@@ -81,7 +87,7 @@ void Classifier::bayes(Mat vectorFeatures, Mat classes, int numClasses, float pr
         Mat dataTesting(testingSet, width, CV_32FC1);
         Mat labelsTesting(testingSet, 1, CV_32FC1);
 
-        start = 0, numTraining = 0; trained = 0;
+        start = 0, numTraining = 0;
 
         for (i = 1; i <= numClasses; i++) {
             trained = 0;
@@ -114,10 +120,11 @@ void Classifier::bayes(Mat vectorFeatures, Mat classes, int numClasses, float pr
         }
         vectorRand.clear();
 
-        // Train and predict using the Normal Bayes classifier
+        /* Train and predict using the Normal Bayes classifier */
         classifier.train(dataTraining, labelsTraining);
         classifier.predict(dataTesting, &result);
 
+        /* Counts how many samples were classified as expected */
         hits = 0;
         for (i = 0; i < result.size().height; i++) {
             if (labelsTesting.at<float>(i, 0) == result.at<float>(i, 0)) {
