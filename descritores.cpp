@@ -228,7 +228,7 @@ void GCH(Mat &I, Mat &features, int nColor, int oNorm)
 	      QuantizationMSB(I, Q, nColor);
 	}
 	
-	int i, j;
+	int i;
 	long int *hist = new long int[nColor];
 	
 	for (i = 0; i < nColor; i++) 

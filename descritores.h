@@ -10,8 +10,7 @@
 #ifndef _DESCRITORES_H
 #define _DESCRITORES_H
 
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/highgui/highgui.hpp>
 #include <math.h>
 #include <queue>
 #include <vector>

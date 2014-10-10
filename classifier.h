@@ -9,9 +9,15 @@ using namespace std;
 
 class Classifier{
 
+    vector<float> accuracy, balancedAccuracy;
+    int totalTest, totalTrain, numClasses;
+    pair<int, int> minority;
+    string outputName;
+
     public:
-        void bayes(Mat, Mat, int, float, int);
-        void printAccuracy(vector<float>, int, int, int, int);
+        void bayes(float, int, Mat, Mat, int, pair<int, int>, string);
+        void findSmallerClass(Mat, int, int&, int&, int&);
+        void printAccuracy();
 };
 
 #endif

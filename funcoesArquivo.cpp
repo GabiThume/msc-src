@@ -9,6 +9,52 @@
 
 #include "funcoesArquivo.h"
 
+/* Read the features and save them in Mat data */
+Mat readFeatures(const string& filename, Mat &classes, int &nClasses){
+
+    int i, j;
+    float features;
+    Mat data;
+    size_t n, d;
+    ifstream myFile(filename.c_str());
+    string line, infos, numImage, classe, numFeatures, numClasses, objetos;
+
+    if(!myFile)
+        throw exception();
+
+    /* Read the first line, which contains the number of objects, classes and features */
+    getline(myFile, infos);
+    if (infos == "")
+        return Mat();
+    stringstream info(infos);
+    getline(info, objetos, '\t');
+    getline(info, numClasses, '\t');
+    nClasses = atoi(numClasses.c_str());
+    getline(info, numFeatures, '\t');
+
+    n = atoi(objetos.c_str());
+    d = atoi(numFeatures.c_str());
+
+    /* Create a Mat named data with the file data provided */
+    data.create(n, d, CV_32FC1);
+    classes.create(n, 1, CV_32FC1);
+    while (getline(myFile, line)) {
+        stringstream vector_features(line);
+        getline(vector_features, numImage, '\t');
+        getline(vector_features, classe, '\t');
+        i = atoi(numImage.c_str());
+        j = 0;
+        while(vector_features >> features) {
+            data.at<float>(i, j) = (float)features;
+            j++;
+        }
+        classes.at<float>(i, 0)=atoi(classe.c_str());
+    }
+
+    myFile.close();
+    return data;
+}
+
 int qtdArquivos(char *directory){
 
  	int count = 0;
@@ -21,8 +67,7 @@ int qtdArquivos(char *directory){
  		exit(-1);
  	}
 
-	// conta quantos arquivos existem no directory
- 	while(sDir = readdir(dir)) {
+ 	while((sDir = readdir(dir))) {
  		if( (strcmp(sDir->d_name, ".") != 0) &&
  			(strcmp(sDir->d_name, "..") != 0) &&
  			(strcmp(sDir->d_name, ".directory") != 0) &&
@@ -32,11 +77,9 @@ int qtdArquivos(char *directory){
  		}
  	}
 
- closedir(dir);
-
- return count;
+    closedir(dir);
+    return count;
 }
-
 
 int qtdImagensTotal(const char *base, int qtdClasses, int *objClass, int *maxs){
 
@@ -56,13 +99,12 @@ int qtdImagensTotal(const char *base, int qtdClasses, int *objClass, int *maxs){
 	return count;
 }
 
-int descriptor(char const *baseImagem, char const *featuresDirectory, int method, int numberColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod){
+int descriptor(char const *baseImagem, char const *featuresDirectory, int method, int numberColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod, char const *id = ""){
 
 	int i, j, k, qtdImagem = 0, qtdClasses = 0, qtdImgTotal = 0, imgTotal = 0;
 	int featureVectorSize = 0, resizingFactor = (int)(nRes*100), maxc = 0;
 	float min, max, normFactor;
-	char *directory = (char*)calloc(128, sizeof(char));
-	char nome[256], nometeste[256];
+	char directory[128], nome[256];
 	double **Cm = NULL;
 	Mat img, featureVector, features, labels, newimg;
 	FILE *arq;
@@ -74,22 +116,22 @@ int descriptor(char const *baseImagem, char const *featuresDirectory, int method
 
 	switch (method) {
 		case 1: 
-		sprintf(nome,"%s/%s_BIC_%s_%dc_%dr.txt", featuresDirectory, baseImagem, quantMethodsNames[quantMethod-1], numberColor, resizingFactor);
+		sprintf(nome,"%s/BIC_%s_%dc_%dr_%s.txt", featuresDirectory, quantMethodsNames[quantMethod-1], numberColor, resizingFactor, id);
 		featureVectorSize = numberColor*2;
 		cout << "BIC and " << quantMethodsNames[quantMethod-1] << ":";
 		break;
 		case 2:
-		sprintf(nome,"%s/%s_GCH_%s_%dc_%dr.txt", featuresDirectory, baseImagem, quantMethodsNames[quantMethod-1], numberColor, resizingFactor);
+		sprintf(nome,"%s/GCH_%s_%dc_%dr_%s.txt", featuresDirectory, quantMethodsNames[quantMethod-1], numberColor, resizingFactor, id);
 		featureVectorSize = numberColor;
 		cout << "GCH and " << quantMethodsNames[quantMethod-1] << ":";
 		break;
 		case 3:
-		sprintf(nome,"%s/%s_CCV_%s_%dc_%dr.txt", featuresDirectory, baseImagem, quantMethodsNames[quantMethod-1],  numberColor, resizingFactor);
+		sprintf(nome,"%s/CCV_%s_%dc_%dr_%s.txt", featuresDirectory, quantMethodsNames[quantMethod-1],  numberColor, resizingFactor, id);
 		featureVectorSize = numberColor*2;
 		cout << "CCV and " << quantMethodsNames[quantMethod-1] << ":";
 		break;
 		case 4:
-		sprintf(nome,"%s/%s_Haralick6_%s_%dc_%dr.txt", featuresDirectory, baseImagem, quantMethodsNames[quantMethod-1],  numberColor, resizingFactor);
+		sprintf(nome,"%s/Haralick6_%s_%dc_%dr_%s.txt", featuresDirectory, quantMethodsNames[quantMethod-1],  numberColor, resizingFactor, id);
 		Cm = (double **)calloc(numberColor, sizeof(double*));
 		for (i=0; i<numberColor; i++) {
 			Cm[i]= (double *)calloc(numberColor, sizeof(double));
@@ -98,7 +140,7 @@ int descriptor(char const *baseImagem, char const *featuresDirectory, int method
 		cout << "Haralick-6 and " << quantMethodsNames[quantMethod-1] << ":";
 		break;
 		case 5:
-		sprintf(nome,"%s/%s_ACC_%s_%dc_%dd_%dr.txt",  featuresDirectory, baseImagem, quantMethodsNames[quantMethod-1], numberColor, nparam, resizingFactor);
+		sprintf(nome,"%s/ACC_%s_%dc_%dd_%dr.txt",  featuresDirectory, quantMethodsNames[quantMethod-1], numberColor, nparam, resizingFactor);
 		featureVectorSize = (numberColor*nparam);
 		cout << "ACC and " << quantMethodsNames[quantMethod-1] << " c/ " << nparam << " distancias : ";
 		break;
@@ -170,54 +212,52 @@ int descriptor(char const *baseImagem, char const *featuresDirectory, int method
 			//Quantizacao ou conversao de cores
 			switch(quantMethod){
 				case 1:
-				QuantizationIntensity(newimg, newimg, numberColor);
-				break;
+                    QuantizationIntensity(newimg, newimg, numberColor);
+                    break;
 				case 2:
-				QuantizationGleam(newimg, newimg, numberColor);
-				break;
+                    QuantizationGleam(newimg, newimg, numberColor);
+                    break;
 				case 3:
-				QuantizationLuminance(newimg, newimg, numberColor);
-				break;
+                    QuantizationLuminance(newimg, newimg, numberColor);
+                    break;
 				case 4:
-				QuantizationMSB(newimg, newimg, numberColor);
-				break;
+                    QuantizationMSB(newimg, newimg, numberColor);
+                    break;
 				default: 
-				cout << "ERRO: metodo de quantizacao nao existe!!!" << endl;
-				exit(-1);
+                    cout << "ERRO: metodo de quantizacao nao existe!!!" << endl;
+                    exit(-1);
 			}
 			
 			switch(method){
 	            /* BIC: image, descriptor, number of colors, normalization */
 				case 1:
-				BIC(newimg, featureVector, numberColor, oNorm);
-				break;
+                    BIC(newimg, featureVector, numberColor, oNorm);
+                    break;
 			    /* GCH: image, descriptor, number of colors, normalization */
 				case 2:
-				GCH(newimg, featureVector, numberColor, oNorm);
-				break;
+                    GCH(newimg, featureVector, numberColor, oNorm);
+                    break;
 			    /* CCV: image, descriptor, number of colors, normalization, 
 			          limiar coerente/incoerente */
 				case 3:
-				CCV(newimg, featureVector, numberColor, oNorm, param[0]);
-				break;
+                    CCV(newimg, featureVector, numberColor, oNorm, param[0]);
+                    break;
 			    /* HARALICK: image, co-occurrence matriz, descriptor
 			               numero de cores, normalization */
 				case 4:
-				HARALICK(newimg, Cm, featureVector, numberColor, oNorm);
-				break;
+                    HARALICK(newimg, Cm, featureVector, numberColor, oNorm);
+                    break;
 			    /* ACC: image, descriptor, number of colors, normalization,
 			          distance vector, distance number */
 				case 5:
-				ACC(newimg, featureVector, numberColor, oNorm, param, nparam);
-				break;
+                    ACC(newimg, featureVector, numberColor, oNorm, param, nparam);
+                    break;
 			}
 
 			labels.at<uchar>(imgTotal,0) = (uchar)i;
-			
 			for(k = 0; k < (featureVectorSize); k++) {
 				features.at<float>(imgTotal,k) = featureVector.at<float>(0, k);
 			}
-			
 			imgTotal++;
 		}
 	}
