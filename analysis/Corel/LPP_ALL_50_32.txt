@@ -1,0 +1,2 @@
+
+../../caracteristicas_corel/32/all/corel_ALL_Intensity_32c_4d_100r.csv

@@ -60,8 +60,8 @@ void Classifier::printAccuracy(){
     cout <<  "Cross validation with "<< accuracy.size() <<" k-fold:" << endl;
     cout << "\tMean Accuracy= " << mean << endl;
     cout << "\tStandard Deviation = " << std << endl;
-    cout << "\tMean Balanced Accuracy= " << balancedMean << endl;
-    cout << "\tStandard Deviation = " << balancedStd << endl;
+    //cout << "\tMean Balanced Accuracy= " << balancedMean << endl;
+    //cout << "\tStandard Deviation = " << balancedStd << endl;
     cout << "---------------------------------------------------------------------------------------" << endl;
 
     if (outputName != ""){

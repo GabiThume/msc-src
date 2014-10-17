@@ -5,7 +5,6 @@
 #include <vector>
 #include <iterator>
 #include "tapkee/src/cli/util.hpp"
-
 #include <numeric>
 #include <functional>
 #include <string>
@@ -17,7 +16,6 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-
 #include "classifier.h"
 
 using namespace std;
@@ -26,7 +24,6 @@ using namespace tapkee;
 
 /* Read the features and save them in Mat data */
 Mat readFeatures(const string& filename, Mat &classes, int &nClasses){
-
     int i, j;
     float features;
     Mat data;
@@ -54,6 +51,7 @@ Mat readFeatures(const string& filename, Mat &classes, int &nClasses){
     /* Create a Mat named data with the file data provided */
     data.create(n, d, CV_32FC1);
     classes.create(n, 1, CV_32FC1);
+    //cout << filename << " features " << d << " imagens " << n << endl; 
     while (getline(myFile, line)) {
         stringstream vector_features(line);
         stringstream temp;
@@ -76,6 +74,7 @@ Mat readFeatures(const string& filename, Mat &classes, int &nClasses){
     myFile.close();
     return data;
 }
+
 int main(int argc, const char** argv)
 {
     Classifier c;
@@ -84,33 +83,36 @@ int main(int argc, const char** argv)
     struct dirent *arq;
     ifstream my_file;
     string name_arq, name_dir, name, outName;
-    int nClasses, metodo, atributos, janela, i, j;
-    string delimiter = ",";
+    int nClasses, metodo, atributos, janela, i, j, dim;
+    string delimiter = ",", dimStr;
     Size size;
     pair <int, int> minority(-1,-1);
-    float prob = 0.5;
+    float prob = 0.5, r;
     
-    if (argc < 2)
+    if (argc != 3){
+        cout << "\nUsage: ./lpp (1) (2)\n\n\t(1) Features Directory" << endl;
+        cout << "\t(2) Dimensions\n" << endl;
         exit(-1);
-
+    }
 	name_dir = argv[1];
-    //name_dir = "../../caracteristicas_corel/16/";
+	dimStr = argv[2];
+	dim = atoi(argv[2]);
+
     /* For each file on input directory, do the following operations */
     directory = opendir(name_dir.c_str());
     if (directory != NULL){
         while ((arq = readdir(directory))){
-            string out = "";
             name_arq = arq->d_name;
             name = name_dir + arq->d_name;
-            outName = "../../result_lpp/LPP_"+name_arq+".csv";
+            outName = "../projections/LPP_"+dimStr+"_"+name_arq;
             my_file.open(name.c_str());
             if(my_file.good()){
                 /* Read the feature vectors */
                 data = readFeatures(name.c_str(), classes, nClasses);
                 size = data.size();
                 if (size.height != 0){
-
-                    cout << name.c_str() << endl;
+                    srand((unsigned int)time(NULL));
+                    cout << endl << name.c_str();
                     ifstream ifs(name.c_str());
                     ofstream ofs(outName.c_str());
 
@@ -123,35 +125,31 @@ int main(int argc, const char** argv)
 
                     input_data.transposeInPlace();
 
-                    // A matriz is only eigenvalued when it is diagonizable
+                    // Some matriz is only eigenvalued when it is diagonizable
                     // One way to fixing it is to calculate Determinant and 
                     // add 0.0001 when Determinant is zero
-                    cout << " Determinant " << input_data.determinant() << endl;
-                    if (input_data.determinant() == -0){
+                    if (abs(input_data.determinant()) == 0){
                         for (i = 0; i < size.height; i++){
                             for (j = 0; j < size.width; j++){
-                                input_data(i,j) = input_data(i,j)+0.0001;
+                                r = (float)rand()/(float)(RAND_MAX);
+                                input_data(i,j) = input_data(i,j)+0.0001*r;
                             }
                         }
                     }
-                    cout << "Data contains " << input_data.cols() << " feature vectors with dimension of " << input_data.rows() << endl;
-
                     TapkeeOutput result = initialize()
                         .withParameters((method=LocalityPreservingProjections,
-                        num_neighbors=3))
+                                        num_neighbors=10, target_dimension=dim))
                         .embedUsing(input_data);
-                    //ofs << result.embedding.transpose();
-                    //result.embedding.transposeInPlace();
                     write_data(result.embedding, ofs, delimiter[0]);
                     ofs.close();
-                    
+
                     Mat projections(size.height, size.width, CV_32FC1);
                     for (i = 0; i < size.height; i++){
                         for (j = 0; j < size.width; j++){
                             projections.at<float>(i,j) = result.embedding(i,j);
                         }                
-                    }//"../../result_lpp/analysis/LPP_"+name_arq
-                    c.bayes(prob, 10, projections, classes, nClasses, minority, "");
+                    }
+                    //sc.bayes(prob, 10, projections, classes, nClasses, minority, "");
                 }
             }
             my_file.close();
@@ -159,4 +157,5 @@ int main(int argc, const char** argv)
     }
 	return 0;
 }
+
 

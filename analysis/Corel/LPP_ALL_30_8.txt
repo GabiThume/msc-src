@@ -1,0 +1,56 @@
+
+../../caracteristicas_corel/8/all/corel_ALL_Luminance_8c_4d_100r.csv
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 10
+Minority class samples: 100
+Total samples: 1000 for each class: +- 100
+Test samples: 500 for each class: +- 50
+Train samples: 500 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 12.86
+	Standard Deviation = 1.48607
+---------------------------------------------------------------------------------------
+
+../../caracteristicas_corel/8/all/corel_ALL_Intensity_8c_4d_100r.csv
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 10
+Minority class samples: 100
+Total samples: 1000 for each class: +- 100
+Test samples: 500 for each class: +- 50
+Train samples: 500 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 22.78
+	Standard Deviation = 3.53095
+---------------------------------------------------------------------------------------
+
+../../caracteristicas_corel/8/all/corel_ALL_MSB_8c_4d_100r.csv
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 10
+Minority class samples: 100
+Total samples: 1000 for each class: +- 100
+Test samples: 500 for each class: +- 50
+Train samples: 500 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 72.86
+	Standard Deviation = 1.27765
+---------------------------------------------------------------------------------------
+
+../../caracteristicas_corel/8/all/corel_ALL_Gleam_8c_4d_100r.csv
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 10
+Minority class samples: 100
+Total samples: 1000 for each class: +- 100
+Test samples: 500 for each class: +- 50
+Train samples: 500 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 77.76
+	Standard Deviation = 2.03725
+---------------------------------------------------------------------------------------
