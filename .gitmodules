@@ -1,0 +1,3 @@
+[submodule "tapkee"]
+	path = tapkee
+	url = https://github.com/lisitsyn/tapkee.git

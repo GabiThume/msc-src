@@ -1,0 +1,21 @@
+../../caracteristicas_corel/64/BaseImagens_GCH_Intensity_64c_100r.txt
+ Determinant -5.00414e-128
+Data contains 1000 feature vectors with dimension of 64
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 10
+Minority class samples: 100
+Total samples: 1000 for each class: +- 100
+Test samples: 500 for each class: +- 50
+Train samples: 500 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 0.9
+	Standard Deviation = 2.7
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_corel/64/BaseImagens_CCV_MSB_64c_100r.txt
+ Determinant -0
+Data contains 1000 feature vectors with dimension of 128

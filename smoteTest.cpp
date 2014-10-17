@@ -58,7 +58,7 @@ int main(int argc, char const *argv[]){
     ifstream myFile;
     string nameFile, name, nameDir, baseDir, featuresDir;
     Mat data, minorityClass, classes, minorityOverSampled, majority, majorityClasses, newClasses, total, synthetic;
-    pair <int, int> min(0,0);
+    pair <int, int> min(-1,-1);
 
     myFile.open("original.csv");
     myFile.close();

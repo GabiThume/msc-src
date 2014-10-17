@@ -1,0 +1,360 @@
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_CCV_Luminance_32c_100r.txt
+ Determinant 0
+Data contains 1400 feature vectors with dimension of 64
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 2.08571
+	Standard Deviation = 3.18684
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_BIC_Intensity_32c_100r.txt
+ Determinant 2.91814e-138
+Data contains 1400 feature vectors with dimension of 64
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 2.1
+	Standard Deviation = 3.20844
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_Haralick6_Gleam_32c_100r.txt
+ Determinant 1.35554e-07
+Data contains 1400 feature vectors with dimension of 6
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 31.4143
+	Standard Deviation = 2.77264
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_ACC_Intensity_32c_4d_100r.txt
+ Determinant -0
+Data contains 1400 feature vectors with dimension of 128
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 0
+	Standard Deviation = 0
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_GCH_Intensity_32c_100r.txt
+ Determinant -6.17186e-64
+Data contains 1400 feature vectors with dimension of 32
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 2.05714
+	Standard Deviation = 3.14234
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_GCH_MSB_32c_100r.txt
+ Determinant 0
+Data contains 1400 feature vectors with dimension of 32
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 0
+	Standard Deviation = 0
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_BIC_Luminance_32c_100r.txt
+ Determinant 2.68906e-137
+Data contains 1400 feature vectors with dimension of 64
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 4.07143
+	Standard Deviation = 3.32538
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_CCV_MSB_32c_100r.txt
+ Determinant 0
+Data contains 1400 feature vectors with dimension of 64
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 0
+	Standard Deviation = 0
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_Haralick6_Luminance_32c_100r.txt
+ Determinant -9.66458e-07
+Data contains 1400 feature vectors with dimension of 6
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 45.4571
+	Standard Deviation = 2.14362
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_GCH_Gleam_32c_100r.txt
+ Determinant -0
+Data contains 1400 feature vectors with dimension of 32
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 0.642857
+	Standard Deviation = 1.92857
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_BIC_Gleam_32c_100r.txt
+ Determinant 0
+Data contains 1400 feature vectors with dimension of 64
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 4.8
+	Standard Deviation = 3.14429
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_BIC_MSB_32c_100r.txt
+ Determinant 0
+Data contains 1400 feature vectors with dimension of 64
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 1.42857
+	Standard Deviation = 2.85714
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_Haralick6_Intensity_32c_100r.txt
+ Determinant 3.13516e-06
+Data contains 1400 feature vectors with dimension of 6
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 45.9286
+	Standard Deviation = 1.70384
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_GCH_Luminance_32c_100r.txt
+ Determinant -1.43805e-63
+Data contains 1400 feature vectors with dimension of 32
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 0.671429
+	Standard Deviation = 2.01429
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_Haralick6_MSB_32c_100r.txt
+ Determinant 2.49045e-09
+Data contains 1400 feature vectors with dimension of 6
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 31.4571
+	Standard Deviation = 1.18975
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_ACC_Luminance_32c_4d_100r.txt
+ Determinant -0
+Data contains 1400 feature vectors with dimension of 128
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 0
+	Standard Deviation = 0
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_CCV_Intensity_32c_100r.txt
+ Determinant -0
+Data contains 1400 feature vectors with dimension of 64
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 0.671429
+	Standard Deviation = 2.01429
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_ACC_Gleam_32c_4d_100r.txt
+ Determinant -0
+Data contains 1400 feature vectors with dimension of 128
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 2.64286
+	Standard Deviation = 3.23769
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_ACC_MSB_32c_4d_100r.txt
+ Determinant 0
+Data contains 1400 feature vectors with dimension of 128
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 0
+	Standard Deviation = 0
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_tropical_fruits1400/32/BaseTropical_CCV_Gleam_32c_100r.txt
+ Determinant -0
+Data contains 1400 feature vectors with dimension of 64
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 14
+Minority class samples: 100
+Total samples: 1400 for each class: +- 100
+Test samples: 700 for each class: +- 50
+Train samples: 700 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 2.54286
+	Standard Deviation = 4.11706
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------

@@ -1,0 +1,3 @@
+../../caracteristicas_corel/256/BaseImagens_CCV_Intensity_256c_100r.txt
+ Determinant 0
+Data contains 1000 feature vectors with dimension of 512

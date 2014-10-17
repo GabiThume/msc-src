@@ -1,0 +1,75 @@
+../../caracteristicas_caltech600/64/BaseCaltech_CCV_Luminance_64c_100r.txt
+ Determinant -0
+Data contains 600 feature vectors with dimension of 128
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 6
+Minority class samples: 100
+Total samples: 600 for each class: +- 100
+Test samples: 300 for each class: +- 50
+Train samples: 300 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 0
+	Standard Deviation = 0
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_caltech600/64/BaseCaltech_CCV_Intensity_64c_100r.txt
+ Determinant 0
+Data contains 600 feature vectors with dimension of 128
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 6
+Minority class samples: 100
+Total samples: 600 for each class: +- 100
+Test samples: 300 for each class: +- 50
+Train samples: 300 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 0
+	Standard Deviation = 0
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_caltech600/64/BaseCaltech_ACC_Luminance_64c_4d_100r.txt
+ Determinant -0
+Data contains 600 feature vectors with dimension of 256
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 6
+Minority class samples: 100
+Total samples: 600 for each class: +- 100
+Test samples: 300 for each class: +- 50
+Train samples: 300 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 0
+	Standard Deviation = 0
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_caltech600/64/BaseCaltech_ACC_Intensity_64c_4d_100r.txt
+ Determinant -0
+Data contains 600 feature vectors with dimension of 256
+
+---------------------------------------------------------------------------------------
+Image classification using Normal Bayes classifier
+---------------------------------------------------------------------------------------
+Number of classes: 6
+Minority class samples: 100
+Total samples: 600 for each class: +- 100
+Test samples: 300 for each class: +- 50
+Train samples: 300 for each class: 50
+Cross validation with 10 k-fold:
+	Mean Accuracy= 4.7
+	Standard Deviation = 7.17937
+	Mean Balanced Accuracy= -nan
+	Standard Deviation = -nan
+---------------------------------------------------------------------------------------
+../../caracteristicas_caltech600/64/BaseCaltech_ACC_MSB_64c_4d_100r.txt
+ Determinant -0
+Data contains 600 feature vectors with dimension of 256

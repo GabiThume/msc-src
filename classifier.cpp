@@ -65,6 +65,7 @@ void Classifier::printAccuracy(){
     cout << "---------------------------------------------------------------------------------------" << endl;
 
     if (outputName != ""){
+        cout << "Write on " << (outputName+".csv").c_str();
         outputFile.open((outputName+".csv").c_str(), ios::out | ios::app);
         outputFile << minority.second;
         outputFile << ",";
@@ -206,19 +207,20 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
             }
         }
 
-        higherClass = labelsTraining.at<float>(labelsTraining.size().height-1,0);
+        /*higherClass = labelsTraining.at<float>(labelsTraining.size().height-1,0);
         confusionMat = Mat::zeros(higherClass, numClasses, CV_32S);
-
+        */
         /* Confusion Matrix
            truePositive   | falsePositive
            falseNegative  | trueNegative
         */
+        /*
         for (i = 0; i< result.size().height; i++){
             rightClass = labelsTesting.at<float>(i,0)-1;
             guessedClass = result.at<float>(i,0)-1;
             confusionMat.at<int>(rightClass, guessedClass)++;
         }
-
+        */
         /*cout << "-------------------\nConfusion Matrix" << endl;
         for(i = 0; i < confusionMat.rows; i++){
             for(int j = 0; j < confusionMat.cols; j++){
@@ -226,7 +228,7 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
             }
             printf("\n");
         }*/
-
+        /*
         truePositive = confusionMat.at<int>(minority.first, minority.first);
         for(i = 0; i < confusionMat.rows; i++){
             for(j = 0; j < confusionMat.cols; j++){
@@ -243,7 +245,7 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
         sensitivity = truePositive/(truePositive+falseNegative);
         balancedAccuracyMean = (sensitivity + specificity)/2;
         balancedAccuracy.push_back(balancedAccuracyMean*100.0);
-
+        */
         /* Output file to use the confusion matrix plot with python*/
         /*stringstream fileName;
         fileName << outputName+"_labels_";

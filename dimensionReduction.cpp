@@ -29,7 +29,7 @@ double log2(double number){
    return log(number)/log(2);
 }
 
-Mat entropyReduction(Mat data, int tam_janela, string nome_my_file){
+Mat entropyReduction(Mat data, int tam_janela, string name_my_file){
 
     map<float, int> frequencias;
     map<float, int>::const_iterator iterator;
@@ -43,7 +43,7 @@ Mat entropyReduction(Mat data, int tam_janela, string nome_my_file){
     width = data.size().width;
     Mat vectorEntropy(height, ceil((float)width/tam_janela), CV_32FC1);
 
-    arq_saida = "entropy/ENTROPIA_" + tam.str() + "_"  + nome_my_file; 
+    arq_saida = "entropy/ENTROPIA_" + tam.str() + "_"  + name_my_file; 
     ofstream arq(arq_saida.c_str());
    
     for (i = 0; i < height; i++){
@@ -80,22 +80,22 @@ Mat entropyReduction(Mat data, int tam_janela, string nome_my_file){
     return vectorEntropy;
 }
 
-Mat pcaReduction(Mat data, int nComponents, string nome_my_file){
+Mat pcaReduction(Mat data, int nComponents, string name_my_file){
 
-    Mat projecao, autovectores;
+    Mat projection, eigenvectors;
     stringstream n;
     n << nComponents;
 
-    string arq_saida = "pca/PCA_" + n.str() + "_" + nome_my_file; 
+    string arq_saida = "pca/PCA_" + n.str() + "_" + name_my_file; 
     ofstream arq(arq_saida.c_str());
 
     PCA pca(data, Mat(), CV_PCA_DATA_AS_ROW, nComponents);
-    autovectores = pca.eigenvectors.clone();
-    projecao = pca.project(data);
+    eigenvectors = pca.eigenvectors.clone();
+    projection = pca.project(data);
 
-    arq << projecao;
+    arq << projection;
     arq.close();    
-    return projecao;
+    return projection;
 }
 
 void inputError(){
@@ -107,11 +107,11 @@ void inputError(){
 int main(int argc, const char *argv[]){
 
     Classifier c;
-    Mat vectorEntropy, projecao, data, classes;
+    Mat vectorEntropy, projection, data, classes;
     DIR *directory;
     struct dirent *arq;
     ifstream my_file;
-    string nome_arq, nome_dir, nome;
+    string name_arq, name_dir, name;
     int nClasses, metodo, atributos, janela;
     pair <int, int> minority(0,0);
     float prob = 0.5;
@@ -119,7 +119,7 @@ int main(int argc, const char *argv[]){
     if (argc < 3)
         inputError();
 
-	nome_dir = argv[1];
+	name_dir = argv[1];
 	metodo = atoi(argv[2]);
     switch(metodo){
         case 0: /* Just classification */
@@ -145,42 +145,42 @@ int main(int argc, const char *argv[]){
     }
 
     /* For each file on input directory, do the following operations */
-    directory = opendir(nome_dir.c_str());
+    directory = opendir(name_dir.c_str());
     if (directory != NULL){
        while ((arq = readdir(directory))){
             string out = "";
-            nome_arq = arq->d_name;
-            nome = nome_dir + arq->d_name;
-            my_file.open(nome.c_str());
+            name_arq = arq->d_name;
+            name = name_dir + arq->d_name;
+            my_file.open(name.c_str());
 
             if(my_file.good()){
                 /* Read the feature vectors */
-                data = readFeatures(nome.c_str(), classes, nClasses);
+                data = readFeatures(name.c_str(), classes, nClasses);
                 if (data.size().height != 0){
 
                     switch(metodo){
                         case 0:
-                            cout << endl << "Classification for "<< nome.c_str() << endl;
+                            cout << endl << "Classification for "<< name.c_str() << endl;
                             c.bayes(prob, 10, data, classes, nClasses, minority, out.c_str());
                             break;
                         case 1:
-                            cout << endl << "PCA for "<< nome.c_str() << " with " << atributos << " attributes" << endl;
-                            projecao = pcaReduction(data, atributos, nome_arq);
-                            c.bayes(prob, 10, projecao, classes, nClasses, minority, out.c_str());
+                            cout << endl << "PCA for "<< name.c_str() << " with " << atributos << " attributes" << endl;
+                            projection = pcaReduction(data, atributos, name_arq);
+                            c.bayes(prob, 10, projection, classes, nClasses, minority, out.c_str());
                             break;
                         case 2:
-                            cout << endl << "Entropy for "<< nome.c_str() << " with window = " << janela << endl;
-                            vectorEntropy = entropyReduction(data, janela, nome_arq);
+                            cout << endl << "Entropy for "<< name.c_str() << " with window = " << janela << endl;
+                            vectorEntropy = entropyReduction(data, janela, name_arq);
                             c.bayes(prob, 10, vectorEntropy, classes, nClasses, minority, out.c_str());
                             break;
                         case 3:
-                            cout << endl << "Classification for "<< nome.c_str() << endl;
+                            cout << endl << "Classification for "<< name.c_str() << endl;
                             c.bayes(prob, 10, data, classes, nClasses, minority, out.c_str());
-                            cout << endl << "PCA for "<< nome.c_str() << " with " << atributos << " attributes" << endl;
-                            projecao = pcaReduction(data, atributos, nome_arq);
-                            c.bayes(prob, 10, projecao, classes, nClasses, minority, out.c_str());
-                            cout << endl << "Entropy for "<< nome.c_str() << " with window = " << janela << endl;
-                            vectorEntropy = entropyReduction(data, janela, nome_arq);
+                            cout << endl << "PCA for "<< name.c_str() << " with " << atributos << " attributes" << endl;
+                            projection = pcaReduction(data, atributos, name_arq);
+                            c.bayes(prob, 10, projection, classes, nClasses, minority, out.c_str());
+                            cout << endl << "Entropy for "<< name.c_str() << " with window = " << janela << endl;
+                            vectorEntropy = entropyReduction(data, janela, name_arq);
                             c.bayes(prob, 10, vectorEntropy, classes, nClasses, minority, out.c_str());
                             break;
                         default:
