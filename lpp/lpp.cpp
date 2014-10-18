@@ -143,13 +143,14 @@ int main(int argc, const char** argv)
                     write_data(result.embedding, ofs, delimiter[0]);
                     ofs.close();
 
+                    //Mat projections(size.height, size.width, CV_64F);
                     Mat projections(size.height, size.width, CV_32FC1);
                     for (i = 0; i < size.height; i++){
                         for (j = 0; j < size.width; j++){
                             projections.at<float>(i,j) = result.embedding(i,j);
                         }                
                     }
-                    //sc.bayes(prob, 10, projections, classes, nClasses, minority, "");
+                    c.bayes(prob, 10, projections, classes, nClasses, minority, "");
                 }
             }
             my_file.close();
