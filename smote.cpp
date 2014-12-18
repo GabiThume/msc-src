@@ -95,8 +95,7 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors){
 
         amountSmote = 100;
     }
-    amountSmote = amountSmote/100;
-
+    amountSmote = amountSmote/100.0;
     Mat synthetic(minoritySamples*amountSmote, attributes, CV_32FC1);
     Mat neighbors(minoritySamples, nearestNeighbors, CV_32FC1);
 

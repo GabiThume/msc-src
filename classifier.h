@@ -9,7 +9,7 @@ using namespace std;
 
 class Classifier{
 
-    vector<float> accuracy, balancedAccuracy;
+    vector<float> accuracy, balancedAccuracy, falsePositiveRateValues, truePositiveRateValues;
     int totalTest, totalTrain, numClasses;
     pair<int, int> minority;
     string outputName;

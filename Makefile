@@ -44,6 +44,6 @@ rebalanceTest: rebalanceTest.cpp
 	@g++ -Wall artificialGeneration.o descritores.o funcoesAux.o funcoesArquivo.o classifier.o smote.o rebalanceTest.cpp -o rebalanceTest $(OPENCV) $(OPENCVCONF)
 
 clean:
-	rm *.o *.*~ *~ teste mainDescritor dimensionReduction mergeDataSets smoteTest artificialGenerationTest rebalanceTest
+	rm -f *.o *.*~ *~ teste mainDescritor dimensionReduction mergeDataSets smoteTest artificialGenerationTest rebalanceTest
 
 

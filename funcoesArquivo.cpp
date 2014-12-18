@@ -63,8 +63,7 @@ int qtdArquivos(char *directory){
 
  	dir = opendir(directory);
  	if(dir == NULL) {
- 		fprintf(stderr,"Erro! There is no directory named %s\n", directory);
- 		exit(-1);
+ 		return 0;
  	}
 
  	while((sDir = readdir(dir))) {
@@ -83,13 +82,22 @@ int qtdArquivos(char *directory){
 
 int qtdImagensTotal(const char *base, int qtdClasses, int *objClass, int *maxs){
 
-	int i, count = 0;
+	int i, count = 0, currentSize;
 	char *directory = (char*)calloc(256, sizeof(char));
 	*maxs = 0;
 
 	for (i = 1; i <= qtdClasses; i++){
-		sprintf(directory, "%s/%d/", base, i);
-		int currentSize = qtdArquivos(directory);
+		sprintf(directory, "%s/%d/treino/", base, i);
+		currentSize = qtdArquivos(directory);
+		sprintf(directory, "%s/%d/teste/", base, i);
+		currentSize += qtdArquivos(directory);
+		if (currentSize == 0){
+			sprintf(directory, "%s/%d/", base, i);
+			currentSize = qtdArquivos(directory);
+			if (currentSize == 0){
+		 		fprintf(stderr,"Erro! There is no directory named %s\n", directory);
+		 	}
+		}
 		objClass[i-1] = currentSize;
 		count += currentSize;
 		if (currentSize > *maxs || *maxs == 0)
@@ -140,7 +148,7 @@ int descriptor(char const *baseImagem, char const *featuresDirectory, int method
 		cout << "Haralick-6 and " << quantMethodsNames[quantMethod-1] << ":";
 		break;
 		case 5:
-		sprintf(nome,"%s/ACC_%s_%dc_%dd_%dr.txt",  featuresDirectory, quantMethodsNames[quantMethod-1], numberColor, nparam, resizingFactor);
+		sprintf(nome,"%s/ACC_%s_%dc_%dd_%dr_%s.txt",  featuresDirectory, quantMethodsNames[quantMethod-1], numberColor, nparam, resizingFactor, id);
 		featureVectorSize = (numberColor*nparam);
 		cout << "ACC and " << quantMethodsNames[quantMethod-1] << " c/ " << nparam << " distancias : ";
 		break;
@@ -188,26 +196,44 @@ int descriptor(char const *baseImagem, char const *featuresDirectory, int method
 	
 	for(i = 1; i <= qtdClasses; i++) {
 
-		sprintf(directory,"%s/%d/", baseImagem, i); 
+		sprintf(directory,"%s/%d/treino/", baseImagem, i); 
 		qtdImagem = qtdArquivos(directory);
-		cout << "classe " << i << " : " << directory << "\n";
+		int treino = qtdImagem;
+		sprintf(directory,"%s/%d/teste/", baseImagem, i); 
+		qtdImagem += qtdArquivos(directory);
+		if (qtdImagem == 0){
+			sprintf(directory,"%s/%d/", baseImagem, i); 
+			qtdImagem = qtdArquivos(directory);
+			if (qtdImagem == 0){
+		 		fprintf(stderr,"Erro! There is no directory named %s\n", directory);
+		 	}
+		}
+		cout << "classe " << i << " : " << directory << " imagens " << qtdImagem << endl;
 		
 		for(j = 0; j < qtdImagem; j++)	{
 			
 			sprintf(directory,"%s/%d/%d.jpg", baseImagem, i, j); 
 			img = imread(directory, CV_LOAD_IMAGE_COLOR);
-			
 			if (img.empty()) { 
-				fprintf(stderr,"Erro ao abrir imagem %s\n", directory); 
-				return -1; 
+				sprintf(directory,"%s/%d/treino/%d.jpg", baseImagem, i, j); 
+				img = imread(directory, CV_LOAD_IMAGE_COLOR);
+				if (img.empty()){ 
+					sprintf(directory,"%s/%d/teste/%d.jpg", baseImagem, i, j-treino); 
+					img = imread(directory, CV_LOAD_IMAGE_COLOR);
+					if (img.empty()){ 
+						cout << "Erro ao abrir imagem " << directory << endl; 
+						exit(1); 
+					}
+				}
 			}
 			
 			if (nRes < 1) {
 				resize(img, newimg, Size(), nRes, nRes, INTER_AREA);
 				if (imgTotal==0) 
 					imwrite("out.jpg", newimg);
-			} else
-			img.copyTo(newimg);
+			} 
+			else
+				img.copyTo(newimg);
 			
 			//Quantizacao ou conversao de cores
 			switch(quantMethod){
@@ -253,7 +279,6 @@ int descriptor(char const *baseImagem, char const *featuresDirectory, int method
                     ACC(newimg, featureVector, numberColor, oNorm, param, nparam);
                     break;
 			}
-
 			labels.at<uchar>(imgTotal,0) = (uchar)i;
 			for(k = 0; k < (featureVectorSize); k++) {
 				features.at<float>(imgTotal,k) = featureVector.at<float>(0, k);
@@ -261,7 +286,6 @@ int descriptor(char const *baseImagem, char const *featuresDirectory, int method
 			imgTotal++;
 		}
 	}
-	
 	if(method == 4 && oNorm != 0){
 		normFactor = (oNorm == 1) ? 1.0 : 255.0;
 
@@ -294,7 +318,6 @@ int descriptor(char const *baseImagem, char const *featuresDirectory, int method
 		}
 		fprintf(arq,"\n");	
 	}
-	
 	if (method == 4) {
 		for (i=0; i<numberColor; i++) {
 			free(Cm[i]);

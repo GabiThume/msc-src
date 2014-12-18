@@ -113,7 +113,7 @@ int main(int argc, const char *argv[]){
     ifstream my_file;
     string name_arq, name_dir, name;
     int nClasses, metodo, atributos, janela;
-    pair <int, int> minority(0,0);
+    pair <int, int> minority(-1,-1);
     float prob = 0.5;
 
     if (argc < 3)

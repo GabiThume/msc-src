@@ -15,8 +15,8 @@ int classesNumber(string diretorio){
 
 	dir = opendir(diretorio.c_str());
 	if(dir == NULL) {
-		cout << "Erro!! Nao foi possivel abrir o diretorio " << diretorio << endl;
-		return -1;
+		// cout << "Erro!! Nao foi possivel abrir o diretorio " << diretorio << endl;
+		return 0;
 	}
 
 	while((sDir = readdir(dir))) {
@@ -32,11 +32,12 @@ int classesNumber(string diretorio){
 	return count;
 }
 
-void Artificial::generate(string base, int isToGenerate = 1){
+int Artificial::generate(string base, int isToGenerate = 1){
 
 	int i, j, qtdClasses = 0, generationType, noiseType, roiHeight, roiWidth;
-    int operation, imageOrigin, subImage;
+    int operation, imageOrigin, subImage, randomSecondImg;
     int menor = 999, maior = -1, maiorClasse, menorClasse, rebalance, qtdImg;
+    double alpha, beta;
     Mat img, noise;
     string imgName, classe, minorityClass;
 	struct dirent *sDir = NULL;
@@ -60,7 +61,10 @@ void Artificial::generate(string base, int isToGenerate = 1){
         minority or majority */
     for(i = 1; i <= qtdClasses; i++) {
         classe = base + "/" + to_string(i) + "/";
-        qtdImg = classesNumber(classe);
+        qtdImg = classesNumber(classe+"/treino/");
+        if (qtdImg == 0){
+           qtdImg = classesNumber(classe);
+        }
         totalImage.push_back(qtdImg);
         if (qtdImg < menor){
             menorClasse = i;
@@ -71,15 +75,14 @@ void Artificial::generate(string base, int isToGenerate = 1){
             maior = qtdImg;
         }
     }
-
     /* Find how many samples it is needed to rebalance */
-    rebalance = totalImage[maiorClasse-1] - totalImage[menorClasse-1];
+    rebalance = totalImage[maiorClasse-1]/2 - totalImage[menorClasse-1];
     if (rebalance == 0){
         cout << "Error! Classes were already balanced.\n" << endl;
         exit(-1);
     }
 
-    minorityClass = base + "/" + to_string(menorClasse) + "/";
+    minorityClass = base + "/" + to_string(menorClasse) + "/treino/";
     cout << "Minority Class: " << minorityClass << endl;
     minDir = opendir(minorityClass.c_str());
 
@@ -98,12 +101,14 @@ void Artificial::generate(string base, int isToGenerate = 1){
         /* Choose a random image */
         int randomImg = 0 + (rand() % totalImage[menorClasse-1]);
 
-        Mat generated, subImg;
+        Mat generated, subImg, tmp;
         images[randomImg].copyTo(generated);
         images[randomImg].copyTo(subImg);
 
         /* Choose an operation */
-        generationType = 1 + (rand() % 3);
+        generationType = 1 + (rand() % 5);
+        //isToGenerate = 0;
+        //generationType = 5;
         switch (generationType) {
 
         case 1: /* Blurring */
@@ -147,7 +152,7 @@ void Artificial::generate(string base, int isToGenerate = 1){
             for (subImage = 1; subImage <= 4 ; subImage++){
                 vectorRand.clear();
                 do{
-                    imageOrigin = noiseType = (rand() % (totalImage[menorClasse-1]+i));
+                    imageOrigin = (rand() % (totalImage[menorClasse-1]+i));
                 } while(count(vectorRand.begin(), vectorRand.end(), imageOrigin));
                 vectorRand.push_back(imageOrigin);
 
@@ -201,14 +206,26 @@ void Artificial::generate(string base, int isToGenerate = 1){
             }
             imwrite(minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg", subImg);
             break;
-//        case 4: // blending
-//            break;
-//        case 5: // unsharp mask
-//            break;
+        case 4: /* blending */
+            alpha = (rand() % 100);
+            beta = ( 100.0 - alpha );
+            randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
+            while (images[randomImg].size().height != images[randomSecondImg].size().height){
+                randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
+            }
+            addWeighted(images[randomImg], alpha/100.0, images[randomSecondImg], beta/100.0, 0.0, generated);
+            imwrite(minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg", generated);
+            break;
+        case 5: /* unsharp masking */
+            GaussianBlur(images[randomImg], generated, Size(5, 5), 0.5, 0.5);
+            addWeighted(images[randomImg], 1.5, generated, -0.5, 0, generated);
+            imwrite(minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg", generated);
+            break;
         default:
             break;
         }
     }
     cout << rebalance << " images were generated and the minority class is now balanced." << endl;
     cout << "---------------------------------------------------------------------------------------" << endl;
+    return rebalance;
 }

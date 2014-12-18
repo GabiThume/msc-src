@@ -6,7 +6,7 @@
 
 # Para executar: python classificacao.py
 
-from numpy import zeros, array, int, loadtxt
+from numpy import zeros, array, int, loadtxt, trapz
 import matplotlib.pyplot as plt
 import time
 
@@ -77,8 +77,8 @@ def acuracia_individual(m):
 
 def main():
 
-    data = "dataLabels_50_original.csv"
-    result = "resultLabels_50_original.csv"
+    data = "Desbalanced/analysis/original_accuracy_Haralick6_MSB__labels_12.csv"
+    result = "Desbalanced/analysis/original_accuracy_Haralick6_MSB__resultlabels_12.csv"
     dataLabels = loadtxt(open(data, "rb"))
     resultLabels = loadtxt(open(result, "rb"))
 
@@ -89,7 +89,7 @@ def main():
         matriz_confusao[dataLabels[i] - 1][resultLabels[i] - 1] += 1
 
     acuracia_individual(matriz_confusao);
-    plota_matriz(matriz_confusao, "matriz_de_confusao"+data)
-    plota_matriz(matriz_porcentagem(matriz_confusao), "matriz_de_porcentagens"+data)
+    plota_matriz(matriz_confusao, data+"matriz_de_confusao")
+    plota_matriz(matriz_porcentagem(matriz_confusao), data+"matriz_de_porcentagens")
 
 main()
