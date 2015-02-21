@@ -26,7 +26,7 @@ void desc(string dir, string features, int d, int m, string id){
     }
 }
 
-void classifica(string dir, string features, string csvName, pair<int, int> min, int d, int m){
+void classifica(string dir, string features, string csvName, pair<int, int> min, int d, int m, int operation){
 
     Classifier c;
     Size size;
@@ -48,7 +48,7 @@ void classifica(string dir, string features, string csvName, pair<int, int> min,
     string methods[4] = {"Intensity", "Gleam", "Luminance", "MSB"};
     string descriptors[5] = {"BIC", "GCH", "CCV", "Haralick6", "ACC"};
 
-    generated = a.generate(dir, 1);
+    generated = a.generate(dir, 1, operation);
     min.second += generated;
 
     desc(dir, features, d, m, numImg);
@@ -78,7 +78,7 @@ void classifica(string dir, string features, string csvName, pair<int, int> min,
     }
 }
 
-void createDesbalancedFolders(int smallerClass, vector<int> &vectorRand, int d, int m, string csvName, int samples){
+void createDesbalancedFolders(int smallerClass, vector<int> &vectorRand, int d, int m, string csvName, int samples, int operation){
 
     int x;
     string dir, str, nameFile, name, nameDir;
@@ -116,11 +116,11 @@ void createDesbalancedFolders(int smallerClass, vector<int> &vectorRand, int d, 
     str = "bash Desbalanced/rename.sh "+dir+smallClass.str()+"/";
     system(str.c_str());
     
-    classifica(dir, "features/artificial/", csvName, min, d, m);
+    classifica(dir, "features/artificial/", csvName, min, d, m, operation);
 }
 
 /* Generate a imbalanced class and save it in imbalancedData and imbalancedClasses */
-pair <int, int> imbalance(Mat original, Mat classes, int factor, int numClasses, Mat &imbalancedData, Mat &imbalancedClasses, int d, int m, string csvName){
+pair <int, int> imbalance(Mat original, Mat classes, int factor, int numClasses, Mat &imbalancedData, Mat &imbalancedClasses, int d, int m, string csvName, int operation){
 
     int total = 0, pos = 0, i, smallerClass, start, end, samples, num;
     Size size = original.size();
@@ -150,7 +150,7 @@ pair <int, int> imbalance(Mat original, Mat classes, int factor, int numClasses,
        }
     }
 
-    createDesbalancedFolders(smallerClass+1, vectorRand, d, m, csvName, samples);
+    createDesbalancedFolders(smallerClass+1, vectorRand, d, m, csvName, samples, operation);
 
     /* Copy the majority data after the minority data */
     for (i = end; i < size.height; i++) {
@@ -171,7 +171,7 @@ int main(int argc, char const *argv[]){
     SMOTE s;
     Classifier c;
     Size size;
-    int numClasses, i, smallerClass, amountSmote, start, end, neighbors, rep, m, d;
+    int numClasses, i, smallerClass, amountSmote, start, end, neighbors, rep, m, d, operation;
     float prob = 0.5;
     DIR *directory;
     struct dirent *arq;
@@ -179,44 +179,45 @@ int main(int argc, char const *argv[]){
     ofstream csvFile;
     string nameFile, name, nameDir, baseDir, featuresDir, analysis, descriptorName, method;
     string csvOriginal, csvSmote, csvRebalance;
-    Mat data, minorityClass, classes, minorityOverSampled, majority, majorityClasses, newClasses, total, synthetic;
+    Mat data, classes, minorityOverSampled, majority, majorityClasses, newClasses, total, synthetic;
     Mat minorityTraining, minorityTesting, minorityRebalanced;
 
-    if (argc != 3){
-        cout << "\nUsage: ./rebalanceTest (1) (2)\n\n\t(1) Image Directory" << endl;
+    if (argc != 4){
+        cout << "\nUsage: ./rebalanceTest (1) (2) (3)\n\n\t(1) Image Directory" << endl;
         cout << "\t(2) Features Directory\n" << endl;
+        cout << "\t(3) Artificial Generation Operation - Use 0 for ALL\n" << endl;
         exit(-1);
     }
     baseDir = string(argv[1]);
     featuresDir = string(argv[2]);
+    operation = atoi(argv[3]);
 
-    string methods[4] = {"Intensity", "Gleam", "Luminance", "MSB"};
     string descriptors[5] = {"BIC", "GCH", "CCV", "Haralick6", "ACC"};
+    string methods[4] = {"Intensity", "Gleam", "Luminance", "MSB"};
+    string op = argv[3];
+    // MSB para cor e intensity para haralick
+    for (d = 1; d < 6; d++){
+        if (d == 4)
+            m = 1;
+        else
+            m = 4;
+        //for (m = 1; m < 5; m++){
+            csvOriginal = "Desbalanced/analysis/"+op+"-original_"+descriptors[d-1]+"_"+methods[m-1]+"_";
+            csvSmote = "Desbalanced/analysis/"+op+"-smote_"+descriptors[d-1]+"_"+methods[m-1]+"_";
+            csvRebalance = "Desbalanced/analysis/"+op+"-artificial_"+descriptors[d-1]+"_"+methods[m-1]+"_";
 
-    for (d = 1; d < 2; d++){
-        for (m = 1; m < 2; m++){
-            csvOriginal = "Desbalanced/analysis/original_accuracy_"+descriptors[d-1]+"_"+methods[m-1]+"_";
-            csvSmote = "Desbalanced/analysis/smote_accuracy_"+descriptors[d-1]+"_"+methods[m-1]+"_";
-            csvRebalance = "Desbalanced/analysis/rebalance_accuracy_"+descriptors[d-1]+"_"+methods[m-1]+"_";
-
-            csvFile.open((csvOriginal+"BalancedAccuracy.csv").c_str(), ios::trunc);
-            csvFile.close();
-            csvFile.open((csvSmote+"BalancedAccuracy.csv").c_str(), ios::trunc);
-            csvFile.close();
-            csvFile.open((csvRebalance+"BalancedAccuracy.csv").c_str(), ios::trunc);
-            csvFile.close();
-            csvFile.open((csvOriginal+"TPR.csv").c_str(), ios::trunc);
-            csvFile.close();
-            csvFile.open((csvSmote+"TPR.csv").c_str(), ios::trunc);
-            csvFile.close();
-            csvFile.open((csvRebalance+"TPR.csv").c_str(), ios::trunc);
-            csvFile.close();
-            csvFile.open((csvOriginal+"ROC.csv").c_str(), ios::trunc);
-            csvFile.close();
-            csvFile.open((csvSmote+"ROC.csv").c_str(), ios::trunc);
-            csvFile.close();
-            csvFile.open((csvRebalance+"ROC.csv").c_str(), ios::trunc);
-            csvFile.close();
+            // csvFile.open((csvOriginal+"BalancedAccuracy.csv").c_str(), ios::trunc);
+            // csvFile.close();
+            // csvFile.open((csvSmote+"BalancedAccuracy.csv").c_str(), ios::trunc);
+            // csvFile.close();
+            // csvFile.open((csvRebalance+"BalancedAccuracy.csv").c_str(), ios::trunc);
+            // csvFile.close();
+            // csvFile.open((csvOriginal+"FScore.csv").c_str(), ios::trunc);
+            // csvFile.close();
+            // csvFile.open((csvSmote+"FScore.csv").c_str(), ios::trunc);
+            // csvFile.close();
+            // csvFile.open((csvRebalance+"FScore.csv").c_str(), ios::trunc);
+            // csvFile.close();
 
             /* Feature extraction from images */
             desc(baseDir, featuresDir, d, m, "");
@@ -237,7 +238,7 @@ int main(int argc, char const *argv[]){
                         data = readFeatures(name.c_str(), classes, numClasses);
                         size = data.size();
                         if (size.height != 0){
-                            for (rep = 0; rep < 1; rep++){
+                            for (rep = 0; rep < 20; rep++){
                                 cout << "---------------------------------------------------------------------------------------" << endl;
                                 cout << "Classification using original vectors" << endl;
                                 cout << "Features vectors file: " << name.c_str() << endl;
@@ -256,9 +257,10 @@ int main(int argc, char const *argv[]){
 
                                     Mat imbalancedClasses, imbalancedData;
                                     /* Desbalancing Data */
-                                    min = imbalance(data, classes, i, numClasses, imbalancedData, imbalancedClasses, d, m, csvRebalance);
+                                    min = imbalance(data, classes, i, numClasses, imbalancedData, imbalancedClasses, d, m, csvRebalance, operation);
                                     /* Classifying without rebalancing */
 	                                cout << "Classification without rebalancing" << endl;
+                                    cout << "total original " << imbalancedData.size().height << endl;
                                     c.bayes(prob, 10, imbalancedData, imbalancedClasses, numClasses, min, csvOriginal.c_str());
 
                                     c.findSmallerClass(imbalancedClasses, numClasses, smallerClass, start, end);
@@ -273,6 +275,7 @@ int main(int argc, char const *argv[]){
                                     cout << "Amount to SMOTE: " << amountSmote << "%" << endl;
                                     /* Over-sampling the minority class */
                                     synthetic = s.smote(minorityTraining, amountSmote, neighbors);
+                                    cout << "minoritaria de treino " << minorityTraining.size().height << endl;
                                     /* Concatenate the minority class with the synthetic */
                                     vconcat(minorityTraining, synthetic, minorityRebalanced);
                                     vconcat(minorityRebalanced, minorityTesting, minorityOverSampled);
@@ -296,6 +299,7 @@ int main(int argc, char const *argv[]){
                                     vconcat(minorityClasses, majorityClasses, newClasses);
                                     vconcat(minorityOverSampled, majority, total);
                                     pair <int, int> minSmote(smallerClass+1, minorityRebalanced.size().height);
+                                    cout << "total p smote " << total.size().height << endl;
                                     c.bayes(prob, 10, total, newClasses, numClasses, minSmote, csvSmote.c_str());
 
                                     minorityOverSampled.release();
@@ -304,6 +308,10 @@ int main(int argc, char const *argv[]){
                                     majorityClasses.release();
                                     newClasses.release();
                                     total.release();
+                                    synthetic.release();
+                                    minorityTraining.release();
+                                    minorityTesting.release();
+                                    minorityRebalanced.release();
                                 }
                             }
                         }
@@ -311,7 +319,8 @@ int main(int argc, char const *argv[]){
                     }
                 }
             }
-        }
+            data.release();
+        //}
     }
     return 0;
 }

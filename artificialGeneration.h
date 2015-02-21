@@ -20,7 +20,7 @@ using namespace std;
 class Artificial{
 
     public:
-        int generate(string base, int isToGenerate);
+        int generate(string base, int isToGenerate, int whichOperation);
 };
 
 

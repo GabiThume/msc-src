@@ -32,11 +32,12 @@ int classesNumber(string diretorio){
 	return count;
 }
 
-int Artificial::generate(string base, int isToGenerate = 1){
+int Artificial::generate(string base, int isToGenerate = 1, int whichOperation = 0){
 
 	int i, j, qtdClasses = 0, generationType, noiseType, roiHeight, roiWidth;
-    int operation, imageOrigin, subImage, randomSecondImg;
+    int operation, imageOrigin, subImage, randomSecondImg, noiseLevel, unsharpLevel;
     int menor = 999, maior = -1, maiorClasse, menorClasse, rebalance, qtdImg;
+    float weight;
     double alpha, beta;
     Mat img, noise;
     string imgName, classe, minorityClass;
@@ -106,50 +107,64 @@ int Artificial::generate(string base, int isToGenerate = 1){
         images[randomImg].copyTo(subImg);
 
         /* Choose an operation */
-        generationType = 1 + (rand() % 5);
+        if (whichOperation == 0)
+            generationType = 1 + (rand() % 4);
+        else if(whichOperation == -1){
+            imwrite(minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg", images[randomImg]);
+            continue;
+        }
+        else
+            generationType = whichOperation;
         //isToGenerate = 0;
         //generationType = 5;
+        string nameGeneratedImage = minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg";
+
         switch (generationType) {
 
         case 1: /* Blurring */
-            if(isToGenerate == 0){
-                imwrite(minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg", images[randomImg]);
-                break;
-            }
+            // j = 3 + 2*(rand() % 5);
+            // // j = 5;
+            // alpha = (rand() % 100);
+            // GaussianBlur(images[randomImg], generated, Size(j, j), 0, 0);
+            // bilateralFilter(images[randomImg], generated, j, j*2, j/2);
             j = 3 + 2*(rand() % 15);
-            GaussianBlur(images[randomImg], generated, Size(j, j), 0, 0);
-            imwrite(minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg", generated);
+            GaussianBlur(images[randomImg], generated, Size(j, j), 0);
+            // bilateralFilter(images[randomImg], generated, 15, 80, 80);
+            imwrite(nameGeneratedImage, generated);
             break;
         case 2: /* Apply noise */
-            if(isToGenerate == 0){
-                imwrite(minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg", images[randomImg]);
-                break;
-            }
             noise = generated.clone();
-            randn(noise, 0, 20);
-            GaussianBlur(noise, noise, Size(3, 3), 0.5, 0.5);
+            noiseLevel = 5 + (rand() % 20);
+            // randn(noise, 0, 20);
+            randn(noise, 0, noiseLevel);
+            // j = 3 + 2*(rand() % 15);
+            GaussianBlur(noise, noise, Size(3, 3), 0);
             add(generated, noise, generated);
-            /*for (x = 0; x < height; x++) {
-                for (y = 0; y < width; y++) {
-                    cinza = (int)images[i].at<uchar>(x,y);
-                    cinzar = poissNoise(cinza);
-                    generated.at<uchar>(x,y) = (uchar)cinzar;
-                }
-            }*/
-            /*namedWindow( "noise", WINDOW_AUTOSIZE );
-            imshow( "noise", generated );
-            waitKey(0);*/
-            imwrite(minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg", generated);
+            imwrite(nameGeneratedImage, generated);
             break;
-        case 3:
-            if(isToGenerate == 0){
-                imwrite(minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg", images[randomImg]);
-                break;
+        case 3: /* blending */
+            alpha = (rand() % 100);
+            beta = (100.0 - alpha);
+            randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
+            while (images[randomImg].size().height != images[randomSecondImg].size().height){
+                randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
             }
+            addWeighted(images[randomImg], alpha/100.0, images[randomSecondImg], beta/100.0, 0.0, generated);
+            imwrite(nameGeneratedImage, generated);
+            break;
+        // case 4: /* unsharp masking */
+        //     // unsharpLevel = 3 + 2*(rand() % 5);
+        //     // unsharpLevel = 1;
+        //     // weight = (1 + (rand() % 3))/2;
+        //     GaussianBlur(images[randomImg], generated, Size(5, 5), 0);
+        //     addWeighted(images[randomImg], 1.5, generated, -0.5, 0, generated);
+        //     imwrite(nameGeneratedImage, generated);
+        //     break;
+        case 4:
             vectorRand.clear();
             images[randomImg].copyTo(subImg);
 
-            for (subImage = 1; subImage <= 4 ; subImage++){
+            for (subImage = 1; subImage <= 4; subImage++){
                 vectorRand.clear();
                 do{
                     imageOrigin = (rand() % (totalImage[menorClasse-1]+i));
@@ -165,18 +180,35 @@ int Artificial::generate(string base, int isToGenerate = 1){
                 img.copyTo(generated);
 
                 /* Apply blur or noise in the subimage */
-                operation = 1 + (rand() % 2);
+                operation = 1 + (rand() % 3);
                 switch(operation){
-                    case 1:
+                    case 1: /* Blurring */
                         j = 3 + 2*(rand() % 15);
-                        GaussianBlur(img, generated, Size(j, j), 0, 0);
+                        alpha = (rand() % 100);
+                        GaussianBlur(img, generated, Size(j, j), 0);
+                        // bilateralFilter(img, generated, j, j*2, j/2);
                         break;
-                    case 2:
+                    case 2: /* Apply noise */
                         noise = generated.clone();
-                        randn(noise, 0, 20);
-                        GaussianBlur(noise, noise, Size(3, 3), 0.5, 0.5);
+                        noiseLevel = 1 + 2*(rand() % 5);
+                        randn(noise, 0, noiseLevel);
+                        GaussianBlur(noise, noise, Size(3, 3), 0.5);
                         add(generated, noise, generated);
                         break;
+                    case 3: /* blending */
+                        alpha = (rand() % 100);
+                        beta = (100.0 - alpha);
+                        randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
+                        while (img.size().height != images[randomSecondImg].size().height){
+                            randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
+                        }
+                        addWeighted(img, alpha/100.0, images[randomSecondImg], beta/100.0, 0.0, generated);
+                        break;
+                    // case 4: /* unsharp masking */
+                    //     unsharpLevel = 3 + 2*(rand() % 5);
+                    //     GaussianBlur(images[randomImg], generated, Size(5, 5), 5);
+                    //     addWeighted(img, 1.5, generated, -0.5, 0, generated);
+                    //     break;
                     default:
                         break;
                 }
@@ -204,22 +236,7 @@ int Artificial::generate(string base, int isToGenerate = 1){
                     roi.copyTo(dst_roi);
                 }
             }
-            imwrite(minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg", subImg);
-            break;
-        case 4: /* blending */
-            alpha = (rand() % 100);
-            beta = ( 100.0 - alpha );
-            randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
-            while (images[randomImg].size().height != images[randomSecondImg].size().height){
-                randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
-            }
-            addWeighted(images[randomImg], alpha/100.0, images[randomSecondImg], beta/100.0, 0.0, generated);
-            imwrite(minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg", generated);
-            break;
-        case 5: /* unsharp masking */
-            GaussianBlur(images[randomImg], generated, Size(5, 5), 0.5, 0.5);
-            addWeighted(images[randomImg], 1.5, generated, -0.5, 0, generated);
-            imwrite(minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg", generated);
+            imwrite(nameGeneratedImage, subImg);
             break;
         default:
             break;

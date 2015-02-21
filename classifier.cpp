@@ -63,13 +63,16 @@ float standardDeviation(vector<float> accuracy){
 
 void Classifier::printAccuracy(){
 
-    float mean, std, balancedMean, balancedStd, FPR, TPR;
+    float mean, std, balancedMean, balancedStd, R, P, fscoreMean, fscoreStd;
     mean = accuracyMean(accuracy);
     std = standardDeviation(accuracy);
     balancedMean = accuracyMean(balancedAccuracy);
     balancedStd = standardDeviation(balancedAccuracy);
-    FPR = accuracyMean(falsePositiveRateValues);
-    TPR = accuracyMean(truePositiveRateValues);
+    fscoreMean = accuracyMean(fScore);
+    fscoreStd = standardDeviation(fScore);
+    R = accuracyMean(recall);
+    P = accuracyMean(precision);
+    stringstream training;
 
     ofstream outputFile;
 
@@ -86,20 +89,24 @@ void Classifier::printAccuracy(){
     cout << "\tStandard Deviation = " << std << endl;
     cout << "\tMean Balanced Accuracy= " << balancedMean << endl;
     cout << "\tStandard Deviation = " << balancedStd << endl;
+    cout << "\tMean F1Score= " << fscoreMean << endl;
+    cout << "\tStandard Deviation = " << fscoreStd << endl;
     cout << "---------------------------------------------------------------------------------------" << endl;
 
     if (outputName != ""){
-        cout << "Write on " << (outputName+"BalancedAccuracy.csv").c_str() << endl;
+        cout << "Write on " << (outputName+"FScore.csv").c_str() << endl;
     	cout << "---------------------------------------------------------------------------------------" << endl;
-        outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), ios::out | ios::app);
-        outputFile << minority.second << "," << balancedMean << "\n";
+        // outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), ios::out | ios::app);
+        // outputFile << minority.second << "," << balancedMean << "\n";
+        // outputFile.close();
+        training << minority.second;
+        outputFile.open((outputName+"FScore.csv").c_str(), ios::out | ios::app);
+        outputFile << minority.second << "," << fscoreMean << "\n";
+        // outputFile << fscoreMean << "\n";
         outputFile.close();
-        outputFile.open((outputName+"TPR.csv").c_str(), ios::out | ios::app);
-        outputFile << minority.second << "," << TPR*100.0 << "\n";
-        outputFile.close();
-        outputFile.open((outputName+"ROC.csv").c_str(), ios::out | ios::app);
-        outputFile << FPR << "," << TPR << endl;
-        outputFile.close();
+        // outputFile.open((outputName+"ROC.csv").c_str(), ios::out | ios::app);
+        // outputFile << FPR << "," << TPR << endl;
+        // outputFile.close();
     }
 }
 
@@ -144,12 +151,11 @@ void Classifier::findSmallerClass(Mat classes, int numClasses, int &smallerClass
 void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeatures, Mat classes, int nClasses, pair<int, int> min, string name = ""){
 
     Mat result, confusionMat;
-
     int i, hits, height, width, trained, actual_class, numTraining, num_testing;
     int totalTraining = 0, totalTesting = 0, start, pos, repetition, actualClass = 0;
     int rightClass, guessedClass, higherClass, j;
-    float truePositive , trueNegative, falsePositive, falseNegative;
-    float specificity, sensitivity, balancedAccuracyMean;
+    float truePositive , trueNegative, falsePositive, falseNegative, precisionRate;
+    float specificity, sensitivity, balancedAccuracyMean, recallRate, score;
     float positive, negative, truePositiveRate, falsePositiveRate;
     srand(time(0));
     numClasses = nClasses;
@@ -197,7 +203,7 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
 	}
 
     /* Repeated random sub-sampling validation */
-    for(repetition = 0; repetition < 1; repetition++) {
+    for(repetition = 0; repetition < numRepetition; repetition++) {
 
         Mat dataTraining(totalTraining, width, CV_32FC1);
         Mat labelsTraining(totalTraining, 1, CV_32FC1);
@@ -256,10 +262,11 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
                 hits++;
             }
         }
+        // cout << "ACERTOS = " << hits << endl;
 
         totalTest = result.size().height;
         totalTrain = labelsTraining.size().height;
-        cout << " hits " << hits << " total test " << totalTest << endl;
+        // cout << " hits " << hits << " total test " << totalTest << endl;
         accuracy.push_back(hits*100.0/totalTest);
 
         higherClass = labelsTraining.at<float>(labelsTraining.size().height-1,0);
@@ -277,13 +284,13 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
             confusionMat.at<int>(rightClass, guessedClass)++;
         }
         
-        cout << "-------------------\nConfusion Matrix" << endl;
-        for(i = 0; i < confusionMat.rows; i++){
-            for(int j = 0; j < confusionMat.cols; j++){
-                printf("%d\t", confusionMat.at<int>(i, j));
-            }
-            printf("\n");
-        }
+        // cout << "-------------------\nConfusion Matrix" << endl;
+        // for(i = 0; i < confusionMat.rows; i++){
+        //     for(int j = 0; j < confusionMat.cols; j++){
+        //         printf("%d\t", confusionMat.at<int>(i, j));
+        //     }
+        //     printf("\n");
+        // }
 
         /* This is only necessary because usually we have classes starting in 1, not in 0
         	it is going to be fixed later */
@@ -316,6 +323,25 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
         balancedAccuracyMean = (sensitivity + specificity)/2;
         // if (!isnan(balancedAccuracyMean))
         // cout << " acuracia " << hits*100.0/totalTest << " accuracia balanceada " << balancedAccuracyMean*100.0 << " falsePositive " << falsePositive << endl;
+
+		precisionRate = truePositive/(truePositive+falsePositive);
+		recallRate = truePositive/positive;
+
+		precision.push_back(precisionRate);
+		recall.push_back(recallRate);
+
+		// cout << endl;
+		// cout << sensitivity << endl;
+		// cout << specificity << endl;
+		// cout << precisionRate << endl;
+		// cout << recallRate << endl;
+		// cout << truePositive << endl;
+		// cout << falsePositive << endl;
+		// cout << positive << endl;
+
+		score = 2.0 * (precisionRate*recallRate)/(precisionRate+recallRate);
+        fScore.push_back(score*100.0);
+
         if (nClasses > 2)
         	balancedAccuracy.push_back(hits*100.0/totalTest);
         else
@@ -323,9 +349,6 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
 
         falsePositiveRate = falsePositive/negative; // ROC: plotted on X axis
         truePositiveRate = truePositive/positive; // ROC: plotted on Y axis == sensitivity
-
-		truePositiveRateValues.push_back(truePositiveRate);
-		falsePositiveRateValues.push_back(falsePositiveRate);
 
         // /* Output file to use the confusion matrix plot with python*/
         // stringstream fileName, resultFile;
@@ -362,6 +385,7 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
 
     accuracy.clear();
     balancedAccuracy.clear();
-    truePositiveRateValues.clear();
-    falsePositiveRateValues.clear();
+    fScore.clear();
+    precision.clear();
+    recall.clear();
 }

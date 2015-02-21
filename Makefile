@@ -1,7 +1,9 @@
 OPENCV = -I /usr/include/opencv
 OPENCVCONF = `pkg-config opencv --libs`
+FIND=find -name
+RM=rm -rf
 
-all: descritores funcoesAux funcoesArquivo merge_datasets classifier dimensionReduction smote smoteTest artificialGeneration artificialGenerationTest rebalanceTest
+all: clean descritores funcoesAux funcoesArquivo merge_datasets classifier dimensionReduction smote smoteTest artificialGeneration artificialGenerationTest rebalanceTest
 	@g++ -Wall descritores.o funcoesAux.o funcoesArquivo.o mainDescritor.cpp -o mainDescritor $(OPENCV) $(OPENCVCONF)
 
 debug: descritores funcoesAux funcoesArquivo
@@ -44,6 +46,23 @@ rebalanceTest: rebalanceTest.cpp
 	@g++ -Wall artificialGeneration.o descritores.o funcoesAux.o funcoesArquivo.o classifier.o smote.o rebalanceTest.cpp -o rebalanceTest $(OPENCV) $(OPENCVCONF)
 
 clean:
-	rm -f *.o *.*~ *~ teste mainDescritor dimensionReduction mergeDataSets smoteTest artificialGenerationTest rebalanceTest
+	$(FIND) "*~" | xargs $(RM)
+	$(RM) teste mainDescritor dimensionReduction mergeDataSets smoteTest artificialGenerationTest rebalanceTest
 
+run: run-desbalanced
+
+run-desbalanced:
+	./rebalanceTest Desbalanced/original/ features/ 0 # All operations
+	./rebalanceTest Desbalanced/original/ features/ 1 # Blur
+	./rebalanceTest Desbalanced/original/ features/ 2 # Noise
+	./rebalanceTest Desbalanced/original/ features/ 3 # Blending
+	./rebalanceTest Desbalanced/original/ features/ 4 # Unsharp masking
+	./rebalanceTest Desbalanced/original/ features/ -1 # Replication
+
+plot:
+	python plot.py
+	python statistics.py
+
+run-dimensionReduction:
+	./dimensionReduction
 

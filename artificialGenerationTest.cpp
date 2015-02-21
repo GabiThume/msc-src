@@ -64,7 +64,7 @@ int main(int argc, char const *argv[]){
     classifica(string(argv[1]), string(argv[2]), "original_accuracy");
 
     /* */
-    a.generate(string(argv[1]), 1);
+    a.generate(string(argv[1]), 1, 0);
 
     /* Calculate after rebalance */
     classifica(string(argv[1]), string(argv[2]), "rebalance_accuracy");
