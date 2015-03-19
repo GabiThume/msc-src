@@ -248,7 +248,7 @@ int main(int argc, char const *argv[]){
                                 c.bayes(prob, 10, data, classes, numClasses, min, csvSmote.c_str());
                                 c.bayes(prob, 10, data, classes, numClasses, min, csvRebalance.c_str());
                                 c.findSmallerClass(classes, numClasses, smallerClass, start, end);
-                                //i = 8;
+                                i = 2;
                                 for (i = 2; (end-start)/2 >= 10; i*=2){
 
                                     cout << "\n\n---------------------------------------------------------------------------------------" << endl;

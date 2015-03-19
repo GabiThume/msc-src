@@ -57,6 +57,7 @@ run-desbalanced:
 	./rebalanceTest Desbalanced/original/ features/ 2 # Noise
 	./rebalanceTest Desbalanced/original/ features/ 3 # Blending
 	./rebalanceTest Desbalanced/original/ features/ 4 # Unsharp masking
+	./rebalanceTest Desbalanced/original/ features/ 5 # Composition
 	./rebalanceTest Desbalanced/original/ features/ -1 # Replication
 
 plot:

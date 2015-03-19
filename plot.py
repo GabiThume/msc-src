@@ -1,4 +1,4 @@
-# coding: utf-8
+    # coding: utf-8
 #
 # Visualização dos resultados gerados
 #
@@ -14,15 +14,16 @@ directory = "Desbalanced/analysis/"
 algorithms = ["original", "smote", "artificial"]
 descriptors = {"BIC", "GCH", "CCV", "Haralick6", "ACC"}
 methods = {"Intensity", "Gleam", "Luminance", "MSB"}
+operations = ["Replication", "Blur", "Noise", "Blending", "UnsharpMasking", "Composition"]
 
 which = 0
 
 # for which in range(0,2):
-for operation in range(0,6):
+for operation in range(-1,5):
     for desc in descriptors:
         for met in methods:
             plt.clf()
-            plt.title(desc+"_"+met)
+            plt.title(operations[operation+1]+"_"+desc+"_"+met)
             color = ["r", "g", "b"]
             labels = ["Original", "SMOTE", 'Imagens Artificiais']
             # labels = ["Original", "SMOTE", u'Simples cópia aleatória']
