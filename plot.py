@@ -12,18 +12,19 @@ import os
 
 directory = "Desbalanced/analysis/"
 algorithms = ["original", "smote", "artificial"]
-descriptors = {"BIC", "GCH", "CCV", "Haralick6", "ACC"}
+descriptors = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"}
+# descriptors = {"HOG"}
 methods = {"Intensity", "Gleam", "Luminance", "MSB"}
-operations = ["Replication", "Blur", "Noise", "Blending", "UnsharpMasking", "Composition"]
+operations = ["Replication", "ALL", "Blur", "Noise", "Blending", "UnsharpMasking", "Composition", "ThresholdCombination", "Saliency"]
 
 which = 0
 
 # for which in range(0,2):
-for operation in range(-1,5):
+for operation in range(0,9):
     for desc in descriptors:
         for met in methods:
             plt.clf()
-            plt.title(operations[operation+1]+"_"+desc+"_"+met)
+            plt.title(operations[operation]+"_"+desc+"_"+met)
             color = ["r", "g", "b"]
             labels = ["Original", "SMOTE", 'Imagens Artificiais']
             # labels = ["Original", "SMOTE", u'Simples cópia aleatória']
@@ -49,9 +50,12 @@ for operation in range(-1,5):
                     csvData = np.array(csvData)
                     samples = csvData[:, 0]
                     accuracy = csvData[:, 1]
+                    # accuracy = [(accuracy[len(accuracy)-1]-item) for item in accuracy]
                     samples = [6, 12, 25, 50]
+                    # allAccuracy.append(100)
                     for item in np.array(accuracy):
                         allAccuracy.append(item)
+                    allAccuracy.append(0)
                     line1, = plt.plot(samples, accuracy, color[i]+'o', label=labels[i], linewidth=3)
                     plt.plot(samples, accuracy, color[i]+'-', linewidth=3)
                     if max(samples) > xlim:

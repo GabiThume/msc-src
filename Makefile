@@ -19,7 +19,7 @@ funcoesAux:
 	@g++ -Wall -c -g funcoesAux.cpp $(OPENCV)
 	
 funcoesArquivo:
-	@g++ -Wall -c -g funcoesArquivo.cpp $(OPENCV)
+	@g++ -std=c++11 -Wall -c -g funcoesArquivo.cpp $(OPENCV)
 
 dimensionReduction: dimensionReduction.cpp
 	@g++ -Wall -o dimensionReduction descritores.o funcoesAux.o funcoesArquivo.o classifier.o dimensionReduction.cpp $(OPENCV) $(OPENCVCONF)
@@ -36,29 +36,35 @@ smote:
 smoteTest: smoteTest.cpp
 	@g++ -Wall descritores.o funcoesAux.o funcoesArquivo.o classifier.o smote.o smoteTest.cpp -o smoteTest $(OPENCV) $(OPENCVCONF)
 
-artificialGeneration:
-	@g++ -Wall -c -g artificialGeneration.cpp -std=c++0x $(OPENCV)
+artificialGeneration: 
+	@g++ -Wall -c -g Saliency/GMRsaliency.cpp SLIC/SLIC.cpp artificialGeneration.cpp -std=c++0x $(OPENCV)
 
 artificialGenerationTest: artificialGenerationTest.cpp
-	@g++ -Wall artificialGeneration.o descritores.o funcoesAux.o funcoesArquivo.o classifier.o artificialGenerationTest.cpp -o artificialGenerationTest $(OPENCV) $(OPENCVCONF)
+	@g++ -Wall GMRsaliency.o SLIC.o artificialGeneration.o descritores.o funcoesAux.o funcoesArquivo.o classifier.o artificialGenerationTest.cpp -o artificialGenerationTest $(OPENCV) $(OPENCVCONF)
 
 rebalanceTest: rebalanceTest.cpp
-	@g++ -Wall artificialGeneration.o descritores.o funcoesAux.o funcoesArquivo.o classifier.o smote.o rebalanceTest.cpp -o rebalanceTest $(OPENCV) $(OPENCVCONF)
+	@g++ -Wall GMRsaliency.o SLIC.o artificialGeneration.o descritores.o funcoesAux.o funcoesArquivo.o classifier.o smote.o rebalanceTest.cpp -o rebalanceTest $(OPENCV) $(OPENCVCONF)
+
+staticRebalance: staticRebalance.cpp
+	@g++ -Wall descritores.o funcoesAux.o funcoesArquivo.o classifier.o smote.o staticRebalance.cpp -o staticRebalance $(OPENCV) $(OPENCVCONF)
 
 clean:
 	$(FIND) "*~" | xargs $(RM)
+	$(FIND) "*.o" | xargs $(RM)
 	$(RM) teste mainDescritor dimensionReduction mergeDataSets smoteTest artificialGenerationTest rebalanceTest
 
 run: run-desbalanced
 
 run-desbalanced:
-	./rebalanceTest Desbalanced/original/ features/ 0 # All operations
-	./rebalanceTest Desbalanced/original/ features/ 1 # Blur
-	./rebalanceTest Desbalanced/original/ features/ 2 # Noise
-	./rebalanceTest Desbalanced/original/ features/ 3 # Blending
-	./rebalanceTest Desbalanced/original/ features/ 4 # Unsharp masking
-	./rebalanceTest Desbalanced/original/ features/ 5 # Composition
-	./rebalanceTest Desbalanced/original/ features/ -1 # Replication
+	./rebalanceTest Desbalanced/original/ features/ 0 # Replication
+	./rebalanceTest Desbalanced/original/ features/ 1 # All operations
+	./rebalanceTest Desbalanced/original/ features/ 2 # Blur
+	./rebalanceTest Desbalanced/original/ features/ 3 # Noise
+	./rebalanceTest Desbalanced/original/ features/ 4 # Blending
+	./rebalanceTest Desbalanced/original/ features/ 5 # Unsharp masking
+	./rebalanceTest Desbalanced/original/ features/ 6 # Composition
+	./rebalanceTest Desbalanced/original/ features/ 7 # Threshold combination
+	./rebalanceTest Desbalanced/original/ features/ 8 # Segmentation
 
 plot:
 	python plot.py

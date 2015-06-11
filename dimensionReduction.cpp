@@ -155,7 +155,7 @@ int main(int argc, const char *argv[]){
 
             if(my_file.good()){
                 /* Read the feature vectors */
-                data = readFeatures(name.c_str(), classes, nClasses);
+                data = readFeatures(name, &classes, &nClasses);
                 if (data.size().height != 0){
 
                     switch(metodo){

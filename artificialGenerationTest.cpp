@@ -33,10 +33,10 @@ void classifica(string base, string features, string outfileName){
             myFile.open(name.c_str());
 
             /* Read the feature vectors */
-            data = readFeatures(name.c_str(), classes, numClasses);
+            data = readFeatures(name, &classes, &numClasses);
             size = data.size();
 
-            c.findSmallerClass(classes, numClasses, smallerClass, start, end);
+            c.findSmallerClass(classes, numClasses, &smallerClass, &start, &end);
             id << smallerClass;
             id << "_";
             id << end-start;

@@ -2,72 +2,71 @@
 
 int main(int argc, char *argv[]){
 
-    string id, base, dir;
-    int descritor, nColor, nRes, oNorm, quantMethod, oZero, totalpar;
+    int descMethod, colors, normalization, quantMethod, deleteNull, numParameters;
+    double resize;
+    string id = "", databaseDir = "", descMethodDir = "";
 
     if (argc < 8){
         cout << "O programa espera: <pasta> <pasta_descritor> <descritor> <quantidade de cores para quantizar a imagem> ";
         cout << "fator de redimensionamento> <normalizacao> <metodo quantizacao> <distancias ACC | limiar CCV> ";
-        cout << "id para arquivo de saida, caso necessário>\n";
-        cout << " - Descritores: 1 - BIC   2- GCH   3- CCV     4- Haralick    5- AutoCorrelograma (ACC)\n";
-        cout << " - Cores: 8, 16, 32, 64 ou 256\n";
-        cout << " - Redimensionamento - positivo, com máximo = 1 (1 = 100%)\n";
-        cout << " - Normalizacao - 0 (sem normalizacao) 1 (entre 0 e 1), 2 (0 a 255)\n";
+        cout << "id para arquivo de saida, caso necessário>" << endl << endl;
+        cout << "\tDescritores:\t1 - BIC\t2 - GCH\t3 - CCV\t4 - Haralick\t5 - AutoCorrelograma (ACC)\t6 - LBP\t7 - HOG\t8 - Contour Extraction" << endl;
+        cout << "\tCores:\t8, 16, 32, 64 ou 256\n";
+        cout << "\tRedimensionamento:\tpositivo, com máximo = 1 (1 = 100%)\n";
+        cout << "\tNormalizacao\t0 (sem normalizacao) 1 (entre 0 e 1), 2 (0 a 255)\n";
         //cout << " - Descartar colunas nulas (atributos nulos) - 1 descartar, 0 nao descartar\n";
-        cout << " - Sequencia de distancias para ACC ou limiar do CCV\n";
+        cout << "\tSequencia de distancias para ACC ou limiar do CCV\n";
         exit(0);
     } 
 
     if (argc == 9){
         id = argv[8];
     }
-    else{
-        id = "";
-    }
 
-	base = argv[1];
-	dir = argv[2];
-	descritor = atoi(argv[3]);
-	if((descritor < 1) || (descritor > 5)) {
-	    cout << "Descritor nao existe!!\n\n";
-	    return -1;
+	databaseDir = argv[1];
+	descMethodDir = argv[2];
+
+	descMethod = atoi(argv[3]);
+	if(descMethod < 1 || descMethod > 10) {
+	    cout << "This descriptor method does not exist.\n";
+        return -1;
 	}
-	nColor = atoi(argv[4]);
-	nRes = atof(argv[5]);
-	oNorm = atoi(argv[6]);
+
+	colors = atoi(argv[4]);
+	if(colors != 8 && colors != 16 && colors != 32 && colors != 64 && colors != 128 && colors != 256){
+	    cout << "The number of colors must be 8, 16, 32, 64, 128 or 256." << endl;
+        return -1;
+	}
+
+	resize = atof(argv[5]);
+	if(resize <= 0 || resize > 1){
+	    cout << "The resize factor must be between 0 and 1." << endl;
+        return -1;
+	}
+
+	normalization = atoi(argv[6]);
+	if(normalization < 0 || normalization > 2){
+	    cout << "Invalid normalization (use 0, 1 or 2)." << endl;
+        return -1;
+	}
+
 	quantMethod = atoi(argv[7]);
- 	// oZero = atoi(argv[6]); - remover colunas
-	oZero = 0;
-	
-	totalpar = (argc-8);
-	int *params = new int[totalpar];
-	if (descritor == 3) {
-	    params[0] = atoi(argv[6]);
+
+ 	// deleteNull = atoi(argv[6]); - delete null columns
+	deleteNull = 0;
+	if(deleteNull != 0 && deleteNull != 1){
+	    cout << "Wrong delete option (0, 1)." << endl;
+        return -1;
 	}
-	else if (descritor == 5){
-        for (int i = 0; i < totalpar; i++){
+	
+	numParameters = (argc-8);
+	int *params = new int[numParameters];
+	if (descMethod == 3 || descMethod == 3) {
+        for (int i = 0; i < numParameters; i++){
             params[i] = atoi(argv[6+i]);
         }
 	}
 	
-	if((nColor != 8) && (nColor != 16) && (nColor != 32) && (nColor != 64) && (nColor != 128) && (nColor != 256)){
-	    cout << "Quantidade de cores deve ser 8, 16, 32, 64, 128 ou 256!!\n\n";
-	    return -1;
-	}
-	if((nRes <= 0) || (nRes > 1)){
-	    cout << "Redimensionamento deve ser positivo e menor ou igual a 1\n\n";
-	    return -1;
-	}
-	if((oNorm < 0) || (oNorm > 2)){
-	    cout << "Normalizacao invalida (0, 1 ou 2)\n\n";
-	    return -1;
-	}
-	if((oZero != 0) && (oZero != 1)){
-	    cout << "Opcao descartar invalida (0, 1)\n\n";
-	    return -1;
-	}
-	
-	descriptor(base.c_str(), dir.c_str(), descritor, nColor, nRes, oNorm, params, totalpar, oZero, quantMethod, id.c_str());
-	
-	return 1;
+	descriptor(databaseDir, descMethodDir, descMethod, colors, resize, normalization, params, numParameters, deleteNull, quantMethod, id);
+	return 0;
 }

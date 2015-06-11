@@ -11,6 +11,10 @@
 #include <string>
 #include <vector>
 
+#include <cstring>
+#include <cstdio>
+
+#include "Saliency/GMRsaliency.h"
 #include "funcoesArquivo.h"
 #include "classifier.h"
 

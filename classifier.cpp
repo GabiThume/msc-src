@@ -63,15 +63,15 @@ float standardDeviation(vector<float> accuracy){
 
 void Classifier::printAccuracy(){
 
-    float mean, std, balancedMean, balancedStd, R, P, fscoreMean, fscoreStd;
+    float mean, std, balancedMean, balancedStd, fscoreMean, fscoreStd;
     mean = accuracyMean(accuracy);
     std = standardDeviation(accuracy);
     balancedMean = accuracyMean(balancedAccuracy);
     balancedStd = standardDeviation(balancedAccuracy);
     fscoreMean = accuracyMean(fScore);
     fscoreStd = standardDeviation(fScore);
-    R = accuracyMean(recall);
-    P = accuracyMean(precision);
+    // float R = accuracyMean(recall);
+    // float P = accuracyMean(precision);
     stringstream training;
 
     ofstream outputFile;
@@ -111,7 +111,7 @@ void Classifier::printAccuracy(){
 }
 
 /* Find which is the smaller class and where it starts and ends */
-void Classifier::findSmallerClass(Mat classes, int numClasses, int &smallerClass, int &start, int &end){
+void Classifier::findSmallerClass(Mat classes, int numClasses, int *smallerClass, int *start, int *end){
 
     int i, smaller;
     Size size = classes.size();
@@ -124,25 +124,25 @@ void Classifier::findSmallerClass(Mat classes, int numClasses, int &smallerClass
 
     /* Find out which is the minority class */
     smaller = size.height +1;
-    smallerClass = -1;
+    (*smallerClass) = -1;
     for(i = 0; i < (int) dataClasse.size(); i++){
         if(dataClasse[i] < smaller){
             smaller = dataClasse[i];
-            smallerClass = i;
+            (*smallerClass) = i;
         }
     }
 
     /* Where the minority class starts and ends */
-    start = -1;
-    end = -1;
+    (*start) = -1;
+    (*end) = -1;
     for(i = 0; i < size.height; i++){
-        if(classes.at<float>(i,0)-1 == smallerClass){
-            if (start == -1){
-                start = i;
+        if(classes.at<float>(i,0)-1 == (*smallerClass)){
+            if ((*start) == -1){
+                (*start) = i;
             }
         }
-        else if (start != -1){
-            end = i;
+        else if (*start != -1){
+            (*end) = i;
             break;
         }
     }
@@ -151,9 +151,9 @@ void Classifier::findSmallerClass(Mat classes, int numClasses, int &smallerClass
 void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeatures, Mat classes, int nClasses, pair<int, int> min, string name = ""){
 
     Mat result, confusionMat;
-    int i, hits, height, width, trained, actual_class, numTraining, num_testing;
+    int i, hits, height, width, trained, actual_class, numTraining, num_testing, classeId;
     int totalTraining = 0, totalTesting = 0, start, pos, repetition, actualClass = 0;
-    int rightClass, guessedClass, higherClass, j;
+    int rightClass, guessedClass, higherClass, j, positiveClass;
     float truePositive , trueNegative, falsePositive, falseNegative, precisionRate;
     float specificity, sensitivity, balancedAccuracyMean, recallRate, score;
     float positive, negative, truePositiveRate, falsePositiveRate;
@@ -161,6 +161,7 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
     numClasses = nClasses;
     vector<int> vectorRand, dataClasse(numClasses, 0), trainingNumber(numClasses, 0), testingNumber(numClasses, 0);
     outputName = name;
+    cout << name << " " << min.second << endl;
 
     Size n = vectorFeatures.size();
     height = n.height;
@@ -187,6 +188,8 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
         minority.second = min.second;
     }
 
+    cout << ">>> minority.second " << minority.second << endl;
+
 	/* For each class we need to calculate the size of both training and testing sets, given a ratio */
     for (i = 1; i <= numClasses; i++) {
     	actualClass = i-1;
@@ -199,7 +202,7 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
 
 		totalTesting += testingNumber[actualClass];
 		totalTraining += trainingNumber[actualClass];
-		//cout << " totalTesting " << totalTesting << " totalTraining " << totalTraining << " data class " << dataClasse[actualClass] << endl;
+		cout << " totalTesting " << totalTesting << " totalTraining " << totalTraining << " data class " << dataClasse[actualClass] << endl;
 	}
 
     /* Repeated random sub-sampling validation */
@@ -213,7 +216,6 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
 
         vectorRand.clear();
         for (i = 1; i <= numClasses; i++) {
-        	// cout << " CLASSE " << i << endl;
             trained = 0;
             actual_class = i-1;
 
@@ -226,7 +228,6 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
                 else
                 	pos = start + (rand() % (dataClasse[actual_class]));
                 if (!count(vectorRand.begin(), vectorRand.end(), pos)){
-                    // cout << ">>> treino " << pos << endl;
                     vectorRand.push_back(pos);
                     Mat tmp = dataTraining.row(numTraining);
                     vectorFeatures.row(pos).copyTo(tmp);
@@ -242,7 +243,6 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
         num_testing = 0;
         for (i = 0; i < height; i++) {
             if (!count(vectorRand.begin(), vectorRand.end(), i)){
-                // cout << ">>> teste " << i << endl;
                 Mat tmp = dataTesting.row(num_testing);
                 vectorFeatures.row(i).copyTo(tmp);
                 labelsTesting.at<float>(num_testing, 0) = classes.at<float>(i,0);
@@ -262,11 +262,9 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
                 hits++;
             }
         }
-        // cout << "ACERTOS = " << hits << endl;
 
         totalTest = result.size().height;
         totalTrain = labelsTraining.size().height;
-        // cout << " hits " << hits << " total test " << totalTest << endl;
         accuracy.push_back(hits*100.0/totalTest);
 
         higherClass = labelsTraining.at<float>(labelsTraining.size().height-1,0);
@@ -292,60 +290,70 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
         //     printf("\n");
         // }
 
-        /* This is only necessary because usually we have classes starting in 1, not in 0
+        /* TODO: This is only necessary because usually we have classes starting in 1, not in 0
         	it is going to be fixed later */
         actualClass = minority.first;
         if(min.first != -1)
         	actualClass--;
         
+        // Calcular a media entre todas as classes dá uma ideia de todo o sistema
+        // Dessa forma estamos olhando apenas para a classe minoritária em relação a todas as outras
+
         /* 
-			Positive: minority class
-			Negative: majority class
+            Positive: minority class
+            Negative: majority class
         */
-		truePositive = 0, falseNegative = 0, falsePositive =0, trueNegative = 0;
-        truePositive = confusionMat.at<int>(actualClass, actualClass); /* minority correct */
-        for(i = 0; i < confusionMat.rows; i++){
-            for(j = 0; j < confusionMat.cols; j++){
-                if(i == actualClass && j != actualClass)
-                    falseNegative += confusionMat.at<int>(i, j); /* minority predicted to be majority */
-                if(i != actualClass && j != i)
-                    falsePositive += confusionMat.at<int>(i, j); /* majority predicted to be minority */
-                if(i != actualClass && j == i)
-                    trueNegative += confusionMat.at<int>(i, j); /* majority correct */
+        positiveClass = 0;
+        if (confusionMat.rows == 2){
+            positiveClass = actualClass;
+        }
+
+        score = balancedAccuracyMean = 0;
+        for (classeId = positiveClass; classeId < confusionMat.rows; classeId++){
+
+            truePositive = falseNegative = falsePositive = trueNegative = 0;
+            truePositive = confusionMat.at<int>(classeId, classeId); /* minority correct */
+
+            for(i = 0; i < confusionMat.rows; i++){
+                for(j = 0; j < confusionMat.cols; j++){
+                    if(i == classeId && j != classeId)
+                        falseNegative += confusionMat.at<int>(i, j); /* minority predicted to be majority */
+                    if(i != classeId && j == classeId)
+                        falsePositive += confusionMat.at<int>(i, j); /* majority predicted to be minority */
+                    if(i != classeId && j == i)
+                        trueNegative += confusionMat.at<int>(i, j); /* majority correct */
+                }
+            }
+
+            positive = truePositive+falseNegative;
+            negative = falsePositive+trueNegative;
+
+            specificity = trueNegative/negative;
+            sensitivity = truePositive/positive;
+            balancedAccuracyMean += (sensitivity + specificity)/2;
+            // cout << "balanced mean " << balancedAccuracyMean << endl;
+            precisionRate = truePositive/(truePositive+falsePositive);
+            recallRate = truePositive/positive;
+            score += 2.0 * (precisionRate*recallRate)/(precisionRate+recallRate);
+            // cout << "truePositive " << truePositive << endl;
+            // cout << "falseNegative " << falseNegative << endl;
+            // cout << "falsePositive " << falsePositive << endl;
+            // cout << "score " << score << endl;
+
+            // If there is only 2 classes, it is enough
+            if (confusionMat.rows == 2){
+                score *= 2;
+                precisionRate *= 2;
+                recallRate *= 2;
+                balancedAccuracyMean *= 2;
+                break;
             }
         }
 
-        positive = truePositive+falseNegative;
-        negative = falsePositive+trueNegative;
-
-        specificity = trueNegative/negative;
-        sensitivity = truePositive/positive;
-        balancedAccuracyMean = (sensitivity + specificity)/2;
-        // if (!isnan(balancedAccuracyMean))
-        // cout << " acuracia " << hits*100.0/totalTest << " accuracia balanceada " << balancedAccuracyMean*100.0 << " falsePositive " << falsePositive << endl;
-
-		precisionRate = truePositive/(truePositive+falsePositive);
-		recallRate = truePositive/positive;
-
-		precision.push_back(precisionRate);
-		recall.push_back(recallRate);
-
-		// cout << endl;
-		// cout << sensitivity << endl;
-		// cout << specificity << endl;
-		// cout << precisionRate << endl;
-		// cout << recallRate << endl;
-		// cout << truePositive << endl;
-		// cout << falsePositive << endl;
-		// cout << positive << endl;
-
-		score = 2.0 * (precisionRate*recallRate)/(precisionRate+recallRate);
-        fScore.push_back(score*100.0);
-
-        if (nClasses > 2)
-        	balancedAccuracy.push_back(hits*100.0/totalTest);
-        else
-        	balancedAccuracy.push_back(balancedAccuracyMean*100.0);
+        fScore.push_back((score/confusionMat.rows)*100.0);
+        precision.push_back(precisionRate/confusionMat.rows);
+        recall.push_back(recallRate/confusionMat.rows);
+        balancedAccuracy.push_back((balancedAccuracyMean/confusionMat.rows)*100.0);
 
         falsePositiveRate = falsePositive/negative; // ROC: plotted on X axis
         truePositiveRate = truePositive/positive; // ROC: plotted on Y axis == sensitivity
@@ -372,15 +380,18 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
         labelsTraining.release();
     }
 
+    // TODO DESCOMENTAR
     /* When we run smote, the Mat features are balanced, so we previously know
     which is the minority class and its respective samples*/
     if(min.first != -1){
-        minority = min;
-    	minority.second = testingNumber[minority.first-1];
+     //    minority = min;
+    	// minority.second = testingNumber[minority.first-1];
     }
     else
     	minority.second = testingNumber[0];
     
+    cout << "-MINORITY SECOND " << minority.second << endl;
+
     printAccuracy();
 
     accuracy.clear();

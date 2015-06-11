@@ -19,12 +19,12 @@ using namespace cv;
 using namespace std;
 
 
-Mat readFeatures(const string& filename, Mat &classes, int &nClasses);
+Mat readFeatures(string filename, Mat *classes, int *nClasses);
 
-int qtdArquivos(char *diretorio);
+int qtdArquivos(string diretorio);
 
-int qtdImagensTotal(const char * base, int qtdClasses);
+int qtdImagensTotal(string base, int qtdClasses);
 
-int descriptor(const char *baseImagem, char const *diretorioDescritores, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod, char const *id);
+int descriptor(string baseImagem, string diretorioDescritores, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod, string id);
 
 #endif

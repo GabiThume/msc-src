@@ -18,24 +18,24 @@ cor[5]=8
 
 for cores in {0..5}
 do
-	for i in {1..5}
+	for descriptor in {1..5}
 	do
-		for j in {1..4}
+		for quantization in {1..4}
 		do
 		# Se o descritor for CCV, passa o parâmetro de threshold
-		if [ $i == 3 ] ; then
-		  ./mainDescritor BaseCorel caracteristicas_corel/${cor[cores]} $i ${cor[cores]} 1 1 $j 25
-		  ./mainDescritor BaseCaltech caracteristicas_caltech600/${cor[cores]} $i ${cor[cores]} 1 1 $j 25
-		  ./mainDescritor BaseTropical caracteristicas_tropical_fruits1400/${cor[cores]} $i ${cor[cores]} 1 1 $j 25
+		if [ $descriptor == 3 ] ; then
+		  ./mainDescritor BaseCorel caracteristicas_corel/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization 25
+		  ./mainDescritor BaseCaltech caracteristicas_caltech600/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization 25
+		  ./mainDescritor BaseTropical caracteristicas_tropical_fruits1400/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization 25
 		# Se o descritor for ACC, passa como parâmetros as distâncias
-		elif [ $i == 5 ] ; then
-		  ./mainDescritor BaseCorel caracteristicas_corel/${cor[cores]} $i ${cor[cores]} 1 1 $j 1 3 5 7
-		  ./mainDescritor BaseCaltech caracteristicas_caltech600/${cor[cores]} $i ${cor[cores]} 1 1 $j 1 3 5 7
-		  ./mainDescritor BaseTropical caracteristicas_tropical_fruits1400/${cor[cores]} $i ${cor[cores]} 1 1 $j 1 3 5 7
+		elif [ $descriptor == 5 ] ; then
+		  ./mainDescritor BaseCorel caracteristicas_corel/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization 1 3 5 7
+		  ./mainDescritor BaseCaltech caracteristicas_caltech600/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization 1 3 5 7
+		  ./mainDescritor BaseTropical caracteristicas_tropical_fruits1400/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization 1 3 5 7
 		else
-		  ./mainDescritor BaseCorel caracteristicas_corel/${cor[cores]} $i ${cor[cores]} 1 1 $j
-		  ./mainDescritor BaseCaltech caracteristicas_caltech600/${cor[cores]} $i ${cor[cores]} 1 1 $j
-		  ./mainDescritor BaseTropical caracteristicas_tropical_fruits1400/${cor[cores]} $i ${cor[cores]} 1 1 $j
+		  ./mainDescritor BaseCorel caracteristicas_corel/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization
+		  ./mainDescritor BaseCaltech caracteristicas_caltech600/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization
+		  ./mainDescritor BaseTropical caracteristicas_tropical_fruits1400/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization
 		fi
 		done
 		done

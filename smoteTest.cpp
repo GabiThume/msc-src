@@ -8,7 +8,7 @@
 #include "smote.h"
 
 /* Generate a imbalanced class and save it in imbalancedData and imbalancedClasses */
-void imbalance(Mat original, Mat classes, int factor, int numClasses, Mat &imbalancedData, Mat &imbalancedClasses, int start, int end){
+void imbalance(Mat original, Mat classes, int factor, int numClasses, Mat *imbalancedData, Mat *imbalancedClasses, int start, int end){
 
     int total = 0, pos = 0, i, num, samples;
     Size size = original.size();
@@ -20,26 +20,26 @@ void imbalance(Mat original, Mat classes, int factor, int numClasses, Mat &imbal
     num = size.height - samples + ceil(samples/factor);
     samples = ceil(samples/factor);
 
-    imbalancedData.create(num, size.width, CV_32FC1);
-    imbalancedClasses.create(num, 1, CV_32FC1);
+    (*imbalancedData).create(num, size.width, CV_32FC1);
+    (*imbalancedClasses).create(num, 1, CV_32FC1);
 
     while (total < samples) {
         /* Generate a random position to select samples to crete the minority class */
         pos = start + (rand() % end);
         if (!count(vectorRand.begin(), vectorRand.end(), pos)){
             vectorRand.push_back(pos);
-            Mat tmp = imbalancedData.row(total);
+            Mat tmp = (*imbalancedData).row(total);
             original.row(pos).copyTo(tmp);
-            imbalancedClasses.at<float>(total, 0) = classes.at<float>(start,0);
+            (*imbalancedClasses).at<float>(total, 0) = classes.at<float>(start,0);
             total++;
        }
     }
 
     for (i = end; i < size.height; i++) {
         if (!count(vectorRand.begin(), vectorRand.end(), i)){
-            Mat tmp = imbalancedData.row(total);
+            Mat tmp = (*imbalancedData).row(total);
             original.row(i).copyTo(tmp);
-            imbalancedClasses.at<float>(total, 0) = classes.at<float>(i,0);
+            (*imbalancedClasses).at<float>(total, 0) = classes.at<float>(i,0);
             total++;
         }
     }
@@ -87,7 +87,7 @@ int main(int argc, char const *argv[]){
             myFile.open(name.c_str());
 
             /* Read the feature vectors */
-            data = readFeatures(name.c_str(), classes, numClasses);
+            data = readFeatures(name, &classes, &numClasses);
             size = data.size();
 
             if (size.height != 0){
@@ -106,8 +106,8 @@ int main(int argc, char const *argv[]){
 
                     Mat imbalancedClasses, imbalancedData;
                     /* Desbalancing Data */
-                    c.findSmallerClass(imbalancedClasses, numClasses, smallerClass, start, end);
-                    imbalance(data, classes, i, numClasses, imbalancedData, imbalancedClasses, start, end);
+                    c.findSmallerClass(imbalancedClasses, numClasses, &smallerClass, &start, &end);
+                    imbalance(data, classes, i, numClasses, &imbalancedData, &imbalancedClasses, start, end);
                     size = imbalancedData.size();
                     /* Classifying without rebalancing */                    
                     c.bayes(prob, 10, imbalancedData, imbalancedClasses, numClasses, min, "original.csv");
