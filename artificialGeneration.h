@@ -25,6 +25,13 @@ class Artificial{
 
     public:
         int generate(string base, int isToGenerate, int whichOperation);
+        Mat generateBlur(Mat originalImage);
+        Mat generateNoise(Mat img);
+        Mat generateBlending(Mat originalImage, vector<Mat> images, int total);
+        Mat generateUnsharp(Mat originalImage);
+		Mat generateComposition(Mat originalImage, vector<Mat> images, int total, int fator);
+		Mat generateThreshold(Mat originalImage, vector<Mat> images, int total);
+		Mat generateSaliency(Mat originalImage, vector<Mat> images, int total);
 };
 
 

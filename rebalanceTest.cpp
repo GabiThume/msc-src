@@ -198,7 +198,7 @@ int main(int argc, char const *argv[]){
 // string descriptors[8] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"};
 // string methods[4] = {"Intensity", "Luminance", "Gleam", "MSB"};
 
-    for (d = 1; d <= 7; d++){
+    for (d = 1; d <= 1; d++){
         initialMethod = 1;
         endMethod = 4;
         if (d < 6)

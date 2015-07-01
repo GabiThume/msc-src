@@ -15,7 +15,7 @@ int classesNumber(string diretorio){
 
 	dir = opendir(diretorio.c_str());
 	if(dir == NULL) {
-		// cout << "Erro!! Nao foi possivel abrir o diretorio " << diretorio << endl;
+		cout << "Erro!! Nao foi possivel abrir o diretorio " << diretorio << endl;
 		return 0;
 	}
 
@@ -52,24 +52,6 @@ Mat unsharp(Mat img, int N) {
             out.at<uchar>(i,j) = newpixel;  
         }
     }
-    return out;
-}
-
-Mat unsharpmask(Mat img, int N) {
-
-    Size s = img.size();
-    Mat out(s, CV_8U, 3);
-
-    vector<Mat> imColors(3);
-    img.copyTo(out);
-    
-    split(out, imColors);
-
-    imColors[0] = unsharp(imColors[0], N);
-    imColors[1] = unsharp(imColors[1], N);
-    imColors[2] = unsharp(imColors[2], N);
-
-    merge(imColors, out);
     return out;
 }
 
@@ -114,7 +96,7 @@ Mat noiseSingleChannel(Mat img){
     return out;
 }
 
-Mat generateNoise(Mat img) {
+Mat Artificial::generateNoise(Mat img) {
 
     Size s = img.size();
     Mat out(s, CV_8U, 3);
@@ -132,13 +114,231 @@ Mat generateNoise(Mat img) {
     return out;
 }
 
+Mat Artificial::generateBlur(Mat originalImage){
+    int i, blurType;
+    Mat generated;
+
+    i = 3 + 2*(rand() % 15);
+    blurType = 1 + (rand() % 2);
+    switch (blurType) {
+        case 1: 
+            GaussianBlur(originalImage, generated, Size(i, i), 0);
+            break;
+        case 2:
+            bilateralFilter(originalImage, generated, i, i*2, i/2);
+            break;
+    }
+    return generated;
+}
+
+Mat Artificial::generateBlending(Mat originalImage, vector<Mat> images, int total){
+    float alpha, beta;
+    int randomSecondImg;
+    Mat generated;
+
+    alpha = (rand() % 100);
+    beta = (100.0 - alpha);
+    randomSecondImg = 0 + (rand() % total);
+    while (originalImage.size() != images[randomSecondImg].size()){
+        randomSecondImg = 0 + (rand() % total);
+    }
+    addWeighted(originalImage, alpha/100.0, images[randomSecondImg], beta/100.0, 0.0, generated);
+    return generated;
+}
+
+Mat Artificial::generateUnsharp(Mat originalImage){
+    int unsharpLevel;
+
+    unsharpLevel = 3 + 2*(rand() % 5);
+
+    Size s = originalImage.size();
+    Mat generated(s, CV_8U, 3);
+
+    vector<Mat> imColors(3);
+    originalImage.copyTo(generated);
+    
+    split(generated, imColors);
+
+    imColors[0] = unsharp(imColors[0], unsharpLevel);
+    imColors[1] = unsharp(imColors[1], unsharpLevel);
+    imColors[2] = unsharp(imColors[2], unsharpLevel);
+
+    merge(imColors, generated);
+    return generated;
+}
+
+Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int total, int fator){
+
+    vector<int> vectorRand;
+    Mat subImg, generated, img, roi;
+    originalImage.copyTo(subImg);
+    int roiWidth, roiHeight, subImage, newImage, operation;
+    int startWidth, startHeight;
+    
+    startWidth = startHeight = 0;
+    for (subImage = 1; subImage <= fator; subImage++){
+        // vectorRand.clear();
+        // do{
+        //     newImage = rand() % total;
+        // } while(count(vectorRand.begin(), vectorRand.end(), newImage));
+        // vectorRand.push_back(newImage);
+
+        newImage = rand() % total;
+        /* Find out if the subimage has the same size */
+        images[newImage].copyTo(img);
+        // if (img.size() != subImg.size()){
+        //     subImage--;
+        //     continue;
+        // }
+        img.copyTo(generated);
+
+        operation = 1 + (rand() % 5);
+        switch(operation){
+            case 1:
+                generated = generateBlur(originalImage);
+                break;
+            case 2:
+                generated = generateNoise(originalImage);
+                break;
+            case 3:
+                generated = generateBlending(originalImage, images, total);
+                break;
+            case 4:
+                generated = generateUnsharp(originalImage);
+                break;
+            case 5:
+                generated = generateThreshold(originalImage, images, total);
+                break;
+            case 6:
+                generated = generateSaliency(originalImage, images, total);
+            default:
+                break;
+        }
+
+        roiHeight = generated.size().height/sqrt(fator);
+        roiWidth = generated.size().width/sqrt(fator);
+
+        if (img.size() == subImg.size()){
+            generated(Rect(startWidth, startHeight, roiWidth, roiHeight)).copyTo(roi);
+        }
+        else{
+            generated(Rect(0, 0, roiWidth, roiHeight)).copyTo(roi);
+        }
+        Mat dst_roi = subImg(Rect(startWidth, startHeight, roiWidth, roiHeight));
+        roi.copyTo(dst_roi);
+        if ((startWidth + roiWidth) < generated.size().width){
+            startWidth = startWidth + roiWidth;
+        }
+        else{
+            startWidth = 0;
+            startHeight = startHeight + roiHeight;
+        }
+    }
+    return subImg;
+}
+
+Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images, int total){
+
+    Mat generated, bin, foreground, background, saliency_map;
+    int randomSecondImg;
+
+    //Create binary image using Otsu's threshold
+    cvtColor(originalImage, bin, CV_BGR2GRAY);
+    threshold(bin, bin, 0, 255, CV_THRESH_OTSU);
+
+    // // Select the foreground
+    //erode(bin,bin,Mat(),Point(-1,-1), 2, 1, 1);
+    //dilate(bin,bin,Mat(),Point(-1,-1), 2, 1, 1);
+    // MORPH_RECT
+    //morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(2*2+1, 2*2+1), Point(2,2)), Point(-1,-1)); 
+    originalImage.copyTo(foreground, bin&1);
+
+    // namedWindow("Display window", WINDOW_AUTOSIZE );
+    // imshow("foreground", bin); 
+    // waitKey(0);
+
+    // Select another image with the same size
+    randomSecondImg = 0 + (rand() % total);
+    while (originalImage.size() != images[randomSecondImg].size()){
+        randomSecondImg = 0 + (rand() % total);
+    }
+
+    // Select the background
+    bitwise_not(bin, bin);
+    images[randomSecondImg].copyTo(background, bin);
+
+    // namedWindow("Display window", WINDOW_AUTOSIZE );
+    // imshow("background", background); 
+    // waitKey(0);
+
+    // Blend of background and foreground 
+    generated = background + foreground;
+
+    // namedWindow("Display window", WINDOW_AUTOSIZE );
+    // imshow("generated", generated); 
+    // waitKey(0);
+
+    // originalImage.copyTo(bin); 
+    // // Select just the most salient region, given a threshold value
+    // bin = saliency_map * 255;
+    // GaussianBlur(bin, bin, Size(1,1), 0, 0);
+    // bin.convertTo(bin, CV_8U); // threshold needs an int Mat
+
+    return generated;
+}
+
+Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int total){
+
+    GMRsaliency GMRsal;
+    Mat saliency_map, original, generated, bin, foreground, background;
+    int randomSecondImg;
+    originalImage.copyTo(original);
+    saliency_map = GMRsal.GetSal(originalImage);
+
+    while(original.size() != saliency_map.size()){
+        images[rand() % total].copyTo(original);
+        saliency_map = GMRsal.GetSal(original);
+    }
+    original.copyTo(bin); 
+
+    // Select just the most salient region, given a threshold value
+    bin = saliency_map * 255;
+    GaussianBlur(bin, bin, Size(1,1), 0, 0);
+    bin.convertTo(bin, CV_8U); // threshold needs an int Mat
+    threshold(bin, bin, 0, 255, THRESH_BINARY | THRESH_OTSU);
+
+    // Eliminate small regions (Mat() == default 3x3 kernel)
+    // morphologyEx(bin, bin, 3, getStructuringElement(2, Size( 2*20 + 1, 2*20+1 ), Point(20, 20)));
+    original.copyTo(foreground, bin&1); 
+
+    // imwrite(nameGeneratedImage+"_saliency", bin);
+    // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
+    // imshow("saliency", bin); 
+    // waitKey(0);
+
+    /* Select another image with the same size */
+    randomSecondImg = rand() % total;
+    while (original.size() != images[randomSecondImg].size()){
+        randomSecondImg = rand() % total;
+    }
+
+    // Select the background
+    bitwise_not(bin, bin);
+    images[randomSecondImg].copyTo(background, bin);
+
+    // Blend of background and foreground 
+    generated = background + foreground;
+
+    // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
+    // imshow("saliency", generated); 
+    // waitKey(0);
+    return generated;
+}
 
 int Artificial::generate(string base, int isToGenerate = 1, int whichOperation = 0){
 
-	int i, j, qtdClasses = 0, generationType, roiHeight, roiWidth;
-    int operation, imageOrigin, subImage, randomSecondImg, unsharpLevel, blurType;
+	int i, qtdClasses = 0, generationType;
     int menor = 999, maior = -1, maiorClasse, menorClasse, rebalance, qtdImg;
-    double alpha, beta;
     Mat img, noise;
     string imgName, classe, minorityClass;
 	struct dirent *sDir = NULL;
@@ -146,8 +346,6 @@ int Artificial::generate(string base, int isToGenerate = 1, int whichOperation =
     vector<int> totalImage, vectorRand;
     vector<Mat> images;
     srand(time(0));
-    GMRsaliency GMRsal;
-    Mat saliency_map;
 
 	dir = opendir(base.c_str());
 	if(dir == NULL) {
@@ -179,7 +377,6 @@ int Artificial::generate(string base, int isToGenerate = 1, int whichOperation =
         }
     }
     /* Find how many samples it is needed to rebalance */
-    //TODO: dividido por 2? igual a classe de treino da majoritaria
     rebalance = totalImage[maiorClasse-1]/2 - totalImage[menorClasse-1];
     if (rebalance == 0){
         cout << "Error! Classes were already balanced.\n" << endl;
@@ -195,9 +392,7 @@ int Artificial::generate(string base, int isToGenerate = 1, int whichOperation =
 	while((sDir = readdir(minDir))) {
 	    imgName = sDir->d_name;
         img = imread(minorityClass + imgName, CV_LOAD_IMAGE_COLOR);
-        if (!img.data){
-            continue;
-        }
+        if (!img.data) continue;
         images.push_back(img);
     }
 
@@ -206,255 +401,57 @@ int Artificial::generate(string base, int isToGenerate = 1, int whichOperation =
         /* Choose a random image */
         int randomImg = 0 + (rand() % totalImage[menorClasse-1]);
         Mat generated, subImg, tmp, bin, foreground, background;
-        images[randomImg].copyTo(generated);
-        images[randomImg].copyTo(subImg);
 
         /* Choose an operation 
             Case 1: All operation */
         if (whichOperation == 1)          
-            generationType = 2 + (rand() % 7);
+            generationType = 2 + (rand() % 8);
         else
             generationType = whichOperation;
 
         string nameGeneratedImage = minorityClass + to_string(totalImage[menorClasse-1]+i) + ".jpg";
 
-        // height = images[randomImg].size().height;
-        // width = images[randomImg].size().width;
         // cout << " type " << generationType << " name " << nameGeneratedImage << endl;
         switch (generationType) {
-
-        case 0: /* Replication */
-            imwrite(nameGeneratedImage, images[randomImg]);
-            break;
-        case 2: /* Blurring */
-            j = 3 + 2*(rand() % 15);
-            blurType = 1 + (rand() % 2);
-            switch (blurType) {
-                case 1: 
-                    GaussianBlur(images[randomImg], generated, Size(j, j), 0);
-                    break;
-                case 2:
-                    bilateralFilter(images[randomImg], generated, j, j*2, j/2);
-                    break;
-            }
-            imwrite(nameGeneratedImage, generated);
-            break;
-        case 3: /* Apply noise */
-            generated = generateNoise(images[randomImg]);
-            imwrite(nameGeneratedImage, generated);
-            break;
-        case 4: /* blending */
-            alpha = (rand() % 100);
-            beta = (100.0 - alpha);
-            randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
-            while (images[randomImg].size() != images[randomSecondImg].size()){
-                randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
-            }
-            addWeighted(images[randomImg], alpha/100.0, images[randomSecondImg], beta/100.0, 0.0, generated);
-            imwrite(nameGeneratedImage, generated);
-            break;
-        case 5: 
-            unsharpLevel = 3 + 2*(rand() % 5);
-            generated = unsharpmask(images[randomImg], unsharpLevel);
-            imwrite(nameGeneratedImage, generated);
-            break;
-        case 6:
-            vectorRand.clear();
-            images[randomImg].copyTo(subImg);
-
-            for (subImage = 1; subImage <= 4; subImage++){
-                vectorRand.clear();
-                do{
-                    imageOrigin = (rand() % (totalImage[menorClasse-1]+i));
-                } while(count(vectorRand.begin(), vectorRand.end(), imageOrigin));
-                vectorRand.push_back(imageOrigin);
-
-                /* Find out if the subimage has the same size */
-                img = imread(minorityClass + to_string(imageOrigin) + ".jpg", CV_LOAD_IMAGE_COLOR);
-                if (img.size() != subImg.size()){
-                    subImage--;
-                    continue;
-                }
-                img.copyTo(generated);
-
-                /* Apply blur or noise in the subimage */
-                operation = 1 + (rand() % 4);
-                switch(operation){
-                    case 1: /* Blurring */
-                        j = 3 + 2*(rand() % 15);
-                        blurType = 1 + (rand() % 2);
-                        switch (blurType) {
-                            case 1: 
-                                GaussianBlur(images[randomImg], generated, Size(j, j), 0);
-                                break;
-                            case 2:
-                                bilateralFilter(images[randomImg], generated, j, j*2, j/2);
-                                break;
-                        }
-                        break;
-                    case 2: /* Apply noise */
-                        generated = generateNoise(img);
-                        break;
-                    case 3: /* blending */
-                        alpha = (rand() % 100);
-                        beta = (100.0 - alpha);
-                        randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
-                        while (img.size() != images[randomSecondImg].size()){
-                            randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
-                        }
-                        addWeighted(img, alpha/100.0, images[randomSecondImg], beta/100.0, 0.0, generated);
-                        break;
-                    case 4: /* unsharp masking */
-                        unsharpLevel = 3 + 2*(rand() % 5);
-                        generated = unsharpmask(img, unsharpLevel);
-                        break;
-                    default:
-                        break;
-                }
-
-                roiHeight = generated.size().height/2;
-                roiWidth = generated.size().width/2;
-                if (subImage == 1){
-                    Mat roi = generated(Rect(0, 0, roiWidth, roiHeight));
-                    Mat dst_roi = subImg(Rect(0, 0, roiWidth, roiHeight));
-                    roi.copyTo(dst_roi);
-                }
-                else if (subImage == 2){
-                    Mat roi = generated(Rect(roiWidth, 0, roiWidth, roiHeight));
-                    Mat dst_roi = subImg(Rect(roiWidth, 0, roiWidth, roiHeight));
-                    roi.copyTo(dst_roi);
-                }
-                else if (subImage == 3){
-                    Mat roi = generated(Rect(0, roiHeight, roiWidth, roiHeight));
-                    Mat dst_roi = subImg(Rect(0, roiHeight, roiWidth, roiHeight));
-                    roi.copyTo(dst_roi);
-                }
-                else if (subImage == 4){
-                    Mat roi = generated(Rect(roiWidth, roiHeight, roiWidth, roiHeight));
-                    Mat dst_roi = subImg(Rect(roiWidth, roiHeight, roiWidth, roiHeight));
-                    roi.copyTo(dst_roi);
-                }
-            }
-            imwrite(nameGeneratedImage, subImg);
-            break;
-        case 7: /* Threshold */
-
-            // Create binary image using Otsu's threshold
-            // cvtColor(images[randomImg], bin, CV_BGR2GRAY);
-            // threshold(bin, bin, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-
-            // // Select the foreground
-            // erode(bin,bin,Mat(),Point(-1,-1), 2, 1, 1);
-            // dilate(bin,bin,Mat(),Point(-1,-1), 2, 1, 1);
-            // // morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_RECT, Size(2*2+1, 2*2+1), Point(2,2)), Point(-1,-1), i ); 
-            // images[randomImg].copyTo(foreground, bin&1);
-
-            // // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
-            // // imshow( "foreground", bin); 
-            // // waitKey(0);
-
-            // // Select another image with the same size
-            // randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
-            // while (images[randomImg].size() != images[randomSecondImg].size()){
-            //     randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
-            // }
-
-            // // Select the background
-            // bitwise_not(bin, bin);
-            // images[randomSecondImg].copyTo(background, bin);
-
-            // // Blend of background and foreground 
-            // generated = background + foreground;
-
-            // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
-            // imshow( "foreground", generated); 
-            // waitKey(0);
-
-             images[randomImg].copyTo(bin); 
-                // Select just the most salient region, given a threshold value
-                bin = saliency_map * 255;
-                GaussianBlur(bin, bin, Size(1,1), 0, 0);
-                bin.convertTo(bin, CV_8U); // threshold needs an int Mat
-                threshold(bin, bin, 0, 255, THRESH_BINARY | THRESH_OTSU);
-
-                // Eliminate small regions (Mat() == default 3x3 kernel)
-                // morphologyEx(bin, bin, 3, getStructuringElement(2, Size( 2*20 + 1, 2*20+1 ), Point(20, 20)));
-                images[randomImg].copyTo(foreground, bin&1); 
-
-                // imwrite(nameGeneratedImage+"_saliency", bin);
-                // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
-                // imshow("saliency", bin); 
-                // waitKey(0);
-
-                // Select another image with the same size
-                randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
-                while (images[randomImg].size() != images[randomSecondImg].size()){
-                    randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
-                }
-
-                // Select the background
-                bitwise_not(bin, bin);
-                images[randomSecondImg].copyTo(background, bin);
-
-                // Blend of background and foreground 
-                generated = background + foreground;
-                
-            imwrite(nameGeneratedImage, generated);
-            break;
-        case 8: /* Salient region */
-            saliency_map = GMRsal.GetSal(images[randomImg]);
-
-            if (images[randomImg].size() != saliency_map.size()){
-                i--;
-                continue;
-            }
-            else{
-
-                images[randomImg].copyTo(bin); 
-                // Select just the most salient region, given a threshold value
-                bin = saliency_map * 255;
-                GaussianBlur(bin, bin, Size(1,1), 0, 0);
-                bin.convertTo(bin, CV_8U); // threshold needs an int Mat
-                threshold(bin, bin, 0, 255, THRESH_BINARY | THRESH_OTSU);
-
-                // Eliminate small regions (Mat() == default 3x3 kernel)
-                // morphologyEx(bin, bin, 3, getStructuringElement(2, Size( 2*20 + 1, 2*20+1 ), Point(20, 20)));
-                images[randomImg].copyTo(foreground, bin&1); 
-
-                // imwrite(nameGeneratedImage+"_saliency", bin);
-                // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
-                // imshow("saliency", bin); 
-                // waitKey(0);
-
-                // Select another image with the same size
-                randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
-                while (images[randomImg].size() != images[randomSecondImg].size()){
-                    randomSecondImg = 0 + (rand() % totalImage[menorClasse-1]);
-                }
-
-                // Select the background
-                bitwise_not(bin, bin);
-                images[randomSecondImg].copyTo(background, bin);
-
-                // Blend of background and foreground 
-                generated = background + foreground;
-
-                // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
-                // imshow("saliency", generated); 
-                // waitKey(0);
-
+            case 0: /* Replication */
+                imwrite(nameGeneratedImage, images[randomImg]);
+                break;
+            case 2:
+                generated = generateBlur(images[randomImg]);
                 imwrite(nameGeneratedImage, generated);
-            }
-            break;
-        default:
-            break;
+                break;
+            case 3:
+                generated = generateNoise(images[randomImg]);
+                imwrite(nameGeneratedImage, generated);
+                break;
+            case 4:
+                generated = generateBlending(images[randomImg], images, totalImage[menorClasse-1]);
+                imwrite(nameGeneratedImage, generated);
+                break;
+            case 5:
+                generated = generateUnsharp(images[randomImg]);
+                imwrite(nameGeneratedImage, generated);
+                break;
+            case 6:
+                generated = generateComposition(images[randomImg], images, totalImage[menorClasse-1], 4);
+                imwrite(nameGeneratedImage, generated);
+                break;
+            case 7:
+                generated = generateComposition(images[randomImg], images, totalImage[menorClasse-1], 16);
+                imwrite(nameGeneratedImage, generated);
+                break;
+            case 8:
+                generated = generateThreshold(images[randomImg], images, totalImage[menorClasse-1]);
+                imwrite(nameGeneratedImage, generated);
+                break;
+            case 9:
+                generated = generateSaliency(images[randomImg], images, totalImage[menorClasse-1]);
+                imwrite(nameGeneratedImage, generated);
+                break;
+            default:
+                break;
         }
         generated.release();
-        subImg.release();
-        tmp.release();
-        bin.release(); 
-        foreground.release(); 
-        background.release();
     }
     cout << rebalance << " images were generated and the minority class is now balanced." << endl;
     cout << "---------------------------------------------------------------------------------------" << endl;

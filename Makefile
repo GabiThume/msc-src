@@ -62,9 +62,10 @@ run-desbalanced:
 	./rebalanceTest Desbalanced/original/ features/ 3 # Noise
 	./rebalanceTest Desbalanced/original/ features/ 4 # Blending
 	./rebalanceTest Desbalanced/original/ features/ 5 # Unsharp masking
-	./rebalanceTest Desbalanced/original/ features/ 6 # Composition
-	./rebalanceTest Desbalanced/original/ features/ 7 # Threshold combination
-	./rebalanceTest Desbalanced/original/ features/ 8 # Segmentation
+	./rebalanceTest Desbalanced/original/ features/ 6 # Composition wuth 4
+	./rebalanceTest Desbalanced/original/ features/ 7 # Composition with 16
+	./rebalanceTest Desbalanced/original/ features/ 8 # Threshold combination
+	./rebalanceTest Desbalanced/original/ features/ 9 # Saliency
 
 plot:
 	python plot.py
