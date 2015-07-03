@@ -53,7 +53,7 @@ int main(int argc, char const *argv[]){
     Artificial a;
 
     if (argc != 3){
-        cout << "\nUsage: ./rebalanceTest (1) (2)\n\n\t(1) Image Directory" << endl;
+        cout << "\nUsage: ./artificialGenerationTest (1) (2)\n\n\t(1) Image Directory" << endl;
         cout << "\t(2) Features Directory\n" << endl;
         exit(-1);
     }

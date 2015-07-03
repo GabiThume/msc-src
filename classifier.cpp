@@ -23,6 +23,9 @@ void knn(Mat dataTraining, Mat labelsTraining, Mat dataTesting, Mat& result){
 	CvKNearest knn(dataTraining, labelsTraining, responses, false, k);
 	knn.find_nearest(dataTesting, k, result, nearests, dist);
 	knn.clear();
+    nearests.release();
+    responses.release();
+    dist.release();
 }
 
 float accuracyMean(vector<float> accuracy){
@@ -146,6 +149,7 @@ void Classifier::findSmallerClass(Mat classes, int numClasses, int *smallerClass
             break;
         }
     }
+    dataClasse.clear();
 }
 
 void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeatures, Mat classes, int nClasses, pair<int, int> min, string name = ""){

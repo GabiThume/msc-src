@@ -25,6 +25,6 @@ int qtdArquivos(string diretorio);
 
 int qtdImagensTotal(string base, int qtdClasses);
 
-int descriptor(string baseImagem, string diretorioDescritores, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod, string id);
+string descriptor(string baseImagem, string diretorioDescritores, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod, string id);
 
 #endif

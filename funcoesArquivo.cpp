@@ -69,7 +69,6 @@ int qtdArquivos(string directory){
  	while((sDir = readdir(dir))) {
  		if ((strcmp(sDir->d_name, ".") 			!= 0) &&
  			(strcmp(sDir->d_name, "..") 		!= 0) &&
- 			(strcmp(sDir->d_name, ".directory") != 0) &&
  			(strcmp(sDir->d_name, ".DS_Store") 	!= 0) &&
  			(strcmp(sDir->d_name, ".directory") != 0)) {
  			count++;
@@ -107,7 +106,7 @@ int qtdImagensTotal(string base, int qtdClasses, int *objClass, int *maxs){
 	return count;
 }
 
-int descriptor(string database, string featuresDir, int method, int colors, double resizeFactor, int normalization, int *param, int nparam, int deleteNull, int quantization, string id = ""){
+string descriptor(string database, string featuresDir, int method, int colors, double resizeFactor, int normalization, int *param, int nparam, int deleteNull, int quantization, string id = ""){
 
 	int i, j, k, numImages = 0, qtdClasses = 0, qtdImgTotal = 0, imgTotal = 0, treino = 0, grid;
 	int featureVectorSize = 0, resizingFactor = (int)(resizeFactor*100), maxc = 0;
@@ -183,7 +182,7 @@ int descriptor(string database, string featuresDir, int method, int colors, doub
 	arq = fopen(nome.c_str(), "w+");
 	if (arq == 0){
 		cout << "This feature's file does not exist." << endl;
-		return -1;
+		return "";
 	}
 	directory = database+"/";
 	
@@ -231,7 +230,7 @@ int descriptor(string database, string featuresDir, int method, int colors, doub
 		 	}
 		}
 
-		cout << "class " << i << " : " << directory << " treino " << treino << " imagens " << numImages << endl;
+		cout << "class " << i << " : " << directory << " imagens " << numImages << endl;
 		
 		for(j = 0; j < numImages; j++)	{
 			img = imread(database +"/"+to_string(i)+"/"+to_string(j)+".jpg", CV_LOAD_IMAGE_COLOR);
@@ -242,7 +241,7 @@ int descriptor(string database, string featuresDir, int method, int colors, doub
 					img = imread(directory, CV_LOAD_IMAGE_COLOR);
 					if (img.empty()){ 
 						cout << "Error when trying to open an image of " << directory << endl; 
-						return -1; 
+						return ""; 
 					}
 				}
 			}
@@ -270,7 +269,7 @@ int descriptor(string database, string featuresDir, int method, int colors, doub
                     break;
 				default: 
                     cout << "Error: this quantization method does not exists." << endl;
-                    return -1;
+                    return "";
 			}
 			
 			switch(method){
@@ -313,7 +312,7 @@ int descriptor(string database, string featuresDir, int method, int colors, doub
                     break;
 				default: 
                     cout << "Error: this description method does not exists." << endl;
-                    return -1;
+                    return "";
 			}
 
 			labels.at<uchar>(imgTotal,0) = (uchar)i;
@@ -386,5 +385,5 @@ int descriptor(string database, string featuresDir, int method, int colors, doub
 	}
 	
 	fclose(arq);
-	return 0;
+	return nome;
 }
