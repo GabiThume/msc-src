@@ -25,6 +25,13 @@ string desc(string dir, string features, int d, int m, string id){
         return descriptor(dir.c_str(), features.c_str(), d, 256, 1, 1, 0, 0, 0, m, id.c_str());
 }
 
+string intToString(int number){
+    stringstream s;
+    s << number;
+    string r = s.str();
+    return r;
+}
+
 int main(int argc, char const *argv[]){
 
     SMOTE s;
@@ -46,7 +53,6 @@ int main(int argc, char const *argv[]){
     }
     string path = string(argv[1]);
     string id = string(argv[2]);
-
     string baseDirOriginal[3] = {"Balanced/", "25Desbalanced/", "12Desbalanced/"};
     featuresDir = path+"Features/";
     string baseDirID[3] = {"Balanced/", "25Rebalanced/", "12Rebalanced/"};
@@ -73,13 +79,11 @@ int main(int argc, char const *argv[]){
             csvOriginal = path+"Analysis/original_"+descriptors[d-1]+"_"+methods[m-1]+"_";
             csvSmote = path+"Analysis/smote_"+descriptors[d-1]+"_"+methods[m-1]+"_";
             csvRebalance = path+"Analysis/"+id+"_"+descriptors[d-1]+"_"+methods[m-1]+"_";
-
             for (level = 0; level <= 2; level++){
                 /* Feature extraction from images */
-                string originalDescriptor = desc(path+baseDirOriginal[level], featuresDir, d, m, "original");
+                string originalDescriptor = desc(path+baseDirOriginal[level], featuresDir, d, m, "_original");
                 string idDescriptor = desc(path+baseDirID[level], featuresDir, d, m, id);
 
-                /* Read the original feature vectors */
                 data = readFeatures(idDescriptor, &classes, &numClasses);
                 size = data.size();
                 if (size.height != 0){
@@ -93,7 +97,6 @@ int main(int argc, char const *argv[]){
                 }
                 data.release();
 
-                /* Read the id feature vectors */
                 data = readFeatures(originalDescriptor, &classes, &numClasses);
                 size = data.size();
                 if (size.height != 0){
@@ -103,7 +106,7 @@ int main(int argc, char const *argv[]){
                     cout << "Classification using original vectors" << endl;
                     cout << "Features vectors file: " << name.c_str() << endl;
                     cout << "---------------------------------------------------------------------------------------" << endl;
-                    c.bayes(prob, 10, data, classes, numClasses, min, csvOriginal.c_str());
+                    c.bayes(prob, 20, data, classes, numClasses, min, csvOriginal.c_str());
 
                     /* SMOTE */
                     // pair <int, int> min(1, minorityNumber[level]);
@@ -156,6 +159,17 @@ int main(int argc, char const *argv[]){
                         cout << "---------------------------------------------------------------------------------------" << endl;
 
                         c.bayes(prob, 10, total, newClasses, numClasses, minSmote, csvSmote.c_str());
+
+                        string name = featuresDir+descriptors[d-1]+"_"+methods[m-1]+"_256c_4d_100r_smote.csv";
+                        FILE *arq = fopen(name.c_str(), "w+");
+                        int w, z;
+                        for (w = 0; w < newClasses.size().height; w++) {
+                            // fprintf(arq,"%d ", i);  
+                            for(z = 0; z < total.size().width; z++) {
+                                fprintf(arq,"%.5f ", total.at<float>(w, z));
+                            }
+                            fprintf(arq,"\n");  
+                        }
 
                         minorityOverSampled.release();
                         minorityClasses.release();

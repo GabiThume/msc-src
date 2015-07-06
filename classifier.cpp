@@ -375,9 +375,6 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
         // labels.close();
         // labelsResult.close();
 
-
-        /* TODO: Mahalanobis distance */
-
         dataTraining.release();
         dataTesting.release();
         labelsTesting.release();

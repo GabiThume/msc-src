@@ -51,7 +51,7 @@ staticRebalance: staticRebalance.cpp
 clean:
 	$(FIND) "*~" | xargs $(RM)
 	$(FIND) "*.o" | xargs $(RM)
-	$(RM) teste mainDescritor dimensionReduction mergeDataSets smoteTest artificialGenerationTest rebalanceTest
+	$(RM) teste staticRebalance mainDescritor dimensionReduction mergeDataSets smoteTest artificialGenerationTest rebalanceTest
 
 run: run-desbalanced
 

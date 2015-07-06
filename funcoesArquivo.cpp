@@ -123,23 +123,23 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 
 	switch (method) {
 		case 1: 
-			nome = featuresDir+"/BIC_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".txt";
-			// sprintf(nome,"%s/BIC_%s_%dc_%dr_%s.txt", featuresDir, quantizationsNames[quantization-1], colors, resizingFactor, id);
+			nome = featuresDir+"/BIC_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
+			// sprintf(nome,"%s/BIC_%s_%dc_%dr_%s.csv", featuresDir, quantizationsNames[quantization-1], colors, resizingFactor, id);
 			featureVectorSize = colors*2;
 			cout << "BIC and " << quantizationsNames[quantization-1] << ":";
 			break;
 		case 2:
-			nome = featuresDir+"/GCH_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".txt";
+			nome = featuresDir+"/GCH_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
 			featureVectorSize = colors;
 			cout << "GCH and " << quantizationsNames[quantization-1] << ":";
 			break;
 		case 3:
-			nome = featuresDir+"/CCV_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".txt";
+			nome = featuresDir+"/CCV_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
 			featureVectorSize = colors*2;
 			cout << "CCV and " << quantizationsNames[quantization-1] << ":";
 			break;
 		case 4:
-			nome = featuresDir+"/Haralick6_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".txt";
+			nome = featuresDir+"/Haralick6_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
 			coocurrenceMatrix = (double **)calloc(colors, sizeof(double*));
 			for (i=0; i<colors; i++) {
 				coocurrenceMatrix[i]= (double *)calloc(colors, sizeof(double));
@@ -148,23 +148,23 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 			cout << "Haralick-6 and " << quantizationsNames[quantization-1] << ":";
 			break;
 		case 5:
-			nome = featuresDir+"/ACC_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(nparam)+"d_"+to_string(resizingFactor)+"r_"+id+".txt";
+			nome = featuresDir+"/ACC_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(nparam)+"d_"+to_string(resizingFactor)+"r_"+id+".csv";
 			featureVectorSize = (colors*nparam);
 			cout << "ACC and " << quantizationsNames[quantization-1] << " c/ " << nparam << " distancias : ";
 			break;
 		case 6:
 			grid = 4;
-			nome = featuresDir+"/LBP_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".txt";
+			nome = featuresDir+"/LBP_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
 			featureVectorSize = 58*grid;
 			cout << "LBP and " << quantizationsNames[quantization-1] << endl;
 			break;
 		case 7:
-			nome = featuresDir+"/HOG_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".txt";
+			nome = featuresDir+"/HOG_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
 			featureVectorSize = 58;
 			cout << "HOG and " << quantizationsNames[quantization-1] << endl;
 			break;
 		case 8:
-			nome = featuresDir+"/Contour_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".txt";
+			nome = featuresDir+"/Contour_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
 			featureVectorSize = 10;
 			cout << "Contour and " << quantizationsNames[quantization-1] << endl;
 			break;
