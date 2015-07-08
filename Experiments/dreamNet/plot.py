@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import sys
 import os
+import itertools
 
 directory = "Analysis/"
 algorithms = ["original","dream", "smote"]
@@ -18,6 +19,8 @@ methods = ["Intensity", "Gleam", "Luminance", "MSB"]
 operations = ["Replication", "ALL", "Blur", "Noise", "Blending", "UnsharpMasking", "Composition", "ThresholdCombination", "Saliency"]
 
 which = 0
+
+marker = itertools.cycle(('o', 's', '^')) 
 
 # for which in range(0,2):
 for desc in descriptors:
@@ -51,12 +54,13 @@ for desc in descriptors:
                 accuracy = csvData[:, 1]
                 # accuracy = [(accuracy[len(accuracy)-1]-item) for item in accuracy]
                 samples = [12, 25, 50]
-                # allAccuracy.append(100)
+                allAccuracy.append(100) # para fixar em 100
                 for item in np.array(accuracy):
                     allAccuracy.append(item)
                 allAccuracy.append(0)
-                line1, = plt.plot(samples, accuracy, color[i]+'o', label=labels[i], linewidth=3)
-                plt.plot(samples, accuracy, color[i]+'-', linewidth=3)
+                m = marker.next()
+                line1, = plt.plot(samples, accuracy, color[i]+'o', label=labels[i], linewidth=1, marker=m)
+                plt.plot(samples, accuracy, color[i]+'-', linewidth=1, marker=m)
                 if max(samples) > xlim:
                     xlim = np.ceil(max(samples))
                 if max(accuracy) > ylim:
@@ -67,14 +71,14 @@ for desc in descriptors:
                     ylimMin = np.round(min(accuracy))
 
         if os.path.exists(fileName):
-            plt.legend(loc=3)
-
+            plt.legend(loc=3, prop={'size':8})
+            samples.append(0) #fixar em 0 no x
             plt.xticks(samples)
             plt.yticks(np.ceil(allAccuracy), rotation=0)
             plt.grid()
             ax = plt.axes()
 
-            ax.tick_params(axis='y', labelsize=8)
+            ax.tick_params(axis='y', labelsize=7)
             plt.gca().invert_xaxis()
             plt.gca().set_aspect('equal', adjustable='box')
 

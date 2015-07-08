@@ -18,7 +18,7 @@ void classifica(string base, string features, string outfileName){
     ifstream myFile;
     string nameFile, name, nameDir;
     stringstream id;
-    Mat data, classes;
+    Mat data, classes, trainTest;
     pair <int, int> min(0,0);
     /* Feature extraction */
     descriptor(base.c_str(), features.c_str(), 4, 256, 1, 0, 0, 0, 0, 4, "");
@@ -33,7 +33,7 @@ void classifica(string base, string features, string outfileName){
             myFile.open(name.c_str());
 
             /* Read the feature vectors */
-            data = readFeatures(name, &classes, &numClasses);
+            data = readFeatures(name, &classes, &trainTest, &numClasses);
             size = data.size();
 
             c.findSmallerClass(classes, numClasses, &smallerClass, &start, &end);
@@ -42,7 +42,7 @@ void classifica(string base, string features, string outfileName){
             id << end-start;
 
             if (size.height != 0){
-                c.bayes(prob, 20, data, classes, numClasses, min, outfileName+id.str());
+                c.bayes(prob, 20, data, classes, numClasses, min, trainTest, outfileName+id.str());
             }
         }
     }

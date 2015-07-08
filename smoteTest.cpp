@@ -57,7 +57,8 @@ int main(int argc, char const *argv[]){
     struct dirent *arq;
     ifstream myFile;
     string nameFile, name, nameDir, baseDir, featuresDir;
-    Mat data, minorityClass, classes, minorityOverSampled, majority, majorityClasses, newClasses, total, synthetic;
+    Mat data, minorityClass, classes, minorityOverSampled, majority, majorityClasses;
+    Mat newClasses, total, synthetic, trainTest;
     pair <int, int> min(-1,-1);
 
     myFile.open("original.csv");
@@ -87,7 +88,7 @@ int main(int argc, char const *argv[]){
             myFile.open(name.c_str());
 
             /* Read the feature vectors */
-            data = readFeatures(name, &classes, &numClasses);
+            data = readFeatures(name, &classes, &trainTest, &numClasses);
             size = data.size();
 
             if (size.height != 0){
@@ -96,7 +97,7 @@ int main(int argc, char const *argv[]){
                 cout << endl << "Features vectors file: " << name.c_str() << endl << endl;
                 cout << "---------------------------------------------------------------" << endl;
                 cout << "Classification using original vectors" << endl;
-                c.bayes(prob, 10, data, classes, numClasses, min, "original.csv");
+                c.bayes(prob, 10, data, classes, numClasses, min, trainTest, "original.csv");
 
                 for (i = 2; i <= 10; i*=2){
 
@@ -110,7 +111,7 @@ int main(int argc, char const *argv[]){
                     imbalance(data, classes, i, numClasses, &imbalancedData, &imbalancedClasses, start, end);
                     size = imbalancedData.size();
                     /* Classifying without rebalancing */                    
-                    c.bayes(prob, 10, imbalancedData, imbalancedClasses, numClasses, min, "original.csv");
+                    c.bayes(prob, 10, imbalancedData, imbalancedClasses, numClasses, min, trainTest, "original.csv");
                     
                     /* Copy the feature data to minorityClass */
                     imbalancedData.rowRange(start,end).copyTo(minorityClass);
@@ -134,7 +135,7 @@ int main(int argc, char const *argv[]){
 
                     cout << endl << "\tSMOTE: Synthetic Minority Over-sampling Technique" << endl;
                     cout << "\tAmount to SMOTE: " << amountSmote << "%" << endl;
-                    c.bayes(prob, 10, total, newClasses, numClasses, min, "smote_accuracy.csv");
+                    c.bayes(prob, 10, total, newClasses, numClasses, min, trainTest, "smote_accuracy.csv");
 
                     minorityOverSampled.release();
                     minorityClasses.release();

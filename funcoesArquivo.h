@@ -19,7 +19,7 @@ using namespace cv;
 using namespace std;
 
 
-Mat readFeatures(string filename, Mat *classes, int *nClasses);
+Mat readFeatures(string filename, Mat *classes, Mat *trainOrTest, int *nClasses);
 
 int qtdArquivos(string diretorio);
 

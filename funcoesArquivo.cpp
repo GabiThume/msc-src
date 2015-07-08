@@ -10,14 +10,14 @@
 #include "funcoesArquivo.h"
 
 /* Read the features and save them in Mat data */
-Mat readFeatures(string filename, Mat *classes, int *nClasses){
+Mat readFeatures(string filename, Mat *classes, Mat *trainOrTest, int *nClasses){
 
     int i, j;
     float features;
     Mat data;
     size_t n, d;
     ifstream myFile(filename.c_str());
-    string line, infos, numImage, classe, numFeatures, numClasses, objetos;
+    string line, infos, numImage, classe, trainTest, numFeatures, numClasses, objetos;
 
     if(!myFile)
         throw exception();
@@ -38,10 +38,12 @@ Mat readFeatures(string filename, Mat *classes, int *nClasses){
     /* Create a Mat named data with the file data provided */
     data.create(n, d, CV_32FC1);
     (*classes).create(n, 1, CV_32FC1);
+    (*trainOrTest).create(n, 1, CV_32FC1);
     while (getline(myFile, line)) {
         stringstream vector_features(line);
         getline(vector_features, numImage, '\t');
         getline(vector_features, classe, '\t');
+        getline(vector_features, trainTest, '\t');
         i = atoi(numImage.c_str());
         j = 0;
         while(vector_features >> features) {
@@ -49,6 +51,7 @@ Mat readFeatures(string filename, Mat *classes, int *nClasses){
             j++;
         }
         (*classes).at<float>(i, 0)=atoi(classe.c_str());
+        (*trainOrTest).at<float>(i, 0)=atoi(trainTest.c_str());
     }
 
     myFile.close();
@@ -113,33 +116,39 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	float min, max, normFactor;
 	string nome, directory;
 	double **coocurrenceMatrix = NULL;
-	Mat img, featureVector, features, labels, newimg;
+	Mat img, featureVector, features, labels, trainTest, newimg;
 	FILE *arq;
 	string quantizationsNames[4] = {"Intensity", "Luminance", "Gleam", "MSB"};
+	string descriptors[8] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"};
 
 	cout << "\n---------------------------------------------------------------------------------------" << endl;
 	cout << "Image feature extraction" << endl;
 	cout << "---------------------------------------------------------------------------------------" << endl;
 
+	directory = database+"/";
+	
+	// Check how many classes and images there are
+	qtdClasses = qtdArquivos(directory);
+	int *objperClass = (int *)malloc(qtdClasses*sizeof(int));
+	qtdImgTotal = qtdImagensTotal(database, qtdClasses, objperClass, &maxc);
+
+	if (method !=5)
+		nome = featuresDir+descriptors[method-1]+"_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
+
 	switch (method) {
 		case 1: 
-			nome = featuresDir+"/BIC_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
-			// sprintf(nome,"%s/BIC_%s_%dc_%dr_%s.csv", featuresDir, quantizationsNames[quantization-1], colors, resizingFactor, id);
 			featureVectorSize = colors*2;
 			cout << "BIC and " << quantizationsNames[quantization-1] << ":";
 			break;
 		case 2:
-			nome = featuresDir+"/GCH_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
 			featureVectorSize = colors;
 			cout << "GCH and " << quantizationsNames[quantization-1] << ":";
 			break;
 		case 3:
-			nome = featuresDir+"/CCV_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
 			featureVectorSize = colors*2;
 			cout << "CCV and " << quantizationsNames[quantization-1] << ":";
 			break;
 		case 4:
-			nome = featuresDir+"/Haralick6_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
 			coocurrenceMatrix = (double **)calloc(colors, sizeof(double*));
 			for (i=0; i<colors; i++) {
 				coocurrenceMatrix[i]= (double *)calloc(colors, sizeof(double));
@@ -148,23 +157,20 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 			cout << "Haralick-6 and " << quantizationsNames[quantization-1] << ":";
 			break;
 		case 5:
-			nome = featuresDir+"/ACC_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(nparam)+"d_"+to_string(resizingFactor)+"r_"+id+".csv";
+			nome = featuresDir+"/ACC_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(nparam)+"d_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
 			featureVectorSize = (colors*nparam);
 			cout << "ACC and " << quantizationsNames[quantization-1] << " c/ " << nparam << " distancias : ";
 			break;
 		case 6:
 			grid = 4;
-			nome = featuresDir+"/LBP_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
 			featureVectorSize = 58*grid;
 			cout << "LBP and " << quantizationsNames[quantization-1] << endl;
 			break;
 		case 7:
-			nome = featuresDir+"/HOG_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
 			featureVectorSize = 58;
 			cout << "HOG and " << quantizationsNames[quantization-1] << endl;
 			break;
 		case 8:
-			nome = featuresDir+"/Contour_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+id+".csv";
 			featureVectorSize = 10;
 			cout << "Contour and " << quantizationsNames[quantization-1] << endl;
 			break;
@@ -181,15 +187,10 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	
 	arq = fopen(nome.c_str(), "w+");
 	if (arq == 0){
-		cout << "This feature's file does not exist." << endl;
+		cout << "It is not possible to open the feature's file: " << nome << endl;
 		return "";
 	}
-	directory = database+"/";
-	
-	// Check how many classes and images there are
-	qtdClasses = qtdArquivos(directory);
-	int *objperClass = (int *)malloc(qtdClasses*sizeof(int));
-	qtdImgTotal = qtdImagensTotal(database, qtdClasses, objperClass, &maxc);
+
 	fprintf(arq,"%d\t%d\t%d\n", qtdImgTotal, qtdClasses, featureVectorSize); 
 	
 	cout << colors << " colors, size " << resizeFactor << endl;
@@ -206,12 +207,9 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 		cout << " " << porc*100 << "%" << " (" << objperClass[i] << ")" <<endl;
 	}
 
-	// pos processa matriz de dados para retirar colunas nulas
-	// para isso constroi matriz para armazenar vetores
- 	//if (deleteNull == 1) {
 	features = Mat::zeros(qtdImgTotal, featureVectorSize, CV_32F);
 	labels = Mat::zeros(qtdImgTotal, 1, CV_8U);
- 	//}
+	trainTest = Mat::zeros(qtdImgTotal, 1, CV_8U);
 
 	for(i = 1; i <= qtdClasses; i++) {
 
@@ -233,12 +231,16 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 		cout << "class " << i << " : " << directory << " imagens " << numImages << endl;
 		
 		for(j = 0; j < numImages; j++)	{
+
 			img = imread(database +"/"+to_string(i)+"/"+to_string(j)+".jpg", CV_LOAD_IMAGE_COLOR);
+			trainTest.at<uchar>(imgTotal,0) = (uchar)0;
 			if (img.empty()) { 
 				img = imread(database +"/"+to_string(i)+"/treino/"+to_string(j)+".jpg", CV_LOAD_IMAGE_COLOR);
+				trainTest.at<uchar>(imgTotal,0) = (uchar)1;
 				if (img.empty()){
 					directory = database +"/"+to_string(i)+"/teste/"+to_string(j-treino)+".jpg";
 					img = imread(directory, CV_LOAD_IMAGE_COLOR);
+					trainTest.at<uchar>(imgTotal,0) = (uchar)2;
 					if (img.empty()){ 
 						cout << "Error when trying to open an image of " << directory << endl; 
 						return ""; 
@@ -345,7 +347,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	cout << "---------------------------------------------------------------------------------------" << endl;
 	for (i = 0; i < imgTotal; i++) {
 	    // Write the image number and the referenced class
-		fprintf(arq, "%d\t%d\t", i, labels.at<uchar>(i,0));
+		fprintf(arq, "%d\t%d\t%d\t", i, labels.at<uchar>(i,0), trainTest.at<uchar>(i,0));
 		for(k = 0; k < featureVectorSize; k++) {
 			if (normalization == 2)  {
 				fprintf(arq,"%.f ", features.at<float>(i, k));

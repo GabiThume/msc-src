@@ -107,7 +107,7 @@ void inputError(){
 int main(int argc, const char *argv[]){
 
     Classifier c;
-    Mat vectorEntropy, projection, data, classes;
+    Mat vectorEntropy, projection, data, classes, trainTest;
     DIR *directory;
     struct dirent *arq;
     ifstream my_file;
@@ -155,33 +155,33 @@ int main(int argc, const char *argv[]){
 
             if(my_file.good()){
                 /* Read the feature vectors */
-                data = readFeatures(name, &classes, &nClasses);
+                data = readFeatures(name, &classes, &trainTest, &nClasses);
                 if (data.size().height != 0){
 
                     switch(metodo){
                         case 0:
                             cout << endl << "Classification for "<< name.c_str() << endl;
-                            c.bayes(prob, 10, data, classes, nClasses, minority, out.c_str());
+                            c.bayes(prob, 10, data, classes, nClasses, minority, trainTest, out.c_str());
                             break;
                         case 1:
                             cout << endl << "PCA for "<< name.c_str() << " with " << atributos << " attributes" << endl;
                             projection = pcaReduction(data, atributos, name_arq);
-                            c.bayes(prob, 10, projection, classes, nClasses, minority, out.c_str());
+                            c.bayes(prob, 10, projection, classes, nClasses, minority, trainTest, out.c_str());
                             break;
                         case 2:
                             cout << endl << "Entropy for "<< name.c_str() << " with window = " << janela << endl;
                             vectorEntropy = entropyReduction(data, janela, name_arq);
-                            c.bayes(prob, 10, vectorEntropy, classes, nClasses, minority, out.c_str());
+                            c.bayes(prob, 10, vectorEntropy, classes, nClasses, minority, trainTest, out.c_str());
                             break;
                         case 3:
                             cout << endl << "Classification for "<< name.c_str() << endl;
-                            c.bayes(prob, 10, data, classes, nClasses, minority, out.c_str());
+                            c.bayes(prob, 10, data, classes, nClasses, minority, trainTest, out.c_str());
                             cout << endl << "PCA for "<< name.c_str() << " with " << atributos << " attributes" << endl;
                             projection = pcaReduction(data, atributos, name_arq);
-                            c.bayes(prob, 10, projection, classes, nClasses, minority, out.c_str());
+                            c.bayes(prob, 10, projection, classes, nClasses, minority, trainTest, out.c_str());
                             cout << endl << "Entropy for "<< name.c_str() << " with window = " << janela << endl;
                             vectorEntropy = entropyReduction(data, janela, name_arq);
-                            c.bayes(prob, 10, vectorEntropy, classes, nClasses, minority, out.c_str());
+                            c.bayes(prob, 10, vectorEntropy, classes, nClasses, minority, trainTest, out.c_str());
                             break;
                         default:
                             break;

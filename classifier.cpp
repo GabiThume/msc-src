@@ -75,8 +75,6 @@ void Classifier::printAccuracy(){
     fscoreStd = standardDeviation(fScore);
     // float R = accuracyMean(recall);
     // float P = accuracyMean(precision);
-    stringstream training;
-
     ofstream outputFile;
 
     cout << "\n---------------------------------------------------------------------------------------" << endl;
@@ -102,10 +100,8 @@ void Classifier::printAccuracy(){
         // outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), ios::out | ios::app);
         // outputFile << minority.second << "," << balancedMean << "\n";
         // outputFile.close();
-        training << minority.second;
         outputFile.open((outputName+"FScore.csv").c_str(), ios::out | ios::app);
         outputFile << minority.second << "," << fscoreMean << "\n";
-        // outputFile << fscoreMean << "\n";
         outputFile.close();
         // outputFile.open((outputName+"ROC.csv").c_str(), ios::out | ios::app);
         // outputFile << FPR << "," << TPR << endl;
@@ -119,7 +115,6 @@ void Classifier::findSmallerClass(Mat classes, int numClasses, int *smallerClass
     int i, smaller;
     Size size = classes.size();
     vector<int> dataClasse(numClasses, 0);
-
     /* Discover the number of samples for each class */
     for(i = 0; i < size.height; i++){
         dataClasse[classes.at<float>(i,0)-1]++;
@@ -152,18 +147,18 @@ void Classifier::findSmallerClass(Mat classes, int numClasses, int *smallerClass
     dataClasse.clear();
 }
 
-void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeatures, Mat classes, int nClasses, pair<int, int> min, string name = ""){
+void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeatures, Mat classes, int nClasses, pair<int, int> min, Mat trainTest, string name = ""){
 
     Mat result, confusionMat;
     int i, hits, height, width, trained, actual_class, numTraining, num_testing, classeId;
-    int totalTraining = 0, totalTesting = 0, start, pos, repetition, actualClass = 0;
+    int totalTraining = 0, totalTesting = 0, start, pos, repetition, actualClass = 0, x;
     int rightClass, guessedClass, higherClass, j, positiveClass;
     float truePositive , trueNegative, falsePositive, falseNegative, precisionRate;
     float specificity, sensitivity, balancedAccuracyMean, recallRate, score;
     float positive, negative, truePositiveRate, falsePositiveRate;
     srand(time(0));
     numClasses = nClasses;
-    vector<int> vectorRand, dataClasse(numClasses, 0), trainingNumber(numClasses, 0), testingNumber(numClasses, 0);
+    vector<int> vectorRand, dataClasse(numClasses, 0), fixedSet(numClasses, 0), trainingNumber(numClasses, 0), testingNumber(numClasses, 0);
     outputName = name;
     cout << name << " " << min.second << endl;
 
@@ -174,44 +169,65 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
     /* Count how many samples exists for each class */
     for(i = 0; i < height; i++){
         dataClasse[classes.at<float>(i,0)-1]++;
+        fixedSet[classes.at<float>(i,0)-1] = 0;
+        if (trainTest.at<float>(i,0) == 1){
+            trainingNumber[classes.at<float>(i,0)-1]++;
+            fixedSet[classes.at<float>(i,0)-1] = 1;
+        }
+        if (trainTest.at<float>(i,0) == 2){
+            testingNumber[classes.at<float>(i,0)-1]++;
+            fixedSet[classes.at<float>(i,0)-1] = 1;
+        }
     }
+
+    for(i = 0; i < numClasses; i++){
+        cout << "Number of images in class " << i << ": " << dataClasse[i] << endl;
+        cout << "training images in class " << i << ": " << trainingNumber[i] << endl;
+        cout << "testing images in class " << i << ": " << testingNumber[i] << endl;
+    }
+
+    // for(i = 0; i < height; i++){
+    //     cout << "mat traintest  i " << i << " valor " << trainTest.at<float>(i,0) << endl;
+    // }
 
     /* Find out what is the lowest number of samples */
     minority.first = 0;
     minority.second = height+1;
     for(i = 0; i < numClasses; i++){
-        if(dataClasse[i] < minority.second){
+        if(dataClasse[i] <= minority.second){
             minority.first = i;
             minority.second = dataClasse[i];
         }
     }
 
     /* If it is rebalancing classification, min.first contains the minority class */
-    if(min.first != -1){
-    	minority.first = min.first;
-        minority.second = min.second;
-    }
+    // if(min.first != -1){
+    // 	minority.first = min.first;
+    //     minority.second = min.second;
+    // }
 
-    cout << ">>> minority.second " << minority.second << endl;
+    cout << "Lowest number of samples " << minority.second << " belongs to class: " << minority.first << endl;
 
 	/* For each class we need to calculate the size of both training and testing sets, given a ratio */
     for (i = 1; i <= numClasses; i++) {
     	actualClass = i-1;
-    	/* If the actual class is the one previously rebalanced, the training number is going to be the previously rebalanced minority */
-    	if (minority.first == i)
-			trainingNumber[actualClass] = minority.second;
-		else
-			trainingNumber[actualClass] = (ceil(dataClasse[actualClass]*trainingRatio));
-		testingNumber[actualClass] = dataClasse[actualClass]-trainingNumber[actualClass];
 
+        if (testingNumber[actualClass] == 0){
+        	/* If the actual class is the one previously rebalanced, the training number is going to be the previously rebalanced minority */
+        	if (minority.first == i)
+    			trainingNumber[actualClass] = minority.second;
+    		else
+    			trainingNumber[actualClass] = (ceil(dataClasse[actualClass]*trainingRatio));
+    		testingNumber[actualClass] = dataClasse[actualClass]-trainingNumber[actualClass];
+        }
 		totalTesting += testingNumber[actualClass];
 		totalTraining += trainingNumber[actualClass];
-		cout << " totalTesting " << totalTesting << " totalTraining " << totalTraining << " data class " << dataClasse[actualClass] << endl;
+		cout << "In class " << actualClass << " testing number: " << testingNumber[actualClass] << " training number: " << trainingNumber[actualClass] << endl;
 	}
 
+    cout << "Total of imagens in training " << totalTraining << " and in testing " << totalTesting << endl;
     /* Repeated random sub-sampling validation */
     for(repetition = 0; repetition < numRepetition; repetition++) {
-
         Mat dataTraining(totalTraining, width, CV_32FC1);
         Mat labelsTraining(totalTraining, 1, CV_32FC1);
         Mat dataTesting(totalTesting, width, CV_32FC1);
@@ -223,21 +239,34 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
             trained = 0;
             actual_class = i-1;
 
-            /* Generate a random position for each training data */
-            while (trained < trainingNumber[actual_class]) {
-            	/* If a minority class has been rebalanced, catch only the generated for training */
-            	if (minority.first == i)
-                	pos = start + (rand() % (trainingNumber[actual_class]));
-                /* If not, randomly choose the training */
-                else
-                	pos = start + (rand() % (dataClasse[actual_class]));
-                if (!count(vectorRand.begin(), vectorRand.end(), pos)){
-                    vectorRand.push_back(pos);
-                    Mat tmp = dataTraining.row(numTraining);
-                    vectorFeatures.row(pos).copyTo(tmp);
-                    labelsTraining.at<float>(numTraining, 0) = classes.at<float>(pos,0);
-                    trained++;
-                    numTraining++;
+            if (fixedSet[actual_class]) { // isso só vai funcionar se a primeira classe for a minoritaria por causa do start
+                for (x = start; x < start + trainingNumber[actual_class]; x++){
+                        Mat tmp = dataTraining.row(numTraining);
+                        vectorFeatures.row(x).copyTo(tmp);
+                        labelsTraining.at<float>(numTraining, 0) = classes.at<float>(x,0);
+                        trained++;
+                        numTraining++;
+                        vectorRand.push_back(x);
+                }
+            }
+            else {
+                /* Generate a random position for each training data */
+                while (trained < trainingNumber[actual_class]) {
+                	/* If a minority class has been rebalanced, catch only the generated for training */
+                	// if (minority.first == i){
+                 //    	pos = start + (rand() % (trainingNumber[actual_class]));
+                 //    }
+                    /* If not, randomly choose the training */
+                    // else
+                    	pos = start + (rand() % (dataClasse[actual_class]));
+                    if (!count(vectorRand.begin(), vectorRand.end(), pos)){
+                        vectorRand.push_back(pos);
+                        Mat tmp = dataTraining.row(numTraining);
+                        vectorFeatures.row(pos).copyTo(tmp);
+                        labelsTraining.at<float>(numTraining, 0) = classes.at<float>(pos,0);
+                        trained++;
+                        numTraining++;
+                    }
                 }
             }
             start += dataClasse[i-1];
@@ -266,7 +295,6 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
                 hits++;
             }
         }
-
         totalTest = result.size().height;
         totalTrain = labelsTraining.size().height;
         accuracy.push_back(hits*100.0/totalTest);
@@ -280,10 +308,10 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
            			   falsePositive  | trueNegative
         */
         
-        for (i = 0; i< result.size().height; i++){
-            rightClass = labelsTesting.at<float>(i,0)-1;
-            guessedClass = result.at<float>(i,0)-1;
-            confusionMat.at<int>(rightClass, guessedClass)++;
+        for (i = 0; i < result.size().height; i++){
+            rightClass = labelsTesting.at<float>(i,0);
+            guessedClass = result.at<float>(i,0);
+            confusionMat.at<int>(rightClass -1, guessedClass -1)++;
         }
         
         // cout << "-------------------\nConfusion Matrix" << endl;
@@ -297,8 +325,8 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
         /* TODO: This is only necessary because usually we have classes starting in 1, not in 0
         	it is going to be fixed later */
         actualClass = minority.first;
-        if(min.first != -1)
-        	actualClass--;
+        // if(min.first != -1)
+        // 	actualClass--;
         
         // Calcular a media entre todas as classes dá uma ideia de todo o sistema
         // Dessa forma estamos olhando apenas para a classe minoritária em relação a todas as outras
@@ -339,6 +367,8 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
             precisionRate = truePositive/(truePositive+falsePositive);
             recallRate = truePositive/positive;
             score += 2.0 * (precisionRate*recallRate)/(precisionRate+recallRate);
+            if (truePositive == 0)
+                score = 0;
             // cout << "truePositive " << truePositive << endl;
             // cout << "falseNegative " << falseNegative << endl;
             // cout << "falsePositive " << falsePositive << endl;
@@ -353,7 +383,7 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
                 break;
             }
         }
-
+        //cout << "score: " << score << endl;
         fScore.push_back((score/confusionMat.rows)*100.0);
         precision.push_back(precisionRate/confusionMat.rows);
         recall.push_back(recallRate/confusionMat.rows);
@@ -384,15 +414,13 @@ void Classifier::bayes(float trainingRatio, int numRepetition, Mat vectorFeature
     // TODO DESCOMENTAR
     /* When we run smote, the Mat features are balanced, so we previously know
     which is the minority class and its respective samples*/
-    if(min.first != -1){
-     //    minority = min;
-    	// minority.second = testingNumber[minority.first-1];
-    }
-    else
-    	minority.second = testingNumber[0];
+    // if(min.first != -1){
+    //  //    minority = min;
+    // 	// minority.second = testingNumber[minority.first-1];
+    // }
+    // else
+    	// minority.second = testingNumber[minority.first];
     
-    cout << "-MINORITY SECOND " << minority.second << endl;
-
     printAccuracy();
 
     accuracy.clear();

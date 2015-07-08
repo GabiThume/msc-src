@@ -44,7 +44,7 @@ int main(int argc, char const *argv[]){
     string nameFile, name, featuresDir, analysis, descriptorName, method;
     string csvOriginal, csvSmote, csvRebalance;
     Mat data, classes, minorityOverSampled, majority, majorityClasses, newClasses, total, synthetic;
-    Mat minorityTraining, minorityTesting, minorityRebalanced;
+    Mat minorityTraining, minorityTesting, minorityRebalanced, trainTest;
 
     if (argc != 3){
         cout << "\nUsage: ./staticRebalance (1) (2)\n\n\t(1) Configuration Directory" << endl;
@@ -64,16 +64,16 @@ int main(int argc, char const *argv[]){
     for (d = 1; d <= 7; d++){
         initialMethod = 1;
         endMethod = 4;
-        if (d < 6)
-            endMethod = 1;
-        if (d == 4){ // For Haralick use Intensity quantization only
-            initialMethod = 1;
-            endMethod = 1;
-        }
-        else if (d == 7){ // If it is HOG then use Intensity and Luminance quantization
-            initialMethod = 1;
-            endMethod = 2;
-        }
+        // if (d < 6)
+        //     endMethod = 1;
+        // if (d == 4){ // For Haralick use Intensity quantization only
+        //     initialMethod = 1;
+        //     endMethod = 1;
+        // }
+        // else if (d == 7){ // If it is HOG then use Intensity and Luminance quantization
+        //     initialMethod = 1;
+        //     endMethod = 2;
+        // }
 
         for (m = initialMethod; m <= endMethod; m++){
             csvOriginal = path+"Analysis/original_"+descriptors[d-1]+"_"+methods[m-1]+"_";
@@ -81,10 +81,10 @@ int main(int argc, char const *argv[]){
             csvRebalance = path+"Analysis/"+id+"_"+descriptors[d-1]+"_"+methods[m-1]+"_";
             for (level = 0; level <= 2; level++){
                 /* Feature extraction from images */
-                string originalDescriptor = desc(path+baseDirOriginal[level], featuresDir, d, m, "_original");
+                string originalDescriptor = desc(path+baseDirOriginal[level], featuresDir, d, m, "original");
                 string idDescriptor = desc(path+baseDirID[level], featuresDir, d, m, id);
 
-                data = readFeatures(idDescriptor, &classes, &numClasses);
+                data = readFeatures(idDescriptor, &classes, &trainTest, &numClasses);
                 size = data.size();
                 if (size.height != 0){
                     cout << "---------------------------------------------------------------------------------------" << endl;
@@ -92,12 +92,16 @@ int main(int argc, char const *argv[]){
                     cout << "Features vectors file: " << name.c_str() << endl;
                     cout << "---------------------------------------------------------------------------------------" << endl;
 
-                    pair <int, int> min(1, minorityNumber[level]);
-                    c.bayes(prob, 10, data, classes, numClasses, min, csvRebalance.c_str());
+                    pair <int, int> min(-1, -1);
+                    c.bayes(prob, 10, data, classes, numClasses, min, trainTest, csvRebalance.c_str());
+                    if (level == 0){
+                        pair <int, int> min(-1,-1);
+                        c.bayes(prob, 10, data, classes, numClasses, min, trainTest, csvSmote.c_str());
+                    }
                 }
                 data.release();
-
-                data = readFeatures(originalDescriptor, &classes, &numClasses);
+                trainTest.release();
+                data = readFeatures(originalDescriptor, &classes, &trainTest, &numClasses);
                 size = data.size();
                 if (size.height != 0){
 
@@ -106,10 +110,9 @@ int main(int argc, char const *argv[]){
                     cout << "Classification using original vectors" << endl;
                     cout << "Features vectors file: " << name.c_str() << endl;
                     cout << "---------------------------------------------------------------------------------------" << endl;
-                    c.bayes(prob, 20, data, classes, numClasses, min, csvOriginal.c_str());
+                    c.bayes(prob, 10, data, classes, numClasses, min, trainTest, csvOriginal.c_str());
 
                     /* SMOTE */
-                    // pair <int, int> min(1, minorityNumber[level]);
                     min.first = 1;
                     min.second = minorityNumber[level];
                     c.findSmallerClass(classes, numClasses, &smallerClass, &start, &end);
@@ -122,8 +125,7 @@ int main(int argc, char const *argv[]){
                     /* Amount of SMOTE % */
                     // amountSmote = ((imbalancedData.size().height-end-(end-start)) / (end-start))*100.0;
                     amountSmote = ((100-(end-start)) / (end-start))*100.0;
-                    cout << "amountSmote: " << amountSmote << endl;
-                    amountSmote = amountSmote == 0? 100 : amountSmote;
+                    //amountSmote = amountSmote == 0? 100 : amountSmote;
                     if (amountSmote > 0){
                         neighbors = amountSmote/100;
                         // neighbors = 5; //TODO: Fix amount to smote for more than one class
@@ -152,25 +154,36 @@ int main(int argc, char const *argv[]){
                         /* Concatenate the feature samples and classes */
                         vconcat(minorityClasses, majorityClasses, newClasses);
                         vconcat(minorityOverSampled, majority, total);
-                        pair <int, int> minSmote(smallerClass+1, minorityRebalanced.size().height);
+                        pair <int, int> minSmote(smallerClass+1, minorityTraining.size().height);
+
+                        Mat trainOrTestForStartMin, trainOrTestForEndMin, trainTestOverSampled, trainOrTestForMaj, trainTestMin;
+                        trainTest.rowRange(start,min.second).copyTo(trainOrTestForStartMin);
+                        trainTest.rowRange(min.second,end).copyTo(trainOrTestForEndMin);
+                        trainTest.rowRange(end,trainTest.size().height).copyTo(trainOrTestForMaj);
+                        Mat newTrainTest(synthetic.size().height, 1, CV_32FC1, 1);
+                        vconcat(trainOrTestForStartMin, newTrainTest, trainTestOverSampled);
+                        vconcat(trainTestOverSampled, trainOrTestForEndMin, trainTestMin);
+                        trainTestOverSampled.release();
+                        vconcat(trainTestMin, trainOrTestForMaj, trainTestOverSampled);
+
+                        string name = featuresDir+descriptors[d-1]+"_"+methods[m-1]+"_256c_100r_"+trainTestOverSampled.size().height+"i_smote.csv";
                         cout << "---------------------------------------------------------------------------------------" << endl;
                         cout << "Classification using SMOTE" << endl;
                         cout << "Features vectors file: " << name.c_str() << endl;
                         cout << "---------------------------------------------------------------------------------------" << endl;
 
-                        c.bayes(prob, 10, total, newClasses, numClasses, minSmote, csvSmote.c_str());
+                        c.bayes(prob, 10, total, newClasses, numClasses, minSmote, trainTestOverSampled, csvSmote.c_str());
 
-                        string name = featuresDir+descriptors[d-1]+"_"+methods[m-1]+"_256c_4d_100r_smote.csv";
                         FILE *arq = fopen(name.c_str(), "w+");
                         int w, z;
-                        for (w = 0; w < newClasses.size().height; w++) {
-                            // fprintf(arq,"%d ", i);  
+                        fprintf(arq,"%d %d\t%d\n", total.size().height, numClasses, total.size().width);  
+                        for (w = 0; w < total.size().height; w++) {
+                            fprintf(arq,"%d\t%d\t%d", w, newClasses.at<float>(w,0)+1, trainTestOverSampled.at<float>(w,0));  
                             for(z = 0; z < total.size().width; z++) {
                                 fprintf(arq,"%.5f ", total.at<float>(w, z));
                             }
                             fprintf(arq,"\n");  
                         }
-
                         minorityOverSampled.release();
                         minorityClasses.release();
                         majority.release();

@@ -15,7 +15,7 @@ class Classifier{
     string outputName;
 
     public:
-        void bayes(float, int, Mat, Mat, int, pair<int, int>, string);
+        void bayes(float, int, Mat, Mat, int, pair<int, int>, Mat, string);
         void findSmallerClass(Mat, int, int*, int*, int*);
         void printAccuracy();
 };
