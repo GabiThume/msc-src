@@ -10,16 +10,16 @@
 void classifica(string base, string features, string outfileName){
 
     Classifier c;
-    Size size;
-    int numClasses, smallerClass, start, end;
+    int numClasses, smallerClass;
     float prob = 0.5;
     DIR *directory;
     struct dirent *arq;
     ifstream myFile;
     string nameFile, name, nameDir;
     stringstream id;
-    Mat data, classes, trainTest;
-    pair <int, int> min(0,0);
+    Mat classes, trainTest;
+    vector<Classes> data;
+
     /* Feature extraction */
     descriptor(base.c_str(), features.c_str(), 4, 256, 1, 0, 0, 0, 0, 4, "");
 
@@ -33,16 +33,15 @@ void classifica(string base, string features, string outfileName){
             myFile.open(name.c_str());
 
             /* Read the feature vectors */
-            data = readFeatures(name, &classes, &trainTest, &numClasses);
-            size = data.size();
+            data = readFeatures(name);
 
-            c.findSmallerClass(classes, numClasses, &smallerClass, &start, &end);
-            id << smallerClass;
-            id << "_";
-            id << end-start;
+            // c.findSmallerClass(classes, numClasses, &smallerClass, &start, &end);
+            // id << smallerClass;
+            // id << "_";
+            // id << end-start;
 
-            if (size.height != 0){
-                c.bayes(prob, 20, data, classes, numClasses, min, trainTest, outfileName+id.str());
+            if (data.size() != 0){
+                c.classify(prob, 20, data, outfileName+id.str());
             }
         }
     }
@@ -64,7 +63,7 @@ int main(int argc, char const *argv[]){
     classifica(string(argv[1]), string(argv[2]), "original_accuracy");
 
     /* */
-    a.generate(string(argv[1]), 1, 0);
+    a.generate(string(argv[1]), 0);
 
     /* Calculate after rebalance */
     classifica(string(argv[1]), string(argv[2]), "rebalance_accuracy");

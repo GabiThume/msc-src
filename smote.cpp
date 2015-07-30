@@ -81,10 +81,10 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors){
 
     /* If amount to smote is less than 100%, randomize the minority class
     samples as only a random percent of them will be SMOTEd */
-    if(amountSmote < 100){
+    if(amountSmote < s.height){
 
-        minoritySamples = (amountSmote/100.0)*minoritySamples;
-
+        //minoritySamples = (amountSmote/100.0)*minoritySamples;
+        minoritySamples = amountSmote;
         newMinority.create(minoritySamples, attributes, CV_32FC1);
         samples = 0;
         while (samples < minoritySamples) {
@@ -99,10 +99,28 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors){
         }
         minority = newMinority;
 
-        amountSmote = 100;
+        // amountSmote = s.height;
     }
-    amountSmote = amountSmote/100.0;
-    Mat synthetic(minoritySamples*amountSmote, attributes, CV_32FC1);
+
+    /* If amount to smote is higher than 100%, randomize the minority class
+    samples as a random percent of them will be SMOTEd */
+    if(amountSmote > s.height){
+        minoritySamples = amountSmote;
+        newMinority.create(minoritySamples, attributes, CV_32FC1);
+        samples = 0;
+        while (samples < minoritySamples) {
+            /* Generate a random position for the minority class samples */
+            pos = rand() % (s.height);
+            Mat tmp = newMinority.row(samples);
+            minority.row(pos).copyTo(tmp);
+            samples++;
+        }
+        minority = newMinority;
+    }
+
+    //amountSmote = amountSmote/100.0;
+    Mat synthetic(amountSmote, attributes, CV_32FC1);
+    // Mat synthetic(minoritySamples*amountSmote, attributes, CV_32FC1);
     Mat neighbors(minoritySamples, nearestNeighbors, CV_32FC1);
 
     /* Compute all the neighbors for the minority class */
@@ -110,8 +128,9 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors){
 
     /* For each sample, generate it(s) synthetic(s) sample(s) */
     for(i = 0; i < minoritySamples; i++){
-        populate(minority, neighbors, &synthetic, &index, amountSmote, i, nearestNeighbors);
+        populate(minority, neighbors, &synthetic, &index, 1, i, nearestNeighbors);
     }
+    cout << ">> SMOTE created " << amountSmote << "synthetic samples " << endl << endl << endl;
 
     return synthetic;
 }

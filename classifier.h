@@ -4,8 +4,11 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/ml/ml.hpp>
 
+#include "funcoesArquivo.h"
+
 using namespace cv;
 using namespace std;
+
 
 class Classifier{
 
@@ -15,7 +18,10 @@ class Classifier{
     string outputName;
 
     public:
-        void bayes(float, int, Mat, Mat, int, pair<int, int>, Mat, string);
+
+    	void bayesClassifier(Mat, Mat, Mat, Mat&);
+		void knn(Mat, Mat, Mat, Mat&);
+        void classify(float, int, vector<Classes>, string);
         void findSmallerClass(Mat, int, int*, int*, int*);
         void printAccuracy();
 };

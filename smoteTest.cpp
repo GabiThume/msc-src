@@ -51,15 +51,16 @@ int main(int argc, char const *argv[]){
     SMOTE s;
     Classifier c;
     Size size;
-    int numClasses, i, smallerClass, amountSmote, start, end, neighbors;
+    int i, smallerClass, amountSmote, neighbors;
     float prob = 0.5;
     DIR *directory;
     struct dirent *arq;
     ifstream myFile;
     string nameFile, name, nameDir, baseDir, featuresDir;
-    Mat data, minorityClass, classes, minorityOverSampled, majority, majorityClasses;
+    Mat minorityClass, classes, minorityOverSampled, majority, majorityClasses;
     Mat newClasses, total, synthetic, trainTest;
     pair <int, int> min(-1,-1);
+    vector<Classes> data;
 
     myFile.open("original.csv");
     myFile.close();
@@ -88,16 +89,14 @@ int main(int argc, char const *argv[]){
             myFile.open(name.c_str());
 
             /* Read the feature vectors */
-            data = readFeatures(name, &classes, &trainTest, &numClasses);
-            size = data.size();
-
-            if (size.height != 0){
+            data = readFeatures(name);
+            if (data.size() != 0){
 
                 cout << "---------------------------------------------------------------" << endl;
                 cout << endl << "Features vectors file: " << name.c_str() << endl << endl;
                 cout << "---------------------------------------------------------------" << endl;
                 cout << "Classification using original vectors" << endl;
-                c.bayes(prob, 10, data, classes, numClasses, min, trainTest, "original.csv");
+                c.classify(prob, 10, data, "original.csv");
 
                 for (i = 2; i <= 10; i*=2){
 
@@ -106,39 +105,39 @@ int main(int argc, char const *argv[]){
                     cout << "\tDivide the number of original samples by a factor of " << i << endl <<"\tto create a minority class:"<< endl;
 
                     Mat imbalancedClasses, imbalancedData;
-                    /* Desbalancing Data */
-                    c.findSmallerClass(imbalancedClasses, numClasses, &smallerClass, &start, &end);
-                    imbalance(data, classes, i, numClasses, &imbalancedData, &imbalancedClasses, start, end);
-                    size = imbalancedData.size();
-                    /* Classifying without rebalancing */                    
-                    c.bayes(prob, 10, imbalancedData, imbalancedClasses, numClasses, min, trainTest, "original.csv");
+                    // /* Desbalancing Data */
+                    // c.findSmallerClass(data, &smallerClass);
+                    // imbalance(data, i, &imbalancedData, smallerClass);
+                    // size = imbalancedData.size();
+                    // /* Classifying without rebalancing */                    
+                    // c.classify(prob, 10, imbalancedData, "original.csv");
                     
-                    /* Copy the feature data to minorityClass */
-                    imbalancedData.rowRange(start,end).copyTo(minorityClass);
-                    /* Amount of SMOTE % */
-                    amountSmote = 100;
-                    neighbors = 5;
-                    /* Over-sampling the minority class */
-                    synthetic = s.smote(minorityClass, amountSmote, neighbors);
+                    // /* Copy the feature data to minorityClass */
+                    // imbalancedData.rowRange(start,end).copyTo(minorityClass);
+                    // /* Amount of SMOTE % */
+                    // amountSmote = minorityClass.size().height;
+                    // neighbors = 5;
+                    // /* Over-sampling the minority class */
+                    // synthetic = s.smote(minorityClass, amountSmote, neighbors);
 
-                    /* Concatenate the minority class with the synthetic */
-                    vconcat(minorityClass, synthetic, minorityOverSampled);
-                    Mat minorityClasses(minorityOverSampled.size().height, 1, CV_32FC1, smallerClass+1);
+                    //  Concatenate the minority class with the synthetic 
+                    // vconcat(minorityClass, synthetic, minorityOverSampled);
+                    //Mat minorityClasses(minorityOverSampled.size().height, 1, CV_32FC1, smallerClass+1);
 
-                    /* Select the majority classes */
-                    imbalancedData.rowRange(end, size.height).copyTo(majority);
-                    imbalancedClasses.rowRange(end, size.height).copyTo(majorityClasses);
+                    // /* Select the majority classes */
+                    // imbalancedData.rowRange(end, size.height).copyTo(majority);
+                    // imbalancedClasses.rowRange(end, size.height).copyTo(majorityClasses);
 
-                    /* Concatenate the feature samples and classes */
-                    vconcat(minorityClasses, majorityClasses, newClasses);
-                    vconcat(minorityOverSampled, majority, total);
+                    // /* Concatenate the feature samples and classes */
+                    // vconcat(minorityClasses, majorityClasses, newClasses);
+                    // vconcat(minorityOverSampled, majority, total);
 
-                    cout << endl << "\tSMOTE: Synthetic Minority Over-sampling Technique" << endl;
-                    cout << "\tAmount to SMOTE: " << amountSmote << "%" << endl;
-                    c.bayes(prob, 10, total, newClasses, numClasses, min, trainTest, "smote_accuracy.csv");
+                    // cout << endl << "\tSMOTE: Synthetic Minority Over-sampling Technique" << endl;
+                    // cout << "\tAmount to SMOTE: " << amountSmote << "%" << endl;
+                    // c.classify(prob, 10, total, newClasses, numClasses, min, trainTest, "smote_accuracy.csv");
 
                     minorityOverSampled.release();
-                    minorityClasses.release();
+                    //minorityClasses.release();
                     majority.release();
                     majorityClasses.release();
                     newClasses.release();

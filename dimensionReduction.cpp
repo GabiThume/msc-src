@@ -107,12 +107,13 @@ void inputError(){
 int main(int argc, const char *argv[]){
 
     Classifier c;
-    Mat vectorEntropy, projection, data, classes, trainTest;
+    Mat vectorEntropy, projection, classes, trainTest;
+    vector<Classes> data;
     DIR *directory;
     struct dirent *arq;
     ifstream my_file;
     string name_arq, name_dir, name;
-    int nClasses, metodo, atributos, janela;
+    int metodo, atributos, janela, i;
     pair <int, int> minority(-1,-1);
     float prob = 0.5;
 
@@ -153,35 +154,94 @@ int main(int argc, const char *argv[]){
             name = name_dir + arq->d_name;
             my_file.open(name.c_str());
 
+            int previousClass = -1;
+            vector<Classes> dataInVector;
+            Classes dataClass;
+            Mat dataMat, classesMat;
+
             if(my_file.good()){
                 /* Read the feature vectors */
-                data = readFeatures(name, &classes, &trainTest, &nClasses);
-                if (data.size().height != 0){
+                data = readFeatures(name);
+                if (data.size() != 0){
+
+                    for(std::vector<Classes>::iterator it = data.begin(); it != data.end(); ++it) {
+                        vconcat(dataMat, it->features, dataMat);
+                        classesMat.resize(dataMat.size().height, it->classNumber);
+                    }
 
                     switch(metodo){
                         case 0:
                             cout << endl << "Classification for "<< name.c_str() << endl;
-                            c.bayes(prob, 10, data, classes, nClasses, minority, trainTest, out.c_str());
+                            c.classify(prob, 10, data, out.c_str());
                             break;
                         case 1:
                             cout << endl << "PCA for "<< name.c_str() << " with " << atributos << " attributes" << endl;
-                            projection = pcaReduction(data, atributos, name_arq);
-                            c.bayes(prob, 10, projection, classes, nClasses, minority, trainTest, out.c_str());
+                            projection = pcaReduction(dataMat, atributos, name_arq);
+                            for (i = 0; i < projection.size().height; ++i){
+                                if (previousClass != classesMat.at<float>(i,0)){
+                                    if (previousClass != -1){
+                                        dataInVector.push_back(dataClass);
+                                    }
+                                    dataClass.features.create(1, projection.size().width, CV_32FC1);
+                                }
+
+                                dataClass.features.resize(dataClass.features.size().height+1);
+                                dataClass.features.row(dataClass.features.size().height) = projection.row(i);
+                            }
+
+                            c.classify(prob, 10, dataInVector, out.c_str());
                             break;
                         case 2:
                             cout << endl << "Entropy for "<< name.c_str() << " with window = " << janela << endl;
-                            vectorEntropy = entropyReduction(data, janela, name_arq);
-                            c.bayes(prob, 10, vectorEntropy, classes, nClasses, minority, trainTest, out.c_str());
+                            vectorEntropy = entropyReduction(dataMat, janela, name_arq);
+
+                            for (i = 0; i < vectorEntropy.size().height; ++i){
+                                if (previousClass != classesMat.at<float>(i,0)){
+                                    if (previousClass != -1){
+                                        dataInVector.push_back(dataClass);
+                                    }
+                                    dataClass.features.create(1, projection.size().width, CV_32FC1);
+                                }
+
+                                dataClass.features.resize(dataClass.features.size().height+1);
+                                dataClass.features.row(dataClass.features.size().height) = projection.row(i);
+                            }
+
+                            c.classify(prob, 10, dataInVector, out.c_str());
                             break;
                         case 3:
                             cout << endl << "Classification for "<< name.c_str() << endl;
-                            c.bayes(prob, 10, data, classes, nClasses, minority, trainTest, out.c_str());
+                            c.classify(prob, 10, data, out.c_str());
+
                             cout << endl << "PCA for "<< name.c_str() << " with " << atributos << " attributes" << endl;
-                            projection = pcaReduction(data, atributos, name_arq);
-                            c.bayes(prob, 10, projection, classes, nClasses, minority, trainTest, out.c_str());
+                            projection = pcaReduction(dataMat, atributos, name_arq);
+                            for (i = 0; i < projection.size().height; ++i){
+                                if (previousClass != classesMat.at<float>(i,0)){
+                                    if (previousClass != -1){
+                                        dataInVector.push_back(dataClass);
+                                    }
+                                    dataClass.features.create(1, projection.size().width, CV_32FC1);
+                                }
+
+                                dataClass.features.resize(dataClass.features.size().height+1);
+                                dataClass.features.row(dataClass.features.size().height) = projection.row(i);
+                            }
+                            c.classify(prob, 10, dataInVector, out.c_str());
+
                             cout << endl << "Entropy for "<< name.c_str() << " with window = " << janela << endl;
-                            vectorEntropy = entropyReduction(data, janela, name_arq);
-                            c.bayes(prob, 10, vectorEntropy, classes, nClasses, minority, trainTest, out.c_str());
+                            vectorEntropy = entropyReduction(dataMat, janela, name_arq);
+                            for (i = 0; i < vectorEntropy.size().height; ++i){
+                                if (previousClass != classesMat.at<float>(i,0)){
+                                    if (previousClass != -1){
+                                        dataInVector.push_back(dataClass);
+                                    }
+                                    dataClass.features.create(1, projection.size().width, CV_32FC1);
+                                }
+
+                                dataClass.features.resize(dataClass.features.size().height+1);
+                                dataClass.features.row(dataClass.features.size().height) = projection.row(i);
+                            }
+                            c.classify(prob, 10, dataInVector, out.c_str());
                             break;
                         default:
                             break;

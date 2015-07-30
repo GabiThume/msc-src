@@ -10,14 +10,16 @@
 #include "funcoesArquivo.h"
 
 /* Read the features and save them in Mat data */
-Mat readFeatures(string filename, Mat *classes, Mat *trainOrTest, int *nClasses){
+vector<Classes> readFeatures(string filename){
 
-    int i, j;
+    int i, j, n, newSize = 0;
     float features;
-    Mat data;
-    size_t n, d;
+    size_t d;
     ifstream myFile(filename.c_str());
     string line, infos, numImage, classe, trainTest, numFeatures, numClasses, objetos;
+	vector<Classes> data;
+    int previousClass = -1, actualClass;
+    Classes imgClass;
 
     if(!myFile)
         throw exception();
@@ -29,30 +31,70 @@ Mat readFeatures(string filename, Mat *classes, Mat *trainOrTest, int *nClasses)
     stringstream info(infos);
     getline(info, objetos, '\t');
     getline(info, numClasses, '\t');
-    (*nClasses) = atoi(numClasses.c_str());
+    //(*nClasses) = atoi(numClasses.c_str());
     getline(info, numFeatures, '\t');
 
     n = atoi(objetos.c_str());
     d = atoi(numFeatures.c_str());
 
-    /* Create a Mat named data with the file data provided */
-    data.create(n, d, CV_32FC1);
-    (*classes).create(n, 1, CV_32FC1);
-    (*trainOrTest).create(n, 1, CV_32FC1);
     while (getline(myFile, line)) {
         stringstream vector_features(line);
         getline(vector_features, numImage, '\t');
         getline(vector_features, classe, '\t');
         getline(vector_features, trainTest, '\t');
+        actualClass = atoi(classe.c_str()) -1;
+        if (previousClass != actualClass){
+	    	
+	    	if (previousClass != -1){
+				imgClass.features.resize(newSize-1);
+	    		data.push_back(imgClass);
+	    	}
+	    	previousClass = actualClass;
+			imgClass.features.create(1, d, CV_32FC1);
+			imgClass.trainOrTest.create(1, 1, CV_32FC1);
+			imgClass.fixedTrainOrTest = false;
+		}
+
+		newSize = imgClass.features.size().height+1;
+		imgClass.features.resize(newSize);
+		imgClass.trainOrTest.resize(newSize);
+
         i = atoi(numImage.c_str());
         j = 0;
         while(vector_features >> features) {
-            data.at<float>(i, j) = (float)features;
+			imgClass.features.at<float>(newSize-1,j) = (float) features;
             j++;
         }
-        (*classes).at<float>(i, 0)=atoi(classe.c_str());
-        (*trainOrTest).at<float>(i, 0)=atoi(trainTest.c_str());
+        imgClass.trainOrTest.at<float>(newSize-1, 0)=atoi(trainTest.c_str());
+	    imgClass.classNumber = actualClass;
+	    if (atoi(trainTest.c_str())!=0)
+	    	imgClass.fixedTrainOrTest = true;
     }
+	if (previousClass != -1){
+		imgClass.features.resize(newSize-1);
+		data.push_back(imgClass);
+	}
+    cout << "SIZE of data " << data.size() << endl;
+
+
+    /* Create a Mat named data with the file data provided */
+    // data.create(n, d, CV_32FC1);
+    // (*classes).create(n, 1, CV_32FC1);
+    // (*trainOrTest).create(n, 1, CV_32FC1);
+    // while (getline(myFile, line)) {
+    //     stringstream vector_features(line);
+    //     getline(vector_features, numImage, '\t');
+    //     getline(vector_features, classe, '\t');
+    //     getline(vector_features, trainTest, '\t');
+    //     i = atoi(numImage.c_str());
+    //     j = 0;
+    //     while(vector_features >> features) {
+    //         data.at<float>(i, j) = (float)features;
+    //         j++;
+    //     }
+    //     (*classes).at<float>(i, 0)=atoi(classe.c_str());
+    //     (*trainOrTest).at<float>(i, 0)=atoi(trainTest.c_str());
+    // }
 
     myFile.close();
     return data;
@@ -131,6 +173,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	qtdClasses = qtdArquivos(directory);
 	int *objperClass = (int *)malloc(qtdClasses*sizeof(int));
 	qtdImgTotal = qtdImagensTotal(database, qtdClasses, objperClass, &maxc);
+	cout << "number of images " << qtdImgTotal << endl;
 
 	if (method !=5)
 		nome = featuresDir+descriptors[method-1]+"_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
