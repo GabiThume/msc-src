@@ -15,7 +15,6 @@ int classesNumber(string diretorio){
 
 	dir = opendir(diretorio.c_str());
 	if(dir == NULL) {
-		cout << "Erro!! Nao foi possivel abrir o diretorio " << diretorio << endl;
 		return 0;
 	}
 
@@ -360,7 +359,7 @@ void Artificial::generate(string base, int whichOperation = 0){
     qtdClasses = classesNumber(base);
     cout << "Number of classes: " << qtdClasses << endl;
     /* Count how many files there are in classes and which is the majority */
-    for(i = 1; i <= qtdClasses; i++) {
+    for(i = 0; i < qtdClasses; i++) {
         classe = base + "/" + to_string(i) + "/";
         qtdImg = classesNumber(classe+"/treino/");
         if (qtdImg == 0){
@@ -368,18 +367,18 @@ void Artificial::generate(string base, int whichOperation = 0){
         }
         totalImage.push_back(qtdImg);
         if (qtdImg > maior){
-            maiorClasse = i-1;
+            maiorClasse = i;
             maior = qtdImg;
         }
     }
 
     for(eachClass = 0; eachClass < qtdClasses; ++eachClass) {
         /* Find out how many samples are needed to rebalance */
-        rebalance = totalImage[maiorClasse]/2 - totalImage[eachClass];
+        rebalance = totalImage[maiorClasse] - totalImage[eachClass];
         if (rebalance > 0){
 
             minorityClass = base + "/" + to_string(eachClass) + "/treino/";
-            cout << "Minority Class: " << minorityClass << endl;
+            cout << "Class: " << minorityClass << " contain " << totalImage[eachClass] << " images" << endl;
             minDir = opendir(minorityClass.c_str());
 
             /* Add all minority images in vector<Mat>images */
@@ -447,7 +446,7 @@ void Artificial::generate(string base, int whichOperation = 0){
                 generated.release();
             }
             rebalanceTotal += rebalance;
-            cout << rebalanceTotal << " images were generated and the minority class is now balanced." << endl;
+            cout << rebalance << " images were generated and this is now balanced." << endl;
             cout << "---------------------------------------------------------------------------------------" << endl;
             images.clear();
         }

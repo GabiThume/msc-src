@@ -42,16 +42,15 @@ vector<Classes> readFeatures(string filename){
         getline(vector_features, numImage, '\t');
         getline(vector_features, classe, '\t');
         getline(vector_features, trainTest, '\t');
-        actualClass = atoi(classe.c_str()) -1;
+        actualClass = atoi(classe.c_str());
         if (previousClass != actualClass){
 	    	
 	    	if (previousClass != -1){
-				imgClass.features.resize(newSize-1);
 	    		data.push_back(imgClass);
 	    	}
 	    	previousClass = actualClass;
-			imgClass.features.create(1, d, CV_32FC1);
-			imgClass.trainOrTest.create(1, 1, CV_32FC1);
+			imgClass.features.create(0, d, CV_32FC1);
+			imgClass.trainOrTest.create(0, 1, CV_32FC1);
 			imgClass.fixedTrainOrTest = false;
 		}
 
@@ -71,30 +70,8 @@ vector<Classes> readFeatures(string filename){
 	    	imgClass.fixedTrainOrTest = true;
     }
 	if (previousClass != -1){
-		imgClass.features.resize(newSize-1);
 		data.push_back(imgClass);
 	}
-    cout << "SIZE of data " << data.size() << endl;
-
-
-    /* Create a Mat named data with the file data provided */
-    // data.create(n, d, CV_32FC1);
-    // (*classes).create(n, 1, CV_32FC1);
-    // (*trainOrTest).create(n, 1, CV_32FC1);
-    // while (getline(myFile, line)) {
-    //     stringstream vector_features(line);
-    //     getline(vector_features, numImage, '\t');
-    //     getline(vector_features, classe, '\t');
-    //     getline(vector_features, trainTest, '\t');
-    //     i = atoi(numImage.c_str());
-    //     j = 0;
-    //     while(vector_features >> features) {
-    //         data.at<float>(i, j) = (float)features;
-    //         j++;
-    //     }
-    //     (*classes).at<float>(i, 0)=atoi(classe.c_str());
-    //     (*trainOrTest).at<float>(i, 0)=atoi(trainTest.c_str());
-    // }
 
     myFile.close();
     return data;
@@ -130,7 +107,7 @@ int qtdImagensTotal(string base, int qtdClasses, int *objClass, int *maxs){
 	string directory;
 	*maxs = 0;
 
-	for (i = 1; i <= qtdClasses; i++){
+	for (i = 0; i < qtdClasses; i++){
 		directory = base + "/" + to_string(i)  + "/treino/";
 		currentSize = qtdArquivos(directory);
 		directory = base + "/" + to_string(i)  + "/teste/";
@@ -142,7 +119,7 @@ int qtdImagensTotal(string base, int qtdClasses, int *objClass, int *maxs){
 		 		fprintf(stderr,"Error! There is no directory named %s\n", directory.c_str());
 		 	}
 		}
-		objClass[i-1] = currentSize;
+		objClass[i] = currentSize;
 		count += currentSize;
 		if (currentSize > *maxs || *maxs == 0)
 			*maxs = currentSize;
@@ -173,7 +150,6 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	qtdClasses = qtdArquivos(directory);
 	int *objperClass = (int *)malloc(qtdClasses*sizeof(int));
 	qtdImgTotal = qtdImagensTotal(database, qtdClasses, objperClass, &maxc);
-	cout << "number of images " << qtdImgTotal << endl;
 
 	if (method !=5)
 		nome = featuresDir+descriptors[method-1]+"_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
@@ -242,7 +218,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 
 	for (i = 0; i < qtdClasses; i++) {
 		int bars = (int) (((float) objperClass[i] / (float) qtdImgTotal)*50.0);
-		cout << (i+1) << " ";
+		cout << i << " ";
 		for (j = 0; j < bars; j++){
 			cout << "|";
 		}	  
@@ -254,7 +230,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	labels = Mat::zeros(qtdImgTotal, 1, CV_8U);
 	trainTest = Mat::zeros(qtdImgTotal, 1, CV_8U);
 
-	for(i = 1; i <= qtdClasses; i++) {
+	for(i = 0; i < qtdClasses; i++) {
 
 		directory = database + "/" + to_string(i)  + "/treino/";
 		numImages = qtdArquivos(directory);

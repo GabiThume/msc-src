@@ -82,16 +82,19 @@ void Classifier::printAccuracy(){
     cout << "---------------------------------------------------------------------------------------" << endl;
     cout << "Number of classes: " << numClasses << endl;
     // cout << "Minority class samples: " << minority.second << endl;
-    cout << "Total samples: " << totalTest + totalTrain << " for each class: +- " << (totalTest + totalTrain)/numClasses;
-    cout << endl << "Test samples: " << totalTest << " for each class: +- " << totalTest/numClasses << endl;
-    cout << "Train samples: " << totalTrain << " for each class: " << totalTrain/numClasses << endl;
+    cout << "Total samples: " << totalTest + totalTrain;
+    cout << endl << "\tTesting samples: " << totalTest << endl;
+    cout << "\tTraining samples: " << totalTrain << endl;
     cout <<  "Cross validation with "<< accuracy.size() <<" k-fold:" << endl;
-    cout << "\tMean Accuracy= " << mean << endl;
-    cout << "\tStandard Deviation = " << std << endl;
-    cout << "\tMean Balanced Accuracy= " << balancedMean << endl;
-    cout << "\tStandard Deviation = " << balancedStd << endl;
-    cout << "\tMean F1Score= " << fscoreMean << endl;
-    cout << "\tStandard Deviation = " << fscoreStd << endl;
+    cout << "\tMean Accuracy: " << mean << endl;
+    if (std > 0)
+        cout << "\t\tStandard Deviation: " << std << endl;
+    cout << "\tMean Balanced Accuracy: " << balancedMean << endl;
+    if (balancedStd > 0)
+        cout << "\t\tStandard Deviation: " << balancedStd << endl;
+    cout << "\tMean F1Score: " << fscoreMean << endl;
+    if (fscoreStd > 0)
+        cout << "\t\tStandard Deviation: " << fscoreStd << endl;
     cout << "---------------------------------------------------------------------------------------" << endl;
 
     if (outputName != ""){
@@ -134,7 +137,7 @@ void Classifier::findSmallerClass(Mat classes, int numClasses, int *smallerClass
     (*start) = -1;
     (*end) = -1;
     for(i = 0; i < size.height; i++){
-        if(classes.at<float>(i,0)-1 == (*smallerClass)){
+        if(classes.at<float>(i,0) == (*smallerClass)){
             if ((*start) == -1){
                 (*start) = i;
             }
@@ -161,6 +164,7 @@ void Classifier::classify(float trainingRatio, int numRepetition, vector<Classes
     vector<int> vectorRand, dataClasse(numClasses, 0), fixedSet(numClasses, 0), trainingNumber(numClasses, 0), testingNumber(numClasses, 0);
     outputName = name;
 
+    /* If training and testing set are fixed */
     for(std::vector<Classes>::iterator it = imageClasses.begin(); it != imageClasses.end(); ++it) {
         dataClasse[it->classNumber] = it->features.size().height;
         width = it->features.size().width;
@@ -177,40 +181,38 @@ void Classifier::classify(float trainingRatio, int numRepetition, vector<Classes
         }
     }
 
-    for(i = 0; i < numClasses; i++){
-        cout << "Number of images in class " << i << ": " << dataClasse[i] << endl;
-        cout << "training images in class " << i << ": " << trainingNumber[i] << endl;
-        cout << "testing images in class " << i << ": " << testingNumber[i] << endl;
-    }
+    // for(i = 0; i < numClasses; i++){
+    //     cout << "Number of images in class " << i << ": " << dataClasse[i] << endl;
+    //     cout << "training images in class " << i << ": " << trainingNumber[i] << endl;
+    //     cout << "testing images in class " << i << ": " << testingNumber[i] << endl;
+    // }
 
 	/* For each class we need to calculate the size of both training and testing sets, given a ratio */
-    for (i = 1; i <= numClasses; i++) {
-    	actualClass = i-1;
-
-        if (testingNumber[actualClass] == 0){
+    for (actualClass = 0; actualClass < numClasses; actualClass++) {
+        if (trainingNumber[actualClass] == 0){
         	trainingNumber[actualClass] = (ceil(dataClasse[actualClass]*trainingRatio));
     		testingNumber[actualClass] = dataClasse[actualClass]-trainingNumber[actualClass];
         }
 		totalTesting += testingNumber[actualClass];
 		totalTraining += trainingNumber[actualClass];
-		cout << "In class " << actualClass << " testing number: " << testingNumber[actualClass] << " training number: " << trainingNumber[actualClass] << endl;
+		cout << "In class " << actualClass << " testing: " << testingNumber[actualClass] << " training: " << trainingNumber[actualClass] << endl;
 	}
 
     cout << "Total of imagens in training " << totalTraining << " and in testing " << totalTesting << endl;
 
     /* Repeated random sub-sampling validation */
-    for(repetition = 0; repetition < 1; repetition++) {
+    for(repetition = 0; repetition < numRepetition; repetition++) {
         Mat dataTraining(totalTraining, width, CV_32FC1);
         Mat labelsTraining(totalTraining, 1, CV_32FC1);
         Mat dataTesting(totalTesting, width, CV_32FC1);
         Mat labelsTesting(totalTesting, 1, CV_32FC1);
         numTraining = 0;
+        num_testing = 0;
 
         vectorRand.clear();
 
         for(std::vector<Classes>::iterator it = imageClasses.begin(); it != imageClasses.end(); ++it) {
 
-            cout << " classe " << it->classNumber << " fixed? " << fixedSet[it->classNumber] << endl;
             if (fixedSet[it->classNumber]) {
                 for (x = 0; x < it->trainOrTest.size().height; x++){
                     if (it->trainOrTest.at<float>(x,0) == 1){
@@ -226,7 +228,6 @@ void Classifier::classify(float trainingRatio, int numRepetition, vector<Classes
             else {
                 /* Generate a random position for each training data */
                 trained = 0;
-                cout << " trainingNumber[it->classNumber] " << trainingNumber[it->classNumber] << endl;
                 while (trained < trainingNumber[it->classNumber]) {
                     pos = rand() % dataClasse[it->classNumber];
                     if (!count(vectorRand.begin(), vectorRand.end(), pos)){
@@ -240,8 +241,6 @@ void Classifier::classify(float trainingRatio, int numRepetition, vector<Classes
                 }
             }
             /* After selecting the training set, the testing set it is going to be the rest of the whole set */
-            num_testing = 0;
-            cout << " it->features.size().height " << it->features.size().height << endl;
             for (i = 0; i < it->features.size().height; i++) {
                 if (!count(vectorRand.begin(), vectorRand.end(), i)){
                     Mat tmp = dataTesting.row(num_testing);
@@ -259,7 +258,6 @@ void Classifier::classify(float trainingRatio, int numRepetition, vector<Classes
 
         /* Train and predict using 1-KNN classifier */
         Classifier::knn(dataTraining, labelsTraining, dataTesting, result);
-        cout << "dataTraining " << dataTraining.size().height << " labelsTraining " << labelsTraining.size().height << " dataTesting " << dataTesting.size().height << " result " << result.size().height << endl;
         /* Counts how many samples were classified as expected */
         hits = 0;
         for (i = 0; i < result.size().height; i++) {
@@ -267,13 +265,12 @@ void Classifier::classify(float trainingRatio, int numRepetition, vector<Classes
                 hits++;
             }
         }
-        cout << "HITS " << hits << endl;
         totalTest = result.size().height;
         totalTrain = labelsTraining.size().height;
         accuracy.push_back(hits*100.0/totalTest);
 
-        higherClass = labelsTraining.at<float>(labelsTraining.size().height-1,0);
-        confusionMat = Mat::zeros(higherClass, numClasses, CV_32S);
+        // higherClass = labelsTraining.at<float>(labelsTraining.size().height-1,0);
+        confusionMat = Mat::zeros(numClasses, numClasses, CV_32S);
         
         /* Confusion Matrix
 								 Predicted
@@ -284,31 +281,42 @@ void Classifier::classify(float trainingRatio, int numRepetition, vector<Classes
         for (i = 0; i < result.size().height; i++){
             rightClass = labelsTesting.at<float>(i,0);
             guessedClass = result.at<float>(i,0);
-            confusionMat.at<int>(rightClass -1, guessedClass -1)++;
+            confusionMat.at<int>(rightClass, guessedClass)++;
         }
         
-        cout << "-------------------\nConfusion Matrix" << endl;
-        for(i = 0; i < confusionMat.rows; i++){
-            for(int j = 0; j < confusionMat.cols; j++){
-                printf("%d\t", confusionMat.at<int>(i, j));
-            }
-            printf("\n");
-        }
+        // cout << "---------------------------------------------------------------------------------------" << endl;
+        // cout << "\t\t\t\tConfusion Matrix" << endl;
+        // cout << "\t\tPredicted" << endl << "\t";
+        // for(i = 0; i < confusionMat.cols; i++){
+        //     cout << "\t" << i;
+        // }
+        // cout << endl;
+        // for(i = 0; i < confusionMat.rows; i++){
+        //     if (i == 0) cout << "Real";
+        //     cout << "\t"<< i;
+        //     for(int j = 0; j < confusionMat.cols; j++){
+        //         cout << "\t" << confusionMat.at<int>(i, j);
+        //     }
+        //     cout << endl;
+        // }
         
-        // Calcular a media entre todas as classes dá uma ideia de todo o sistema
-        // Dessa forma estamos olhando apenas para a classe minoritária em relação a todas as outras
-
         /* 
             Positive: minority class
             Negative: majority class
         */
-        positiveClass = 0;
-        if (confusionMat.rows == 2){
-            positiveClass = actualClass;
+
+        // necessario o calculo da minoritaria aqui? checar os valores para calculo de fscore
+        int minorNumber = dataClasse[0];
+        int minorityClass = 0;
+        for (classeId = 0; classeId < dataClasse.size(); classeId++){
+            if (dataClasse[classeId] < minorNumber){
+                minorNumber = dataClasse[classeId];
+                minorityClass = classeId;
+            }
         }
 
         score = balancedAccuracyMean = 0;
-        for (classeId = positiveClass; classeId < confusionMat.rows; classeId++){
+        for (classeId = minorityClass; classeId < confusionMat.rows; classeId++){
 
             truePositive = falseNegative = falsePositive = trueNegative = 0;
             truePositive = confusionMat.at<int>(classeId, classeId); /* minority correct */
@@ -334,8 +342,7 @@ void Classifier::classify(float trainingRatio, int numRepetition, vector<Classes
             precisionRate = truePositive/(truePositive+falsePositive);
             recallRate = truePositive/positive;
             score += 2.0 * (precisionRate*recallRate)/(precisionRate+recallRate);
-            if (truePositive == 0)
-                score = 0;
+            if (truePositive == 0) score = 0;
             // cout << "truePositive " << truePositive << endl;
             // cout << "falseNegative " << falseNegative << endl;
             // cout << "falsePositive " << falsePositive << endl;

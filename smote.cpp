@@ -130,7 +130,7 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors){
     for(i = 0; i < minoritySamples; i++){
         populate(minority, neighbors, &synthetic, &index, 1, i, nearestNeighbors);
     }
-    cout << ">> SMOTE created " << amountSmote << "synthetic samples " << endl << endl << endl;
+    cout << ">> SMOTE created " << amountSmote << " synthetic samples " << endl << endl << endl;
 
     return synthetic;
 }
