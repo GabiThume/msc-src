@@ -12,18 +12,17 @@ using namespace std;
 
 class Classifier{
 
-    vector<float> accuracy, balancedAccuracy, precision, recall, fScore;
+    vector<double> accuracy, balancedAccuracy, precision, recall, fScore;
     int totalTest, totalTrain, numClasses;
-    pair<int, int> minority;
     string outputName;
 
     public:
 
     	void bayesClassifier(Mat, Mat, Mat, Mat&);
 		void knn(Mat, Mat, Mat, Mat&);
-        void classify(float, int, vector<Classes>, string);
-        void findSmallerClass(Mat, int, int*, int*, int*);
-        void printAccuracy();
+        void classify(double, int, vector<Classes>, string, int);
+        int findSmallerClass(vector<Classes>);
+        void printAccuracy(int id);
 };
 
 #endif

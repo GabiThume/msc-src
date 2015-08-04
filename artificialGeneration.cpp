@@ -191,7 +191,7 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
         // }
         img.copyTo(generated);
 
-        operation = 1 + (rand() % 5);
+        operation = 1 + (rand() % 6);
         switch(operation){
             case 1:
                 generated = generateBlur(originalImage);
@@ -232,6 +232,9 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
             startWidth = 0;
             startHeight = startHeight + roiHeight;
         }
+        generated.release();
+        img.release();
+        roi.release();
     }
     return subImg;
 }
@@ -249,7 +252,7 @@ Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images, int tot
     //erode(bin,bin,Mat(),Point(-1,-1), 2, 1, 1);
     //dilate(bin,bin,Mat(),Point(-1,-1), 2, 1, 1);
     // MORPH_RECT
-    //morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(2*2+1, 2*2+1), Point(2,2)), Point(-1,-1)); 
+    morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(2*2+1, 2*2+1), Point(2,2)), Point(-1,-1)); 
     originalImage.copyTo(foreground, bin&1);
 
     // namedWindow("Display window", WINDOW_AUTOSIZE );
@@ -295,6 +298,8 @@ Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int tota
     saliency_map = GMRsal.GetSal(originalImage);
 
     while(original.size() != saliency_map.size()){
+        original.release();
+        saliency_map.release();
         images[rand() % total].copyTo(original);
         saliency_map = GMRsal.GetSal(original);
     }
@@ -394,7 +399,8 @@ void Artificial::generate(string base, int whichOperation = 0){
                 /* Choose a random image */
                 int randomImg = 0 + (rand() % totalImage[eachClass]);
                 Mat generated, subImg, tmp, bin, foreground, background;
-
+                Mat original;
+                images[randomImg].copyTo(original);
                 /* Choose an operation 
                     Case 1: All operation */
                 if (whichOperation == 1)          
@@ -406,38 +412,38 @@ void Artificial::generate(string base, int whichOperation = 0){
 
                 switch (generationType) {
                     case 0: /* Replication */
-                        imwrite(nameGeneratedImage, images[randomImg]);
+                        imwrite(nameGeneratedImage, original);
                         break;
                     case 2:
-                        generated = generateBlur(images[randomImg]);
+                        generated = generateBlur(original);
                         imwrite(nameGeneratedImage, generated);
                         break;
                     case 3:
-                        generated = generateNoise(images[randomImg]);
+                        generated = generateNoise(original);
                         imwrite(nameGeneratedImage, generated);
                         break;
                     case 4:
-                        generated = generateBlending(images[randomImg], images, totalImage[eachClass]);
+                        generated = generateBlending(original, images, totalImage[eachClass]);
                         imwrite(nameGeneratedImage, generated);
                         break;
                     case 5:
-                        generated = generateUnsharp(images[randomImg]);
+                        generated = generateUnsharp(original);
                         imwrite(nameGeneratedImage, generated);
                         break;
                     case 6:
-                        generated = generateComposition(images[randomImg], images, totalImage[eachClass], 4);
+                        generated = generateComposition(original, images, totalImage[eachClass], 4);
                         imwrite(nameGeneratedImage, generated);
                         break;
                     case 7:
-                        generated = generateComposition(images[randomImg], images, totalImage[eachClass], 16);
+                        generated = generateComposition(original, images, totalImage[eachClass], 16);
                         imwrite(nameGeneratedImage, generated);
                         break;
                     case 8:
-                        generated = generateThreshold(images[randomImg], images, totalImage[eachClass]);
+                        generated = generateThreshold(original, images, totalImage[eachClass]);
                         imwrite(nameGeneratedImage, generated);
                         break;
                     case 9:
-                        generated = generateSaliency(images[randomImg], images, totalImage[eachClass]);
+                        generated = generateSaliency(original, images, totalImage[eachClass]);
                         imwrite(nameGeneratedImage, generated);
                         break;
                     default:

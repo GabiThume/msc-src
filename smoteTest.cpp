@@ -96,7 +96,7 @@ int main(int argc, char const *argv[]){
                 cout << endl << "Features vectors file: " << name.c_str() << endl << endl;
                 cout << "---------------------------------------------------------------" << endl;
                 cout << "Classification using original vectors" << endl;
-                c.classify(prob, 10, data, "original.csv");
+                c.classify(prob, 10, data, "original.csv", 0);
 
                 for (i = 2; i <= 10; i*=2){
 

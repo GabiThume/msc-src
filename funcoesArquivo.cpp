@@ -12,7 +12,7 @@
 /* Read the features and save them in Mat data */
 vector<Classes> readFeatures(string filename){
 
-    int i, j, n, newSize = 0;
+    int j, newSize = 0;
     float features;
     size_t d;
     ifstream myFile(filename.c_str());
@@ -34,7 +34,7 @@ vector<Classes> readFeatures(string filename){
     //(*nClasses) = atoi(numClasses.c_str());
     getline(info, numFeatures, '\t');
 
-    n = atoi(objetos.c_str());
+    //n = atoi(objetos.c_str());
     d = atoi(numFeatures.c_str());
 
     while (getline(myFile, line)) {
@@ -58,7 +58,6 @@ vector<Classes> readFeatures(string filename){
 		imgClass.features.resize(newSize);
 		imgClass.trainOrTest.resize(newSize);
 
-        i = atoi(numImage.c_str());
         j = 0;
         while(vector_features >> features) {
 			imgClass.features.at<float>(newSize-1,j) = (float) features;

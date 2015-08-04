@@ -172,7 +172,7 @@ int main(int argc, const char *argv[]){
                     switch(metodo){
                         case 0:
                             cout << endl << "Classification for "<< name.c_str() << endl;
-                            c.classify(prob, 10, data, out.c_str());
+                            c.classify(prob, 10, data, out.c_str(), 0);
                             break;
                         case 1:
                             cout << endl << "PCA for "<< name.c_str() << " with " << atributos << " attributes" << endl;
@@ -189,7 +189,7 @@ int main(int argc, const char *argv[]){
                                 dataClass.features.row(dataClass.features.size().height) = projection.row(i);
                             }
 
-                            c.classify(prob, 10, dataInVector, out.c_str());
+                            c.classify(prob, 10, dataInVector, out.c_str(), atributos);
                             break;
                         case 2:
                             cout << endl << "Entropy for "<< name.c_str() << " with window = " << janela << endl;
@@ -207,11 +207,11 @@ int main(int argc, const char *argv[]){
                                 dataClass.features.row(dataClass.features.size().height) = projection.row(i);
                             }
 
-                            c.classify(prob, 10, dataInVector, out.c_str());
+                            c.classify(prob, 10, dataInVector, out.c_str(), janela);
                             break;
                         case 3:
                             cout << endl << "Classification for "<< name.c_str() << endl;
-                            c.classify(prob, 10, data, out.c_str());
+                            c.classify(prob, 10, data, out.c_str(), 0);
 
                             cout << endl << "PCA for "<< name.c_str() << " with " << atributos << " attributes" << endl;
                             projection = pcaReduction(dataMat, atributos, name_arq);
@@ -226,7 +226,7 @@ int main(int argc, const char *argv[]){
                                 dataClass.features.resize(dataClass.features.size().height+1);
                                 dataClass.features.row(dataClass.features.size().height) = projection.row(i);
                             }
-                            c.classify(prob, 10, dataInVector, out.c_str());
+                            c.classify(prob, 10, dataInVector, out.c_str(), atributos);
 
                             cout << endl << "Entropy for "<< name.c_str() << " with window = " << janela << endl;
                             vectorEntropy = entropyReduction(dataMat, janela, name_arq);
@@ -241,7 +241,7 @@ int main(int argc, const char *argv[]){
                                 dataClass.features.resize(dataClass.features.size().height+1);
                                 dataClass.features.row(dataClass.features.size().height) = projection.row(i);
                             }
-                            c.classify(prob, 10, dataInVector, out.c_str());
+                            c.classify(prob, 10, dataInVector, out.c_str(), janela);
                             break;
                         default:
                             break;

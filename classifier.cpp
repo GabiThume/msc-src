@@ -28,10 +28,10 @@ void Classifier::knn(Mat dataTraining, Mat labelsTraining, Mat dataTesting, Mat&
     dist.release();
 }
 
-float accuracyMean(vector<float> accuracy){
+double accuracyMean(vector<double> accuracy){
 
     int i;
-    float mean;
+    double mean;
     /* Calculate accuracy's mean */
     mean = 0;
     for (i = 0; i < (int) accuracy.size(); i++){
@@ -45,10 +45,10 @@ float accuracyMean(vector<float> accuracy){
     return mean;
 }
 
-float standardDeviation(vector<float> accuracy){
+double standardDeviation(vector<double> accuracy){
 
     int i;
-    float mean, variance, std;
+    double mean, variance, std;
     mean = accuracyMean(accuracy);
     /* Calculate accuracy's variance and std */
     variance = 0;
@@ -64,17 +64,18 @@ float standardDeviation(vector<float> accuracy){
     return std;
 }
 
-void Classifier::printAccuracy(){
+void Classifier::printAccuracy(int id){
 
-    float mean, std, balancedMean, balancedStd, fscoreMean, fscoreStd;
+    double mean, std, balancedMean, balancedStd, fscoreMean, fscoreStd;
     mean = accuracyMean(accuracy);
     std = standardDeviation(accuracy);
     balancedMean = accuracyMean(balancedAccuracy);
     balancedStd = standardDeviation(balancedAccuracy);
     fscoreMean = accuracyMean(fScore);
     fscoreStd = standardDeviation(fScore);
-    // float R = accuracyMean(recall);
-    // float P = accuracyMean(precision);
+    int i;
+    // double R = accuracyMean(recall);
+    // double P = accuracyMean(precision);
     ofstream outputFile;
 
     cout << "\n---------------------------------------------------------------------------------------" << endl;
@@ -104,7 +105,10 @@ void Classifier::printAccuracy(){
         // outputFile << minority.second << "," << balancedMean << "\n";
         // outputFile.close();
         outputFile.open((outputName+"FScore.csv").c_str(), ios::out | ios::app);
-        outputFile << minority.second << "," << fscoreMean << "\n";
+        // outputFile << id << "," << fscoreMean << "\n";
+        for (i = 0; i < fScore.size(); i++){
+            outputFile << i << "," << fScore[i] << "\n";
+        }
         outputFile.close();
         // outputFile.open((outputName+"ROC.csv").c_str(), ios::out | ios::app);
         // outputFile << FPR << "," << TPR << endl;
@@ -112,57 +116,260 @@ void Classifier::printAccuracy(){
     }
 }
 
-/* Find which is the smaller class and where it starts and ends */
-void Classifier::findSmallerClass(Mat classes, int numClasses, int *smallerClass, int *start, int *end){
+// /* Find which is the smaller class and where it starts and ends */
+// void Classifier::findSmallerClass(Mat classes, int numClasses, int *smallerClass, int *start, int *end){
 
-    int i, smaller;
-    Size size = classes.size();
-    vector<int> dataClasse(numClasses, 0);
-    /* Discover the number of samples for each class */
-    for(i = 0; i < size.height; i++){
-        dataClasse[classes.at<float>(i,0)-1]++;
+//     int i, smaller;
+//     Size size = classes.size();
+//     vector<int> dataClasse(numClasses, 0);
+//     /* Discover the number of samples for each class */
+//     for(i = 0; i < size.height; i++){
+//         dataClasse[classes.at<float>(i,0)-1]++;
+//     }
+
+//     /* Find out which is the minority class */
+//     smaller = size.height +1;
+//     (*smallerClass) = -1;
+//     for(i = 0; i < (int) dataClasse.size(); i++){
+//         if(dataClasse[i] < smaller){
+//             smaller = dataClasse[i];
+//             (*smallerClass) = i;
+//         }
+//     }
+
+//     /* Where the minority class starts and ends */
+//     (*start) = -1;
+//     (*end) = -1;
+//     for(i = 0; i < size.height; i++){
+//         if(classes.at<float>(i,0) == (*smallerClass)){
+//             if ((*start) == -1){
+//                 (*start) = i;
+//             }
+//         }
+//         else if (*start != -1){
+//             (*end) = i;
+//             break;
+//         }
+//     }
+//     dataClasse.clear();
+// }
+
+/* Find which is the smaller class */
+int Classifier::findSmallerClass(vector<Classes> imageClasses){
+
+    int classeId = 0, minorityClass, minorNumber;
+    std::vector<Classes>::iterator it;
+
+    for(it = imageClasses.begin(); it != imageClasses.end(); ++it) {
+        if (it->features.size().height < minorNumber){
+            minorNumber = it->features.size().height;
+            minorityClass = classeId;
+        }
+        classeId++;
     }
 
-    /* Find out which is the minority class */
-    smaller = size.height +1;
-    (*smallerClass) = -1;
-    for(i = 0; i < (int) dataClasse.size(); i++){
-        if(dataClasse[i] < smaller){
-            smaller = dataClasse[i];
-            (*smallerClass) = i;
-        }
-    }
-
-    /* Where the minority class starts and ends */
-    (*start) = -1;
-    (*end) = -1;
-    for(i = 0; i < size.height; i++){
-        if(classes.at<float>(i,0) == (*smallerClass)){
-            if ((*start) == -1){
-                (*start) = i;
-            }
-        }
-        else if (*start != -1){
-            (*end) = i;
-            break;
-        }
-    }
-    dataClasse.clear();
+    return minorityClass;
 }
 
-void Classifier::classify(float trainingRatio, int numRepetition, vector<Classes> imageClasses, string name = ""){
+/* 
+    Positive: minority class
+    Negative: majority class
+*/
+double calculateFscoreMinority(Mat confusionMat, vector<int> dataClass){
+
+    double fscore, score, balancedAccuracyMean, truePositive, falseNegative, falsePositive;
+    double trueNegative, specificity, sensitivity, precisionRate, recallRate, positive, negative;
+    int classeId, i, j, minorityClass, minorNumber;
+
+    minorNumber = dataClass[0];
+    minorityClass = 0;
+    for (classeId = 0; classeId < (int) dataClass.size(); classeId++){
+        if (dataClass[classeId] < minorNumber){
+            minorNumber = dataClass[classeId];
+            minorityClass = classeId;
+        }
+    }
+
+    score = balancedAccuracyMean = 0;
+    truePositive = falseNegative = falsePositive = trueNegative = 0;
+    truePositive = confusionMat.at<int>(minorityClass, minorityClass); /* minority correct */
+
+    for(i = 0; i < confusionMat.rows; i++){
+        for(j = 0; j < confusionMat.cols; j++){
+            if(i == minorityClass && j != minorityClass)
+                falseNegative += confusionMat.at<int>(i, j); /* minority predicted to be majority */
+            if(i != minorityClass && j == minorityClass)
+                falsePositive += confusionMat.at<int>(i, j); /* majority predicted to be minority */
+            if(i != minorityClass && j == i)
+                trueNegative += confusionMat.at<int>(i, j); /* majority correct */
+        }
+    }
+
+    positive = truePositive+falseNegative;
+    negative = falsePositive+trueNegative;
+
+    specificity = trueNegative/negative;
+    sensitivity = truePositive/positive;
+    balancedAccuracyMean += (sensitivity + specificity)/(2.0);
+    precisionRate = truePositive/(truePositive+falsePositive);
+    recallRate = truePositive/positive;
+    score = (2.0) * (precisionRate*recallRate)/(precisionRate+recallRate);
+    if (truePositive == 0) score = 0;
+
+    cout << " Minority " << minorityClass << endl;
+    cout << "score " << (2.0) * (precisionRate*recallRate)/(precisionRate+recallRate) << endl;
+    cout << "balanced mean " << balancedAccuracyMean << endl;
+
+    fscore = score*100.0;
+    return fscore;
+}
+
+double calculateBalancedAccuracy(Mat confusionMat){
+
+    double balancedAccuracyMean, truePositive, falseNegative, falsePositive;
+    double trueNegative, specificity, sensitivity, positive, negative;
+    int classeId, i, j;
+
+    balancedAccuracyMean = 0;
+    for (classeId = 0; classeId < confusionMat.rows; classeId++){
+
+        truePositive = falseNegative = falsePositive = trueNegative = 0;
+        truePositive = confusionMat.at<int>(classeId, classeId);
+
+        for(i = 0; i < confusionMat.rows; i++){
+            for(j = 0; j < confusionMat.cols; j++){
+                if(i == classeId && j != classeId)
+                    falseNegative += confusionMat.at<int>(i, j);
+                if(i != classeId && j == classeId)
+                    falsePositive += confusionMat.at<int>(i, j);
+                if(i != classeId && j == i)
+                    trueNegative += confusionMat.at<int>(i, j);
+            }
+        }
+
+        positive = truePositive+falseNegative;
+        negative = falsePositive+trueNegative;
+
+        specificity = trueNegative/negative;
+        sensitivity = truePositive/positive;
+        
+        balancedAccuracyMean += (sensitivity + specificity)/(2.0);
+    }
+
+    return (balancedAccuracyMean/confusionMat.rows)*100.0;
+}
+
+double calculateFscore(Mat confusionMat){
+
+    double fscore, score, truePositive, falseNegative, falsePositive;
+    double trueNegative, precisionRate, recallRate, positive, negative;
+    int classeId, i, j;
+
+    score = 0;
+    for (classeId = 0; classeId < confusionMat.rows; classeId++){
+
+        truePositive = falseNegative = falsePositive = trueNegative = 0;
+        truePositive = confusionMat.at<int>(classeId, classeId);
+
+        for(i = 0; i < confusionMat.rows; i++){
+            for(j = 0; j < confusionMat.cols; j++){
+                if(i == classeId && j != classeId)
+                    falseNegative += confusionMat.at<int>(i, j);
+                if(i != classeId && j == classeId)
+                    falsePositive += confusionMat.at<int>(i, j);
+                if(i != classeId && j == i)
+                    trueNegative += confusionMat.at<int>(i, j);
+            }
+        }
+
+        positive = truePositive+falseNegative;
+        negative = falsePositive+trueNegative;
+
+        precisionRate = truePositive/(truePositive+falsePositive);
+        recallRate = truePositive/positive;
+        fscore = (2.0) * (precisionRate*recallRate)/(precisionRate+recallRate);
+        if (truePositive == 0) 
+            score += 0;
+        else
+            score += fscore;
+        //fScore.push_back(score*100.0);
+        // cout << " Em relação a classe " << classeId << endl;
+        // cout << "truePositive " << truePositive << endl;
+        // cout << "falseNegative " << falseNegative << endl;
+        // cout << "falsePositive " << falsePositive << endl;
+        // cout << "precisionRate " << precisionRate << endl;
+        // cout << "recallRate " << recallRate << endl;
+        // cout << "positive " << positive << endl;
+        // cout << "score " << (2.0) * (precisionRate*recallRate)/(precisionRate+recallRate) << endl;
+    }
+
+    // falsePositiveRate = falsePositive/negative; // ROC: plotted on X axis
+    // truePositiveRate = truePositive/positive; // ROC: plotted on Y axis == sensitivity
+
+    fscore = (score/confusionMat.rows)*100.0;
+    return fscore;
+}
+
+/*                    
+    Confusion Matrix
+                         Predicted
+actual class   truePositive   | falseNegative
+               falsePositive  | trueNegative
+*/
+Mat confusionMatrix(int numClasses, Mat labelsTesting, Mat result){
+
+    Mat confusionMat;
+    int i, rightClass, guessedClass;
+
+    confusionMat = Mat::zeros(numClasses, numClasses, CV_32S);
+        
+    for (i = 0; i < result.size().height; i++){
+        rightClass = labelsTesting.at<float>(i,0);
+        guessedClass = result.at<float>(i,0);
+        confusionMat.at<int>(rightClass, guessedClass)++;
+    }
+        
+    // cout << "---------------------------------------------------------------------------------------" << endl;
+    // cout << "\t\t\t\tConfusion Matrix" << endl;
+    // cout << "\t\tPredicted" << endl << "\t";
+    // for(i = 0; i < confusionMat.cols; i++){
+    //     cout << "\t" << i;
+    // }
+    // cout << endl;
+    // for(i = 0; i < confusionMat.rows; i++){
+    //     if (i == 0) cout << "Real";
+    //     cout << "\t"<< i;
+    //     for(int j = 0; j < confusionMat.cols; j++){
+    //         cout << "\t" << confusionMat.at<int>(i, j);
+    //     }
+    //     cout << endl;
+    // }
+
+    // /* Output file to use the confusion matrix plot with python*/
+    // stringstream fileName, resultFile;
+    // fileName << outputName+"_labels_" << minority.second << ".csv";
+    // resultFile << outputName+"_resultlabels_" << minority.second << ".csv";
+    // ofstream labels(fileName.str().c_str());
+    // ofstream labelsResult(resultFile.str().c_str());
+    // for (i = 0; i < result.size().height; i++) {
+    //     labels << labelsTesting.at<float>(i, 0) << endl;
+    //     labelsResult << result.at<float>(i, 0) << endl;
+    // }
+    // labels.close();
+    // labelsResult.close();
+
+    return confusionMat;
+}
+
+void Classifier::classify(double trainingRatio, int numRepetition, vector<Classes> imageClasses, string name, int id){
 
     Mat result, confusionMat;
-    int i, hits, width, trained, numTraining, num_testing, classeId;
+    int i, hits, width, trained, numTraining, num_testing;
     int totalTraining = 0, totalTesting = 0, pos, repetition, actualClass = 0, x;
-    int rightClass, guessedClass, higherClass, j, positiveClass;
-    float truePositive , trueNegative, falsePositive, falseNegative, precisionRate;
-    float specificity, sensitivity, balancedAccuracyMean, recallRate, score;
-    float positive, negative, truePositiveRate, falsePositiveRate;
-    srand(time(0));
     numClasses = imageClasses.size();
     vector<int> vectorRand, dataClasse(numClasses, 0), fixedSet(numClasses, 0), trainingNumber(numClasses, 0), testingNumber(numClasses, 0);
     outputName = name;
+    srand(time(0));
 
     /* If training and testing set are fixed */
     for(std::vector<Classes>::iterator it = imageClasses.begin(); it != imageClasses.end(); ++it) {
@@ -269,115 +476,15 @@ void Classifier::classify(float trainingRatio, int numRepetition, vector<Classes
         totalTrain = labelsTraining.size().height;
         accuracy.push_back(hits*100.0/totalTest);
 
-        // higherClass = labelsTraining.at<float>(labelsTraining.size().height-1,0);
-        confusionMat = Mat::zeros(numClasses, numClasses, CV_32S);
-        
-        /* Confusion Matrix
-								 Predicted
-        actual class   truePositive   | falseNegative
-           			   falsePositive  | trueNegative
-        */
-        
-        for (i = 0; i < result.size().height; i++){
-            rightClass = labelsTesting.at<float>(i,0);
-            guessedClass = result.at<float>(i,0);
-            confusionMat.at<int>(rightClass, guessedClass)++;
-        }
-        
-        // cout << "---------------------------------------------------------------------------------------" << endl;
-        // cout << "\t\t\t\tConfusion Matrix" << endl;
-        // cout << "\t\tPredicted" << endl << "\t";
-        // for(i = 0; i < confusionMat.cols; i++){
-        //     cout << "\t" << i;
-        // }
-        // cout << endl;
-        // for(i = 0; i < confusionMat.rows; i++){
-        //     if (i == 0) cout << "Real";
-        //     cout << "\t"<< i;
-        //     for(int j = 0; j < confusionMat.cols; j++){
-        //         cout << "\t" << confusionMat.at<int>(i, j);
-        //     }
-        //     cout << endl;
-        // }
-        
-        /* 
-            Positive: minority class
-            Negative: majority class
-        */
+        confusionMat = confusionMatrix(numClasses, labelsTesting, result);
+        if (confusionMat.rows == 2)
+            fScore.push_back(calculateFscoreMinority(confusionMat, dataClasse));
+        else
+            fScore.push_back(calculateFscore(confusionMat));
+        // precision.push_back(precisionRate/confusionMat.rows);
+        // recall.push_back(recallRate/confusionMat.rows);
 
-        // necessario o calculo da minoritaria aqui? checar os valores para calculo de fscore
-        int minorNumber = dataClasse[0];
-        int minorityClass = 0;
-        for (classeId = 0; classeId < dataClasse.size(); classeId++){
-            if (dataClasse[classeId] < minorNumber){
-                minorNumber = dataClasse[classeId];
-                minorityClass = classeId;
-            }
-        }
-
-        score = balancedAccuracyMean = 0;
-        for (classeId = minorityClass; classeId < confusionMat.rows; classeId++){
-
-            truePositive = falseNegative = falsePositive = trueNegative = 0;
-            truePositive = confusionMat.at<int>(classeId, classeId); /* minority correct */
-
-            for(i = 0; i < confusionMat.rows; i++){
-                for(j = 0; j < confusionMat.cols; j++){
-                    if(i == classeId && j != classeId)
-                        falseNegative += confusionMat.at<int>(i, j); /* minority predicted to be majority */
-                    if(i != classeId && j == classeId)
-                        falsePositive += confusionMat.at<int>(i, j); /* majority predicted to be minority */
-                    if(i != classeId && j == i)
-                        trueNegative += confusionMat.at<int>(i, j); /* majority correct */
-                }
-            }
-
-            positive = truePositive+falseNegative;
-            negative = falsePositive+trueNegative;
-
-            specificity = trueNegative/negative;
-            sensitivity = truePositive/positive;
-            balancedAccuracyMean += (sensitivity + specificity)/2;
-            // cout << "balanced mean " << balancedAccuracyMean << endl;
-            precisionRate = truePositive/(truePositive+falsePositive);
-            recallRate = truePositive/positive;
-            score += 2.0 * (precisionRate*recallRate)/(precisionRate+recallRate);
-            if (truePositive == 0) score = 0;
-            // cout << "truePositive " << truePositive << endl;
-            // cout << "falseNegative " << falseNegative << endl;
-            // cout << "falsePositive " << falsePositive << endl;
-            // cout << "score " << score << endl;
-
-            // If there is only 2 classes, it is enough
-            if (confusionMat.rows == 2){
-                score *= 2;
-                precisionRate *= 2;
-                recallRate *= 2;
-                balancedAccuracyMean *= 2;
-                break;
-            }
-        }
-        //cout << "score: " << score << endl;
-        fScore.push_back((score/confusionMat.rows)*100.0);
-        precision.push_back(precisionRate/confusionMat.rows);
-        recall.push_back(recallRate/confusionMat.rows);
-        balancedAccuracy.push_back((balancedAccuracyMean/confusionMat.rows)*100.0);
-
-        falsePositiveRate = falsePositive/negative; // ROC: plotted on X axis
-        truePositiveRate = truePositive/positive; // ROC: plotted on Y axis == sensitivity
-
-        // /* Output file to use the confusion matrix plot with python*/
-        // stringstream fileName, resultFile;
-        // fileName << outputName+"_labels_" << minority.second << ".csv";
-        // resultFile << outputName+"_resultlabels_" << minority.second << ".csv";
-        // ofstream labels(fileName.str().c_str());
-        // ofstream labelsResult(resultFile.str().c_str());
-        // for (i = 0; i < result.size().height; i++) {
-        //     labels << labelsTesting.at<float>(i, 0) << endl;
-        //     labelsResult << result.at<float>(i, 0) << endl;
-        // }
-        // labels.close();
-        // labelsResult.close();
+        balancedAccuracy.push_back(calculateBalancedAccuracy(confusionMat));
 
         dataTraining.release();
         dataTesting.release();
@@ -385,7 +492,7 @@ void Classifier::classify(float trainingRatio, int numRepetition, vector<Classes
         labelsTraining.release();
     }
     
-    printAccuracy();
+    printAccuracy(id);
 
     accuracy.clear();
     balancedAccuracy.clear();
