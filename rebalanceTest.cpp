@@ -166,19 +166,19 @@ int main(int argc, char const *argv[]){
             Descriptors: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"}
             Quantization methods: {"Intensity", "Luminance", "Gleam", "MSB"}
     */
-    for (d = 1; d <= 1; d++){
+    for (d = 1; d <= 7; d++){
         initialMethod = 1;
         endMethod = 1;
-        // if (d < 6)
-        //     endMethod = 1;
-        // if (d == 4){ // For Haralick use Intensity quantization
-        //     initialMethod = 1;
-        //     endMethod = 1;
-        // }
-        // else if (d == 7){ // If it is HOG then use Intensity and Luminance quantization
-        //     initialMethod = 1;
-        //     endMethod = 2;
-        // }
+        if (d < 6)
+            endMethod = 1;
+        if (d == 4){ // For Haralick use Intensity quantization
+            initialMethod = 1;
+            endMethod = 1;
+        }
+        else if (d == 7){ // If it is HOG then use Intensity and Luminance quantization
+            initialMethod = 1;
+            endMethod = 2;
+        }
 
         for (m = initialMethod; m <= endMethod; m++){
             csvOriginal = analysisDir+op+"-original_"+descriptors[d-1]+"_"+methods[m-1]+"_";
@@ -193,11 +193,11 @@ int main(int argc, char const *argv[]){
             numClasses = data.size();
             if (numClasses != 0){
                 // for (rep = 0; rep < 1; rep++){
-                    cout << "---------------------------------------------------------------------------------------" << endl;
-                    cout << "Classification using original vectors" << endl;
-                    cout << "Features vectors file: " << fileDescriptor.c_str() << endl;
-                    cout << "---------------------------------------------------------------------------------------" << endl;
-                    c.classify(prob, 10, data, csvOriginal.c_str(), 1);
+                    // cout << "---------------------------------------------------------------------------------------" << endl;
+                    // cout << "Classification using original vectors" << endl;
+                    // cout << "Features vectors file: " << fileDescriptor.c_str() << endl;
+                    // cout << "---------------------------------------------------------------------------------------" << endl;
+                    // c.classify(prob, 10, data, csvOriginal.c_str(), 1);
                     // c.classify(prob, 10, data, csvSmote.c_str(), 1);
                     // c.classify(prob, 10, data, csvRebalance.c_str(), 1);
 

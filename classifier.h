@@ -12,7 +12,7 @@ using namespace std;
 
 class Classifier{
 
-    vector<double> accuracy, balancedAccuracy, precision, recall, fScore;
+    vector<double> accuracy, balancedAccuracy, precision, recall;
     int totalTest, totalTrain, numClasses;
     string outputName;
 
@@ -22,7 +22,7 @@ class Classifier{
 		void knn(Mat, Mat, Mat, Mat&);
         void classify(double, int, vector<Classes>, string, int);
         int findSmallerClass(vector<Classes>);
-        void printAccuracy(int id);
+        void printAccuracy(int id, vector<vector<double> > fScore);
 };
 
 #endif

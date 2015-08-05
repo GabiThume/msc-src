@@ -1,9 +1,9 @@
 /**
- *
- *	Author: Gabriela Thumé
- *	Universidade de São Paulo / ICMC / 2014
- *
- **/
+*
+*	Author: Gabriela Thumé
+*	Universidade de São Paulo / ICMC / 2014
+*
+**/
 
 #include "artificialGeneration.h"
 

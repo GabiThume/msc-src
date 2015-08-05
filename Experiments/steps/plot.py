@@ -12,7 +12,7 @@ import os
 import itertools
 
 directory = "analysis/"
-algorithms = ["original", "desbalanced", "artificial", "smote"]
+algorithms = ["desbalanced", "artificial", "smote"]
 descriptors = ["BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"]
 methods = ["Intensity", "Gleam", "Luminance", "MSB"]
 operations = ["Replication", "ALL", "Blur", "Noise", "Blending", "UnsharpMasking", "Composition", "ThresholdCombination", "Saliency"]
@@ -85,6 +85,6 @@ for operation in range(0,9):
                 # plt.gca().set_aspect('equal', adjustable='box')
 
                 if which == 0:
-                    plt.savefig(directory+"graficos/"+desc+"_"+met+"_FScore.png")
+                    plt.savefig(directory+"graficos/"+str(operation)+"_"+desc+"_"+met+"_FScore.png")
                 else:
-                    plt.savefig(directory+"graficos/"+desc+"_"+met+"_BalancedAccuracy.png")
+                    plt.savefig(directory+"graficos/"+str(operation)+"_"+desc+"_"+met+"_BalancedAccuracy.png")

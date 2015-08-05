@@ -217,12 +217,23 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
         roiHeight = generated.size().height/sqrt(fator);
         roiWidth = generated.size().width/sqrt(fator);
 
-        if (img.size() == subImg.size()){
-            generated(Rect(startWidth, startHeight, roiWidth, roiHeight)).copyTo(roi);
+        // if (generated.size() == subImg.size()){
+        //     cout << "tamanho igual " << endl;
+        //     generated(Rect(startWidth, startHeight, roiWidth, roiHeight)).copyTo(roi);
+        // }
+        // else
+        //     generated(Rect(0, 0, roiWidth, roiHeight)).copyTo(roi);
+
+
+        if (generated.size().width < roiWidth || generated.size().height < roiHeight){
+            subImage--;
+            continue;
         }
-        else{
-            generated(Rect(0, 0, roiWidth, roiHeight)).copyTo(roi);
-        }
+
+        int randW = rand() % (generated.size().width - roiWidth);
+        int randH = rand() % (generated.size().height - roiHeight);
+        generated(Rect(randW, randH, roiWidth, roiHeight)).copyTo(roi);
+
         Mat dst_roi = subImg(Rect(startWidth, startHeight, roiWidth, roiHeight));
         roi.copyTo(dst_roi);
         if ((startWidth + roiWidth) < generated.size().width){
