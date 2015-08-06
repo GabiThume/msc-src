@@ -41,20 +41,20 @@ Mat unsharp(Mat img, int N) {
 
     for (int i = 0; i < img.size().height; i++) {
         for (int j = 0; j < img.size().width; j++) {
-    
+
             diff = img.at<uchar>(i,j) - blur.at<uchar>(i,j);
             newpixel = img.at<uchar>(i,j) + diff;
             // overflow / underflow control
             newpixel = (newpixel > 255) ? 255 : newpixel;
             newpixel = (newpixel < 0) ? 0 : newpixel;
 
-            out.at<uchar>(i,j) = newpixel;  
+            out.at<uchar>(i,j) = newpixel;
         }
     }
     return out;
 }
 
-/* poissNoise(int lambda) 
+/* poissNoise(int lambda)
     gera um valor ruidoso com base no valor passado por parametro
     utilizando a distribuicao de Poisson.
     o ruido eh correlacionado com o sinal e portanto
@@ -81,7 +81,7 @@ Mat noiseSingleChannel(Mat img){
 
     int height, width, cinzar, cinza, i, j;
     Mat out(img.size(), CV_8U);
-    
+
     height = img.size().height;
     width = img.size().width;
 
@@ -102,7 +102,7 @@ Mat Artificial::generateNoise(Mat img) {
 
     vector<Mat> imColors(3);
     img.copyTo(out);
-    
+
     split(out, imColors);
 
     imColors[0] = noiseSingleChannel(imColors[0]);
@@ -120,7 +120,7 @@ Mat Artificial::generateBlur(Mat originalImage){
     i = 3 + 2*(rand() % 15);
     blurType = 1 + (rand() % 2);
     switch (blurType) {
-        case 1: 
+        case 1:
             GaussianBlur(originalImage, generated, Size(i, i), 0);
             break;
         case 2:
@@ -155,7 +155,7 @@ Mat Artificial::generateUnsharp(Mat originalImage){
 
     vector<Mat> imColors(3);
     originalImage.copyTo(generated);
-    
+
     split(generated, imColors);
 
     imColors[0] = unsharp(imColors[0], unsharpLevel);
@@ -173,7 +173,7 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
     originalImage.copyTo(subImg);
     int roiWidth, roiHeight, subImage, newImage, operation;
     int startWidth, startHeight;
-    
+
     startWidth = startHeight = 0;
     for (subImage = 1; subImage <= fator; subImage++){
         // vectorRand.clear();
@@ -263,11 +263,11 @@ Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images, int tot
     //erode(bin,bin,Mat(),Point(-1,-1), 2, 1, 1);
     //dilate(bin,bin,Mat(),Point(-1,-1), 2, 1, 1);
     // MORPH_RECT
-    morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(2*2+1, 2*2+1), Point(2,2)), Point(-1,-1)); 
+    morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(2*2+1, 2*2+1), Point(2,2)), Point(-1,-1));
     originalImage.copyTo(foreground, bin&1);
 
     // namedWindow("Display window", WINDOW_AUTOSIZE );
-    // imshow("foreground", bin); 
+    // imshow("foreground", bin);
     // waitKey(0);
 
     // Select another image with the same size
@@ -281,17 +281,17 @@ Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images, int tot
     images[randomSecondImg].copyTo(background, bin);
 
     // namedWindow("Display window", WINDOW_AUTOSIZE );
-    // imshow("background", background); 
+    // imshow("background", background);
     // waitKey(0);
 
-    // Blend of background and foreground 
+    // Blend of background and foreground
     generated = background + foreground;
 
     // namedWindow("Display window", WINDOW_AUTOSIZE );
-    // imshow("generated", generated); 
+    // imshow("generated", generated);
     // waitKey(0);
 
-    // originalImage.copyTo(bin); 
+    // originalImage.copyTo(bin);
     // // Select just the most salient region, given a threshold value
     // bin = saliency_map * 255;
     // GaussianBlur(bin, bin, Size(1,1), 0, 0);
@@ -314,7 +314,7 @@ Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int tota
         images[rand() % total].copyTo(original);
         saliency_map = GMRsal.GetSal(original);
     }
-    original.copyTo(bin); 
+    original.copyTo(bin);
 
     // Select just the most salient region, given a threshold value
     bin = saliency_map * 255;
@@ -324,11 +324,11 @@ Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int tota
 
     // Eliminate small regions (Mat() == default 3x3 kernel)
     // morphologyEx(bin, bin, 3, getStructuringElement(2, Size( 2*20 + 1, 2*20+1 ), Point(20, 20)));
-    original.copyTo(foreground, bin&1); 
+    original.copyTo(foreground, bin&1);
 
     // imwrite(nameGeneratedImage+"_saliency", bin);
     // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
-    // imshow("saliency", bin); 
+    // imshow("saliency", bin);
     // waitKey(0);
 
     /* Select another image with the same size */
@@ -341,21 +341,21 @@ Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int tota
     bitwise_not(bin, bin);
     images[randomSecondImg].copyTo(background, bin);
 
-    // Blend of background and foreground 
+    // Blend of background and foreground
     generated = background + foreground;
 
     // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
-    // imshow("saliency", generated); 
+    // imshow("saliency", generated);
     // waitKey(0);
     return generated;
 }
 
-void Artificial::generate(string base, int whichOperation = 0){
+string Artificial::generate(string base, int whichOperation = 0){
 
 	int i, qtdClasses = 0, generationType, rebalanceTotal = 0;
     int maior = -1, maiorClasse, rebalance, qtdImg, eachClass;
     Mat img, noise;
-    string imgName, classe, minorityClass;
+    string imgName, classe, minorityClass, str, newDir;
 	struct dirent *sDir = NULL;
     DIR *dir = NULL, *minDir = NULL;
     vector<int> totalImage, vectorRand;
@@ -367,16 +367,26 @@ void Artificial::generate(string base, int whichOperation = 0){
 		cout << "Error! Directory " << base << " don't exist. " << endl;
 		exit(1);
 	}
+	newDir = base+"/../generated/";
+	str = "rm -f -r "+newDir+"/*;";
+	str += "mkdir -p "+newDir+";";
+	str += "cp -R "+base+"/* "+newDir+";";
+	system(str.c_str());
+	dir = opendir(newDir.c_str());;
+	if(dir == NULL) {
+		cout << "Error! Directory " << newDir << " don't exist. " << endl;
+		exit(1);
+	}
 
     cout << "\n---------------------------------------------------------------------------------------" << endl;
     cout << "Artifical generation of images to rebalance classes" << endl;
     cout << "---------------------------------------------------------------------------------------" << endl;
 
-    qtdClasses = classesNumber(base);
+    qtdClasses = classesNumber(newDir);
     cout << "Number of classes: " << qtdClasses << endl;
     /* Count how many files there are in classes and which is the majority */
     for(i = 0; i < qtdClasses; i++) {
-        classe = base + "/" + to_string(i) + "/";
+        classe = newDir + "/" + to_string(i) + "/";
         qtdImg = classesNumber(classe+"/treino/");
         if (qtdImg == 0){
            qtdImg = classesNumber(classe);
@@ -393,7 +403,7 @@ void Artificial::generate(string base, int whichOperation = 0){
         rebalance = totalImage[maiorClasse] - totalImage[eachClass];
         if (rebalance > 0){
 
-            minorityClass = base + "/" + to_string(eachClass) + "/treino/";
+            minorityClass = newDir + "/" + to_string(eachClass) + "/treino/";
             cout << "Class: " << minorityClass << " contain " << totalImage[eachClass] << " images" << endl;
             minDir = opendir(minorityClass.c_str());
 
@@ -412,9 +422,9 @@ void Artificial::generate(string base, int whichOperation = 0){
                 Mat generated, subImg, tmp, bin, foreground, background;
                 Mat original;
                 images[randomImg].copyTo(original);
-                /* Choose an operation 
+                /* Choose an operation
                     Case 1: All operation */
-                if (whichOperation == 1)          
+                if (whichOperation == 1)
                     generationType = 2 + (rand() % 8);
                 else
                     generationType = whichOperation;
@@ -468,4 +478,5 @@ void Artificial::generate(string base, int whichOperation = 0){
             images.clear();
         }
     }
+	return newDir;
 }

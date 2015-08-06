@@ -19,7 +19,7 @@ operations = ["Replication", "ALL", "Blur", "Noise", "Blending", "UnsharpMasking
 
 which = 0
 
-marker = itertools.cycle(('o', 's', '^')) 
+marker = itertools.cycle(('o', 's', '^'))
 
 # for which in range(0,2):
 for operation in range(0,9):
@@ -27,7 +27,7 @@ for operation in range(0,9):
         for met in methods:
             plt.clf()
             plt.title(operations[operation]+"_"+desc+"_"+met)
-            color = ["r", "g", "b"]
+            color = ["b", "r", "g"]
             labels = ["Desbalanced", 'Imagens Artificiais', 'SMOTE']
             plt.xlabel(u'Classes')
 

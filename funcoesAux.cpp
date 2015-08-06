@@ -29,7 +29,7 @@ Mat correctGamma(Mat *img, double gamma ) {
         ptr[i] = (int)(pow((double)i/255.0, gamma) * 255.0);
     }
     LUT(*img, lut_matrix, result);
-    
+
     return result;
 }
 
@@ -88,7 +88,7 @@ void QuantizationGleam(Mat *I, Mat *Q, int nColors){
     imColors[0] = correctGamma(&(imColors[0]), pot);
     imColors[1] = correctGamma(&(imColors[1]), pot);
     imColors[2] = correctGamma(&(imColors[2]), pot);
-    
+
     // sum of 1/3 of each channel with gamma correction for each pixel
     (*Q) = imColors[0]/(3.0) + imColors[1]/(3.0) + imColors[2]/(3.0);
 
@@ -134,13 +134,13 @@ void QuantizationMSB(Mat *I, Mat *Q, int nColors){
 	// computers number of bits per channel
 	cc = (int)(bitsc/3);
 	int GRBb[3]={cc,cc,cc};
-	
+
 	// check if there are bits left after equal division
 	rest = (bitsc % 3);
 	for (k = 0; rest > 0; rest--, k = (k+1)%3) {
 		GRBb[k]++;
 	}
-	
+
 	for( it2 = (*Q).begin<uchar>(), end2 = (*Q).end<uchar>(), it = (*I).begin<Vec3b>(), end = (*I).end<Vec3b>(); it != end; ++it, ++it2){
 		uchar dR = (8-GRBb[1]);
 		uchar dG = (8-GRBb[0]);
@@ -149,27 +149,27 @@ void QuantizationMSB(Mat *I, Mat *Q, int nColors){
 		uchar Ra = ((int)(pow(2,GRBb[1]))-1) << dR;
 		uchar Ga = ((int)(pow(2,GRBb[0]))-1) << dG;
 		uchar Ba = ((int)(pow(2,GRBb[2]))-1) << dB;
-		
+
 		// get pixels of individual channels
 		uchar R = (*it)[2];
 		uchar G = (*it)[1];
 		uchar B = (*it)[0];
-		
+
 		// generate codes for each channel
-		uchar C1 = (B & Ba) >> dG;                  // extract MSBs from G 
+		uchar C1 = (B & Ba) >> dG;                  // extract MSBs from G
 		uchar C2 = (R & Ra) >> (dG-GRBb[1]);        // extract MSBs from R and move it
 		uchar C3 = (G & Ga) >> (dG-GRBb[1]-GRBb[2]);// extract MSBs from B and move it
-		
+
 		// operator OR to merge the tree bit codes
-		uchar newcolor = C1 | C2 | C3; 
-		
+		uchar newcolor = C1 | C2 | C3;
+
 		// store in the Matrix
 		(*it2) = newcolor;
-		
+
 		// check for overflow
 		if (newcolor > 255)
 		    cout << "\nColor overflow: " << newcolor << endl;
-	}	
+	}
 }
 
 /* Remove null columns in feature space
@@ -196,27 +196,27 @@ void RemoveNullColumns(Mat *Feat) {
 	- vector size
 	- normalization factor (1 for unity sum, > 1 for maximum*factor)
 */
-void NormalizeHist(long int *hist, float *histnorm, int size, int factor){
+void NormalizeHist(vector<int> *hist, float *histnorm, int size, int factor){
 
 	int i;
-	long int sum = 0, max = hist[0];
+	long int sum = 0, max = (*hist)[0];
 	float e = 0.01;
-	
+
 	for (i = 0; i < size ; i++){
-		sum += hist[i];
-		max = (hist[i] > max) ? hist[i] : max;
+		sum += (*hist)[i];
+		max = ((*hist)[i] > max) ? (*hist)[i] : max;
 	}
-	
+
 	// if factor == 1 then vector with unity sum
 	if (factor == 1){
 		for (i = 0; i < size ; i++){
-			histnorm[i] = hist[i]/((float)sum+e);
+			histnorm[i] = (*hist)[i]/((float)sum+e);
 		}
-	} 
+	}
 	// if factor > 1 then vector with maximum value == factor
 	else if (factor > 1){
 		for (i = 0; i < size ; i++){
-			histnorm[i] = (hist[i]/(float)max)*(float)factor;
+			histnorm[i] = ((*hist)[i]/(float)max)*(float)factor;
 		}
 	}
 }
@@ -232,12 +232,12 @@ double distManhattan(double *p, double *q, int size){
 
 	int i;
 	double dist = 0;
-	
+
 	for (i = 0; i < size; i++){
-		dist += fabs(p[i]-q[i]);      
+		dist += fabs(p[i]-q[i]);
 	}
-	
-	return dist;  
+
+	return dist;
 }
 
 /* Distance Function Euclidian (l2-norm)
@@ -251,11 +251,11 @@ double distEuclid(double *q, double *p, int size){
 
 	int i;
 	double dist = 0;
-	
+
 	for(i = 0; i < size; i ++){
 		dist = dist + pow((q[i]-p[i]), 2);
 	}
-	
+
 	dist = sqrt(dist);
 	return dist;
 }
@@ -272,7 +272,7 @@ double distChessboard(double *p, double *q, int size){
 	int i;
 	double dist = 0;
 	double maxVal = -1;
-	
+
 	for (i = 0; i < size; i++){
 		dist = fabs(p[i]-q[i]);
 		if (maxVal < dist)

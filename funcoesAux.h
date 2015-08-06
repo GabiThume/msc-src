@@ -21,7 +21,7 @@
 using namespace cv;
 using namespace std;
 
-/* 
+/*
   Gamma correction function
   Requires:
 	- img : image to be processed
@@ -40,7 +40,7 @@ Mat correctGamma(Mat *img, double gamma );
 void reduceImageColors(Mat *I, int nColors);
 
 /*
-  Image quantization by Gamma corrected Intensity 
+  Image quantization by Gamma corrected Intensity
   Requires
 	- I : image to be converted
 	- Q : image to store quantized version
@@ -76,10 +76,10 @@ void QuantizationLuminance(Mat *I, Mat *Q, int nColors);
 	- Q : image to store quantized version
 	- nColors : number of colors after quantization
 */
-void QuantizationMSB(Mat *I, Mat *Q, int nColors); 
+void QuantizationMSB(Mat *I, Mat *Q, int nColors);
 
 
-/* 
+/*
   Remove null columns in feature space
   (under construction)
 
@@ -87,7 +87,7 @@ void QuantizationMSB(Mat *I, Mat *Q, int nColors);
 void RemoveNullColumns(Mat *Feat);
 
 
-/* 
+/*
    Histogram Normalization
    Requires:
 	- hist: histogram to be normalized
@@ -95,10 +95,10 @@ void RemoveNullColumns(Mat *Feat);
 	- vector size
 	- normalization factor (1 for unity sum, > 1 for maximum*factor)
 */
-void NormalizeHist(long int *hist, float *histnorm, int size, int factor);
+void NormalizeHist(vector<int> *hist, float *histnorm, int size, int factor);
 
 
-/*	
+/*
   Distance Function Manhattan (l1-norm)
   Require:
  	- two histograms 'p' and 'q' to be compared
@@ -109,7 +109,7 @@ void NormalizeHist(long int *hist, float *histnorm, int size, int factor);
 double distManhattan(double *p, double *q, int size);
 
 
-/*	
+/*
   Distance Function Euclidian (l2-norm)
   Require:
  	- two histograms 'p' and 'q' to be compared
@@ -120,7 +120,7 @@ double distManhattan(double *p, double *q, int size);
 double distEuclid(double *q, double *p, int size);
 
 
-/*	
+/*
   Distance Function Chessboard (l_\infty-norm)
   Require:
  	- two histograms 'p' and 'q' to be compared
@@ -132,4 +132,3 @@ double distChessboard(double *p, double *q, int size);
 
 
 #endif
-

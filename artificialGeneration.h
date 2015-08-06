@@ -24,7 +24,7 @@ using namespace std;
 class Artificial{
 
     public:
-        void generate(string base, int whichOperation);
+        string generate(string base, int whichOperation);
         Mat generateBlur(Mat originalImage);
         Mat generateNoise(Mat img);
         Mat generateBlending(Mat originalImage, vector<Mat> images, int total);
