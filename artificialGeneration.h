@@ -29,9 +29,10 @@ class Artificial{
         Mat generateNoise(Mat img);
         Mat generateBlending(Mat originalImage, vector<Mat> images, int total);
         Mat generateUnsharp(Mat originalImage);
-		Mat generateComposition(Mat originalImage, vector<Mat> images, int total, int fator);
+		Mat generateComposition(Mat originalImage, vector<Mat> images, int total, int fator, bool option);
 		Mat generateThreshold(Mat originalImage, vector<Mat> images, int total);
 		Mat generateSaliency(Mat originalImage, vector<Mat> images, int total);
+        Mat generateSmoteImg(Mat originalImage, vector<Mat> images, int total, bool option);
 };
 
 

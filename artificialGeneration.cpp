@@ -166,13 +166,13 @@ Mat Artificial::generateUnsharp(Mat originalImage){
     return generated;
 }
 
-Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int total, int fator){
+Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int total, int fator, bool option){
 
     vector<int> vectorRand;
     Mat subImg, generated, img, roi;
     originalImage.copyTo(subImg);
     int roiWidth, roiHeight, subImage, newImage, operation;
-    int startWidth, startHeight;
+    int startWidth, startHeight, randH, randW;
 
     startWidth = startHeight = 0;
     for (subImage = 1; subImage <= fator; subImage++){
@@ -217,22 +217,23 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
         roiHeight = generated.size().height/sqrt(fator);
         roiWidth = generated.size().width/sqrt(fator);
 
-        // if (generated.size() == subImg.size()){
-        //     cout << "tamanho igual " << endl;
-        //     generated(Rect(startWidth, startHeight, roiWidth, roiHeight)).copyTo(roi);
-        // }
-        // else
-        //     generated(Rect(0, 0, roiWidth, roiHeight)).copyTo(roi);
-
-
         if (generated.size().width < roiWidth || generated.size().height < roiHeight){
             subImage--;
             continue;
         }
 
-        int randW = rand() % (generated.size().width - roiWidth);
-        int randH = rand() % (generated.size().height - roiHeight);
-        generated(Rect(randW, randH, roiWidth, roiHeight)).copyTo(roi);
+		if (!option){
+	        randW = rand() % (generated.size().width - roiWidth);
+	        randH = rand() % (generated.size().height - roiHeight);
+	        generated(Rect(randW, randH, roiWidth, roiHeight)).copyTo(roi);
+		}
+		else{
+			if (generated.size() == subImg.size()){
+			    generated(Rect(startWidth, startHeight, roiWidth, roiHeight)).copyTo(roi);
+			}
+			else
+			    generated(Rect(0, 0, roiWidth, roiHeight)).copyTo(roi);
+		}
 
         Mat dst_roi = subImg(Rect(startWidth, startHeight, roiWidth, roiHeight));
         roi.copyTo(dst_roi);
@@ -350,6 +351,62 @@ Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int tota
     return generated;
 }
 
+Mat smoteImg(Mat first, Mat second, bool option){
+
+    Mat out(first.size(), CV_8U, 3);
+	int i, j, newpixel;
+	double diff, gap;
+
+	for (i = 0; i < first.size().height; i++) {
+		for (j = 0; j < first.size().width; j++) {
+			diff = (int)first.at<uchar>(i,j) - second.at<uchar>(i,j);
+			/* Multiply this difference with a number between 0 and 1 */
+			gap = (double)rand()/(RAND_MAX);
+			//cout << "gap " << gap << endl;
+			newpixel = (int)first.at<uchar>(i,j);
+			if (!option)
+				newpixel = (int)first.at<uchar>(i,j) + gap*diff;
+			else
+				newpixel += (((newpixel + gap*diff) < 0) || ((newpixel + gap*diff) > 255) ) ? -gap*diff : gap*diff;
+			newpixel = (newpixel > 255) ? 255 : newpixel;
+			newpixel = (newpixel < 0) ? 0 : newpixel;
+			out.at<uchar>(i,j) = (uchar)newpixel;
+		}
+	}
+
+	return out;
+}
+
+Mat Artificial::generateSmoteImg(Mat originalImage, vector<Mat> images, int total, bool option){
+
+	int randomSecondImg;
+	vector<Mat> imColors(3), imColorsSecond(3);
+	Mat generated, second;
+
+    /* Select another image with the same size */
+    randomSecondImg = rand() % total;
+    while (originalImage.size() != images[randomSecondImg].size()){
+        randomSecondImg = rand() % total;
+    }
+    originalImage.copyTo(generated);
+	split(generated, imColors);
+	images[randomSecondImg].copyTo(second);
+	split(second, imColorsSecond);
+
+    imColors[0] = smoteImg(imColors[0], imColorsSecond[0], option);
+    imColors[1] = smoteImg(imColors[1], imColorsSecond[1], option);
+    imColors[2] = smoteImg(imColors[2], imColorsSecond[2], option);
+
+    merge(imColors, generated);
+
+    // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
+	// imshow("original", originalImage);
+    // waitKey(0);
+    // imshow("smoteimg", generated);
+    // waitKey(0);
+    return generated;
+}
+
 string Artificial::generate(string base, int whichOperation = 0){
 
 	int i, qtdClasses = 0, generationType, rebalanceTotal = 0;
@@ -418,18 +475,18 @@ string Artificial::generate(string base, int whichOperation = 0){
             /* For each image needed to full rebalance*/
             for (i = 0; i < rebalance; i++){
                 /* Choose a random image */
-                int randomImg = 0 + (rand() % totalImage[eachClass]);
+                int randomImg = rand() % totalImage[eachClass];
                 Mat generated, subImg, tmp, bin, foreground, background;
                 Mat original;
                 images[randomImg].copyTo(original);
                 /* Choose an operation
                     Case 1: All operation */
                 if (whichOperation == 1)
-                    generationType = 2 + (rand() % 8);
+                    generationType = 2 + (rand() % 12);
                 else
                     generationType = whichOperation;
 
-                string nameGeneratedImage = minorityClass + to_string(totalImage[eachClass]+i) + ".jpg";
+                string nameGeneratedImage = minorityClass + to_string(totalImage[eachClass]+i) + ".png";
 
                 switch (generationType) {
                     case 0: /* Replication */
@@ -452,11 +509,11 @@ string Artificial::generate(string base, int whichOperation = 0){
                         imwrite(nameGeneratedImage, generated);
                         break;
                     case 6:
-                        generated = generateComposition(original, images, totalImage[eachClass], 4);
+                        generated = generateComposition(original, images, totalImage[eachClass], 4, 0);
                         imwrite(nameGeneratedImage, generated);
                         break;
                     case 7:
-                        generated = generateComposition(original, images, totalImage[eachClass], 16);
+                        generated = generateComposition(original, images, totalImage[eachClass], 16, 0);
                         imwrite(nameGeneratedImage, generated);
                         break;
                     case 8:
@@ -465,6 +522,22 @@ string Artificial::generate(string base, int whichOperation = 0){
                         break;
                     case 9:
                         generated = generateSaliency(original, images, totalImage[eachClass]);
+                        imwrite(nameGeneratedImage, generated);
+                        break;
+					case 10:
+                        generated = generateSmoteImg(original, images, totalImage[eachClass], 0);
+                        imwrite(nameGeneratedImage, generated);
+                        break;
+					case 11:
+                        generated = generateSmoteImg(original, images, totalImage[eachClass], 1);
+                        imwrite(nameGeneratedImage, generated);
+                        break;
+					case 12:
+                        generated = generateComposition(original, images, totalImage[eachClass], 4, 1);
+                        imwrite(nameGeneratedImage, generated);
+                        break;
+                    case 13:
+                        generated = generateComposition(original, images, totalImage[eachClass], 16, 1);
                         imwrite(nameGeneratedImage, generated);
                         break;
                     default:

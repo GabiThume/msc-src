@@ -28,7 +28,7 @@ void Classifier::knn(Mat dataTraining, Mat labelsTraining, Mat dataTesting, Mat&
 	dist.release();
 }
 
-double accuracyMean(vector<double> accuracy){
+double Classifier::calculateMean(vector<double> accuracy){
 
 	int i;
 	double mean;
@@ -40,16 +40,16 @@ double accuracyMean(vector<double> accuracy){
 	mean = mean/accuracy.size();
 
 	if (isnan(mean))
-	mean = 0;
+		mean = 0;
 
 	return mean;
 }
 
-double standardDeviation(vector<double> accuracy){
+double Classifier::calculateStandardDeviation(vector<double> accuracy){
 
 	int i;
 	double mean, variance, std;
-	mean = accuracyMean(accuracy);
+	mean = calculateMean(accuracy);
 	/* Calculate accuracy's variance and std */
 	variance = 0;
 	for (i = 0; i < (int) accuracy.size(); i++){
@@ -59,7 +59,7 @@ double standardDeviation(vector<double> accuracy){
 	std = sqrt(variance);
 
 	if (isnan(std))
-	std = 0;
+		std = 0;
 
 	return std;
 }
@@ -70,21 +70,21 @@ void Classifier::printAccuracy(int id, vector<vector<double> > fScore){
 	ofstream outputFile;
 	vector<double> fscores, fscoresStd;
 	double mean, std, balancedMean, balancedStd, fscoreMean, fscoreStd;
-	mean = accuracyMean(accuracy);
-	std = standardDeviation(accuracy);
-	balancedMean = accuracyMean(balancedAccuracy);
-	balancedStd = standardDeviation(balancedAccuracy);
+	mean = calculateMean(accuracy);
+	std = calculateStandardDeviation(accuracy);
+	balancedMean = calculateMean(balancedAccuracy);
+	balancedStd = calculateStandardDeviation(balancedAccuracy);
 
 	for (i = 0; i < (int) fScore.size(); i++){
-		cout << "Classe " << i << " FSCORE: " << accuracyMean(fScore[i]) << endl;
-		fscores.push_back(accuracyMean(fScore[i]));
+		cout << "Classe " << i << " FSCORE: " << calculateMean(fScore[i]) << endl;
+		fscores.push_back(calculateMean(fScore[i]));
 	}
-	fscoreMean = accuracyMean(fscores);
+	fscoreMean = calculateMean(fscores);
 
 	for (i = 0; i < (int) fScore.size(); i++){
-		fscoresStd.push_back(standardDeviation(fScore[i]));
+		fscoresStd.push_back(calculateStandardDeviation(fScore[i]));
 	}
-	fscoreStd = standardDeviation(fscoresStd);
+	fscoreStd = calculateStandardDeviation(fscoresStd);
 
 	cout << "\n---------------------------------------------------------------------------------------" << endl;
 	cout << "Image classification using KNN classifier" << endl;
@@ -113,6 +113,7 @@ void Classifier::printAccuracy(int id, vector<vector<double> > fScore){
 		// outputFile << minority.second << "," << balancedMean << "\n";
 		// outputFile.close();
 		outputFile.open((outputName+"FScore.csv").c_str(), ios::out | ios::app);
+		// outputFile.open((outputName+"FScore.csv").c_str());
 		// outputFile << id << "," << fscoreMean << "\n";
 		for (i = 0; i < (int) fscores.size(); i++){
 			outputFile << i << "," << fscores[i] << "\n";
@@ -275,7 +276,7 @@ Mat confusionMatrix(int numClasses, Mat labelsTesting, Mat result){
 	return confusionMat;
 }
 
-void Classifier::classify(double trainingRatio, int numRepetition, vector<Classes> imageClasses, string name, int id){
+vector<vector<double> > Classifier::classify(double trainingRatio, int numRepetition, vector<Classes> imageClasses, string name, int id){
 
 	Mat result, confusionMat;
 	int i, hits, width, trained, numTraining, num_testing, minorNumber, classeId;
@@ -283,7 +284,7 @@ void Classifier::classify(double trainingRatio, int numRepetition, vector<Classe
 	numClasses = imageClasses.size();
 	vector<int> vectorRand, dataClasse(numClasses, 0), fixedSet(numClasses, 0), trainingNumber(numClasses, 0), testingNumber(numClasses, 0);
 	outputName = name;
-	vector< vector<double> > fScore;
+	vector<vector<double> > fscore;
 	vector<double> fscoreClasses;
 	srand(time(0));
 
@@ -402,18 +403,18 @@ void Classifier::classify(double trainingRatio, int numRepetition, vector<Classe
 					minorityClass = classeId;
 				}
 			}
-			//fScore.push_back(calculateFscore(confusionMat, dataClasse)[minorityClass]);
+			//fscore.push_back(calculateFscore(confusionMat, dataClasse)[minorityClass]);
 		}
 		else {
 			fscoreClasses = calculateFscore(confusionMat);
-			if (fScore.size() == 0) {
+			if (fscore.size() == 0) {
 				for (int i = 0; i < numClasses; i++) {
-					fScore.push_back(vector<double>()); // Add an empty row
+					fscore.push_back(vector<double>()); // Add an empty row
 				}
 			}
 			for (i = 0; i < (int) fscoreClasses.size(); i++) {
 				if (fscoreClasses[i] > 0)
-				fScore[i].push_back(fscoreClasses[i]);
+				fscore[i].push_back(fscoreClasses[i]);
 			}
 		}
 		// precision.push_back(precisionRate/confusionMat.rows);
@@ -428,11 +429,11 @@ void Classifier::classify(double trainingRatio, int numRepetition, vector<Classe
 		labelsTraining.release();
 	}
 
-	printAccuracy(id, fScore);
-
+	printAccuracy(id, fscore);
 	accuracy.clear();
 	balancedAccuracy.clear();
-	fScore.clear();
 	precision.clear();
 	recall.clear();
+
+	return fscore;
 }

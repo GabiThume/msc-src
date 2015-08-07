@@ -250,14 +250,22 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 
 		for(j = 0; j < numImages; j++)	{
 
-			img = imread(database +"/"+to_string(i)+"/"+to_string(j)+".jpg", CV_LOAD_IMAGE_COLOR);
-			trainTest.at<uchar>(imgTotal,0) = (uchar)0;
+            directory = database +"/"+to_string(i)+"/"+to_string(j);
+			img = imread(directory+".jpg", CV_LOAD_IMAGE_COLOR);
+			if (img.empty())
+                img = imread(directory+".png", CV_LOAD_IMAGE_COLOR);
+            trainTest.at<uchar>(imgTotal,0) = (uchar)0;
 			if (img.empty()) {
-				img = imread(database +"/"+to_string(i)+"/treino/"+to_string(j)+".jpg", CV_LOAD_IMAGE_COLOR);
+                directory = database +"/"+to_string(i)+"/treino/"+to_string(j);
+				img = imread(directory+".jpg", CV_LOAD_IMAGE_COLOR);
+                if (img.empty())
+                    img = imread(directory+".png", CV_LOAD_IMAGE_COLOR);
 				trainTest.at<uchar>(imgTotal,0) = (uchar)1;
 				if (img.empty()){
-					directory = database +"/"+to_string(i)+"/teste/"+to_string(j-treino)+".jpg";
-					img = imread(directory, CV_LOAD_IMAGE_COLOR);
+					directory = database +"/"+to_string(i)+"/teste/"+to_string(j-treino);
+					img = imread(directory+".jpg", CV_LOAD_IMAGE_COLOR);
+                    if (img.empty())
+                        img = imread(directory+".png", CV_LOAD_IMAGE_COLOR);
 					trainTest.at<uchar>(imgTotal,0) = (uchar)2;
 					if (img.empty()){
 						cout << "Error when trying to open an image of " << directory << endl;
@@ -394,7 +402,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
     	}
     	fprintf(arqVis,"%s%d\n", "attr",z);
     	for (w = 0; w < labels.size().height; w++) {
-    	    fprintf(arqVis,"%d%s;", w,".jpg");
+    	    fprintf(arqVis,"%d%s;", w,".png");
     	    for(z = 0; z < features.size().width; z++) {
     	        fprintf(arqVis,"%.5f;", features.at<float>(w, z));
     	    }
