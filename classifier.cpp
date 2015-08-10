@@ -109,9 +109,10 @@ void Classifier::printAccuracy(int id, vector<vector<double> > fScore){
 	if (outputName != ""){
 		cout << "Write on " << (outputName+"FScore.csv").c_str() << endl;
 		cout << "---------------------------------------------------------------------------------------" << endl;
-		// outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), ios::out | ios::app);
+		outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), ios::out | ios::app);
+		outputFile << balancedMean << "\n";
 		// outputFile << minority.second << "," << balancedMean << "\n";
-		// outputFile.close();
+		outputFile.close();
 		outputFile.open((outputName+"FScore.csv").c_str(), ios::out | ios::app);
 		// outputFile.open((outputName+"FScore.csv").c_str());
 		// outputFile << id << "," << fscoreMean << "\n";

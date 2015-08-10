@@ -406,6 +406,9 @@ int main(int argc, char const *argv[]){
                             str += "cp -R "+csvSmote+"FScore.csv "+bestDir+";";
                             str += "cp -R "+csvRebalance+"FScore.csv "+bestDir+";";
                             str += "cp -R "+csvDesbalanced+"FScore.csv "+bestDir+";";
+                            str += "cp -R "+csvSmote+"BalancedAccuracy.csv "+bestDir+";";
+                            str += "cp -R "+csvRebalance+"BalancedAccuracy.csv "+bestDir+";";
+                            str += "cp -R "+csvDesbalanced+"BalancedAccuracy.csv "+bestDir+";";
                             cout << "Copy generation of class " << i << " to " << bestDir << endl;
                             // cout << str << endl;
                         	system(str.c_str());

@@ -487,7 +487,7 @@ string Artificial::generate(string base, int whichOperation = 0){
                     generationType = whichOperation;
 
                 string nameGeneratedImage = minorityClass + to_string(totalImage[eachClass]+i) + ".png";
-
+				cout << "Generate image " << nameGeneratedImage << " with operation " << generationType << endl;
                 switch (generationType) {
                     case 0: /* Replication */
                         imwrite(nameGeneratedImage, original);
