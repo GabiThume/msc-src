@@ -109,12 +109,13 @@ void Classifier::printAccuracy(int id, vector<vector<double> > fScore){
 	if (outputName != ""){
 		cout << "Write on " << (outputName+"FScore.csv").c_str() << endl;
 		cout << "---------------------------------------------------------------------------------------" << endl;
-		outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), ios::out | ios::app);
+		// outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), ios::out | ios::app);
+		outputFile.open((outputName+"BalancedAccuracy.csv").c_str());
 		outputFile << balancedMean << "\n";
 		// outputFile << minority.second << "," << balancedMean << "\n";
 		outputFile.close();
-		outputFile.open((outputName+"FScore.csv").c_str(), ios::out | ios::app);
-		// outputFile.open((outputName+"FScore.csv").c_str());
+		// outputFile.open((outputName+"FScore.csv").c_str(), ios::out | ios::app);
+		outputFile.open((outputName+"FScore.csv").c_str());
 		// outputFile << id << "," << fscoreMean << "\n";
 		for (i = 0; i < (int) fscores.size(); i++){
 			outputFile << i << "," << fscores[i] << "\n";
@@ -320,10 +321,10 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 		}
 		totalTesting += testingNumber[actualClass];
 		totalTraining += trainingNumber[actualClass];
-		cout << "In class " << actualClass << " testing: " << testingNumber[actualClass] << " training: " << trainingNumber[actualClass] << endl;
+		// cout << "In class " << actualClass << " testing: " << testingNumber[actualClass] << " training: " << trainingNumber[actualClass] << endl;
 	}
 
-	cout << "Total of imagens in training " << totalTraining << " and in testing " << totalTesting << endl;
+	// cout << "Total of imagens in training " << totalTraining << " and in testing " << totalTesting << endl;
 
 	/* Repeated random sub-sampling validation */
 	for(repetition = 0; repetition < numRepetition; repetition++) {

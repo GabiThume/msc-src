@@ -173,71 +173,103 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
     originalImage.copyTo(subImg);
     int roiWidth, roiHeight, subImage, newImage, operation;
     int startWidth, startHeight, randH, randW;
+	// namedWindow("Display window", WINDOW_AUTOSIZE );
+    // imshow("original", originalImage);
+    // waitKey(0);
 
     startWidth = startHeight = 0;
     for (subImage = 1; subImage <= fator; subImage++){
-        // vectorRand.clear();
-        // do{
-        //     newImage = rand() % total;
-        // } while(count(vectorRand.begin(), vectorRand.end(), newImage));
-        // vectorRand.push_back(newImage);
+		if (option == 2){
+			originalImage.copyTo(img);
+		}
+		else {
+	        do{
+	            newImage = rand() % total;
+	        } while(count(vectorRand.begin(), vectorRand.end(), newImage) && vectorRand.size() < total);
+	        vectorRand.push_back(newImage);
+			// cout << "newImage " << newImage << endl;
 
-        newImage = rand() % total;
-        /* Find out if the subimage has the same size */
-        images[newImage].copyTo(img);
-        // if (img.size() != subImg.size()){
-        //     subImage--;
-        //     continue;
-        // }
-        img.copyTo(generated);
+	        // newImage = rand() % total;
+	        /* Find out if the subimage has the same size */
+	        images[newImage].copyTo(img);
+			// imshow("newImage", img);
+		    // waitKey(0);
+	        // if (img.size() != subImg.size()){
+	        //     subImage--;
+	        //     continue;
+	        // }
+	        // img.copyTo(generated);
+			// imshow("generated", generated);
+		    // waitKey(0);
+		}
 
         operation = 1 + (rand() % 6);
+		// cout << " operation " << operation <<  endl;
         switch(operation){
             case 1:
-                generated = generateBlur(originalImage);
+                generated = generateBlur(img);
                 break;
             case 2:
-                generated = generateNoise(originalImage);
+                generated = generateNoise(img);
                 break;
             case 3:
-                generated = generateBlending(originalImage, images, total);
+                generated = generateBlending(img, images, total);
                 break;
             case 4:
-                generated = generateUnsharp(originalImage);
+                generated = generateUnsharp(img);
                 break;
             case 5:
-                generated = generateThreshold(originalImage, images, total);
+                generated = generateThreshold(img, images, total);
                 break;
             case 6:
-                generated = generateSaliency(originalImage, images, total);
+                generated = generateSaliency(img, images, total);
             default:
                 break;
         }
+		// imshow("generated", generated);
+	    // waitKey(0);
+		// cout << "original size width: " << originalImage.size().width << " height " << originalImage.size().height << endl;
 
-        roiHeight = generated.size().height/sqrt(fator);
-        roiWidth = generated.size().width/sqrt(fator);
+        roiHeight = subImg.size().height/sqrt(fator);
+        roiWidth = subImg.size().width/sqrt(fator);
 
+		// cout << "generated size width: " << generated.size().width << " height " << generated.size().height << endl;
+		// cout << " roi size " << roiWidth << " height " << roiHeight << endl;
         if (generated.size().width < roiWidth || generated.size().height < roiHeight){
+			// cout << " subImage " << subImage << endl;
             subImage--;
             continue;
         }
-
 		if (!option){
+			// cout << "!option" << endl;
 	        randW = rand() % (generated.size().width - roiWidth);
 	        randH = rand() % (generated.size().height - roiHeight);
+			// cout << ">> " << randW << " " << randH << " " << roiWidth << " " << roiHeight << " " << endl;
 	        generated(Rect(randW, randH, roiWidth, roiHeight)).copyTo(roi);
 		}
 		else{
+			// cout << "option" << endl;
 			if (generated.size() == subImg.size()){
+				// cout << ">>if " << startWidth << " " << startHeight << " " << roiWidth << " " << roiHeight << " " << endl;
 			    generated(Rect(startWidth, startHeight, roiWidth, roiHeight)).copyTo(roi);
 			}
-			else
+			else {
+				// cout << ">>else " << 0 << " " << 0 << " " << roiWidth << " " << roiHeight << " " << endl;
 			    generated(Rect(0, 0, roiWidth, roiHeight)).copyTo(roi);
+			}
 		}
+		// cout << "startWidth " << startWidth << " startHeight " << startHeight << endl;
+		// cout << "subImg" <<  "width: " << subImg.size().width << " height " << subImg.size().height << endl;
+		// imshow("roi", roi);
+	    // waitKey(0);
 
         Mat dst_roi = subImg(Rect(startWidth, startHeight, roiWidth, roiHeight));
+		// cout << "copyto" << endl;
         roi.copyTo(dst_roi);
-        if ((startWidth + roiWidth) < generated.size().width){
+		// imshow("subImg", subImg);
+	    // waitKey(0);
+		// cout << "copied " << endl;
+        if ((startWidth + 2*roiWidth) <= subImg.size().width){
             startWidth = startWidth + roiWidth;
         }
         else{
@@ -247,7 +279,10 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
         generated.release();
         img.release();
         roi.release();
+		dst_roi.release();
     }
+	// imshow("subImg", subImg);
+    // waitKey(0);
     return subImg;
 }
 
@@ -482,7 +517,7 @@ string Artificial::generate(string base, int whichOperation = 0){
                 /* Choose an operation
                     Case 1: All operation */
                 if (whichOperation == 1)
-                    generationType = 2 + (rand() % 12);
+                    generationType = 2 + (rand() % 14);
                 else
                     generationType = whichOperation;
 
@@ -538,6 +573,14 @@ string Artificial::generate(string base, int whichOperation = 0){
                         break;
                     case 13:
                         generated = generateComposition(original, images, totalImage[eachClass], 16, 1);
+                        imwrite(nameGeneratedImage, generated);
+                        break;
+					case 14:
+                        generated = generateComposition(original, images, totalImage[eachClass], 4, 2);
+                        imwrite(nameGeneratedImage, generated);
+                        break;
+					case 15:
+                        generated = generateComposition(original, images, totalImage[eachClass], 16, 2);
                         imwrite(nameGeneratedImage, generated);
                         break;
                     default:

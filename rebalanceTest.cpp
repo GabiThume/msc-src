@@ -303,7 +303,7 @@ int main(int argc, char const *argv[]){
         cout << "---------------------------------------------------------------------------------------" << endl;
         string dirImbalanced = imbalance(baseDir, newDir, 0.5);
 
-        for (operation = 1; operation <= 13; operation ++){
+        for (operation = 1; operation <= 15; operation ++){
 
             stringstream operationstr;
             operationstr << operation;
@@ -399,7 +399,7 @@ int main(int argc, char const *argv[]){
                             bestFscore[i] = diff;
                             stringstream classe;
                             classe << i;
-                            bestDir = dirRebalanced+"/../BestFScore/Generation_"+classe.str()+"/";
+                            bestDir = newDir+"/BestFscore/Generation_"+classe.str()+"/";
                         	str = "rm -f -r "+bestDir+"/*;";
                         	str += "mkdir -p "+bestDir+";";
                         	str += "cp -R "+dirRebalanced+"/* "+bestDir+";";
