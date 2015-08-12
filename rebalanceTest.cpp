@@ -122,8 +122,8 @@ string imbalance(string database, string newDir, double prob){
 
             vectorRand.clear();
         }
-        fator -= 0.1;
-        //fator *= 2;
+        //fator -= 0.1;
+        fator -= 1.0/(double)qtdClasses;
     }
     return dir;
 }
@@ -138,9 +138,9 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
     Mat synthetic;
     SMOTE s;
 
-    for(it = imbalancedData.begin(); it != imbalancedData.end(); ++it) {
+    for (it = imbalancedData.begin(); it != imbalancedData.end(); ++it){
         if (it->fixedTrainOrTest){
-            for(i = 0; i < it->trainOrTest.size().height; i++){
+            for(i = 0; i < it->trainOrTest.size().height; ++i){
                 if (it->trainOrTest.at<float>(i,0) == 1)
                     trainingNumber[it->classNumber]++;
             }
@@ -155,7 +155,7 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
     }
 
     (*total) = 0;
-    for(eachClass = 0; eachClass < (int) imbalancedData.size(); ++eachClass) {
+    for (eachClass = 0; eachClass < (int) imbalancedData.size(); ++eachClass){
 
         Mat dataTraining(0, imbalancedData[eachClass].features.size().width, CV_32FC1);
         Mat dataTesting(0, imbalancedData[eachClass].features.size().width, CV_32FC1);
@@ -172,7 +172,7 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
             neighbors = (double)trainingNumber[majorityClass]/(double)trainingNumber[eachClass];
             //cout << " neighbors " << neighbors << endl;
 
-            for (x = 0; x < imbalancedData[eachClass].trainOrTest.size().height; x++){
+            for (x = 0; x < imbalancedData[eachClass].trainOrTest.size().height; ++x){
                 if (imbalancedData[eachClass].trainOrTest.at<float>(x,0) == 1){
                     dataTraining.resize(numTraining+1);
                     Mat tmp = dataTraining.row(numTraining);
@@ -222,7 +222,6 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
             rebalancedData.push_back(imbalancedData[eachClass]);
             (*total) += imbalancedData[eachClass].features.size().height;
         }
-
     }
 
     // FILE *arq = fopen("smote.data", "w+");
@@ -242,7 +241,6 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
     //     fprintf(arq,"%1.1f\n", newClasses.at<float>(w,0));
     // }
     return rebalancedData;
-
 }
 
 // string fileDescriptor = desc(baseDir, featuresDir, d, m, "original");
@@ -262,20 +260,18 @@ int main(int argc, char const *argv[]){
 
     Classifier c;
     Size size;
-    int numClasses, rep, m, d, operation, i;
-    int initialMethod, endMethod, h, w, totalRebalanced;
-    float prob = 0.5;
+    Artificial a;
     ofstream csvFile;
+    stringstream numImages;
+    int numClasses, rep, m, d, operation, i, initialMethod, endMethod, h, w, totalRebalanced;
+    double prob = 0.5, fscoreMean, bestFscoreMean;
     string nameFile, name, nameDir, descriptorName, method, newDir, baseDir, featuresDir;
     string csvOriginal, csvSmote, csvRebalance, analysisDir, csvDesbalanced;
+    string directory, str, bestDir;
     Mat classes, minorityOverSampled, majority, majorityClasses, newClasses, total, synthetic;
-    Mat minorityTraining, minorityTesting, minorityRebalanced, trainTest;
-    Mat trainTestOriginal;
-    Artificial a;
-    stringstream numImages;
+    Mat minorityTraining, minorityTesting, minorityRebalanced, trainTest, trainTestOriginal;
     vector<Classes> data, imbalancedData, artificialData;
     vector<int> objperClass;
-    string directory, str, bestDir;
     vector<vector<double> > rebalancedFscore, desbalancedFscore;
     vector<double> fscores, bestFscore, desbalancedFscores;
 
@@ -310,8 +306,7 @@ int main(int argc, char const *argv[]){
             op = operationstr.str();
             /* Generate Artificial Images */
             string dirRebalanced = a.generate(dirImbalanced, operation);
-            /*
-                Available
+            /*  Available
                     Descriptors: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"}
                     Quantization methods: {"Intensity", "Luminance", "Gleam", "MSB"}
             */
@@ -388,9 +383,26 @@ int main(int argc, char const *argv[]){
                     for (i = 0; i < (int) rebalancedFscore.size(); i++){
                 		fscores.push_back(c.calculateMean(rebalancedFscore[i]));
                         desbalancedFscores.push_back(c.calculateMean(desbalancedFscore[i]));
-                        if (bestFscore.size() < fscores.size())
+                        if (bestFscore.size() < fscores.size()){
                             bestFscore.push_back(0);
+                            bestFscoreMean = 0;
+                        }
                 	}
+                    fscoreMean = c.calculateMean(fscores);
+                    if (fscoreMean > bestFscoreMean){
+                        bestFscoreMean = fscoreMean;
+                        bestDir = newDir+"/BestMeanFscore/";
+                        str = "rm -f -r "+bestDir+"/*;";
+                        str += "mkdir -p "+bestDir+";";
+                        str += "cp -R "+dirRebalanced+"/* "+bestDir+";";
+                        str += "cp -R "+csvSmote+"FScore.csv "+bestDir+";";
+                        str += "cp -R "+csvRebalance+"FScore.csv "+bestDir+";";
+                        str += "cp -R "+csvDesbalanced+"FScore.csv "+bestDir+";";
+                        str += "cp -R "+csvSmote+"BalancedAccuracy.csv "+bestDir+";";
+                        str += "cp -R "+csvRebalance+"BalancedAccuracy.csv "+bestDir+";";
+                        str += "cp -R "+csvDesbalanced+"BalancedAccuracy.csv "+bestDir+";";
+                        system(str.c_str());
+                    }
                     for (i = 0; i < (int) rebalancedFscore.size(); i++){
                         /* If it is a better generation for some class */
                         double diff = fscores[i] - desbalancedFscores[i];
