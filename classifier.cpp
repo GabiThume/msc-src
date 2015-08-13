@@ -110,20 +110,20 @@ void Classifier::printAccuracy(int id, vector<vector<double> > fScore){
 		cout << "Write on " << (outputName+"FScore.csv").c_str() << endl;
 		cout << "---------------------------------------------------------------------------------------" << endl;
 		// outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), ios::out | ios::app);
-		outputFile.open((outputName+"BalancedAccuracy.csv").c_str());
-		outputFile << balancedMean << "\n";
+		// outputFile.open((outputName+"BalancedAccuracy.csv").c_str());
+		// outputFile << balancedMean << "\n";
 		// outputFile << minority.second << "," << balancedMean << "\n";
-		outputFile.close();
-		// outputFile.open((outputName+"FScore.csv").c_str(), ios::out | ios::app);
-		outputFile.open((outputName+"FScore.csv").c_str());
-		// outputFile << id << "," << fscoreMean << "\n";
-		for (i = 0; i < (int) fscores.size(); i++){
-			outputFile << i << "," << fscores[i] << "\n";
-		}
-		outputFile.close();
+		// outputFile.close();
+		outputFile.open((outputName+"FScore.csv").c_str(), ios::out | ios::app);
+		// outputFile.open((outputName+"FScore.csv").c_str());
+		outputFile << id << "," << fscoreMean << "\n";
+		// for (i = 0; i < (int) fscores.size(); i++){
+		// 	outputFile << i << "," << fscores[i] << "\n";
+		// }
+		// outputFile.close();
 		// outputFile.open((outputName+"ROC.csv").c_str(), ios::out | ios::app);
 		// outputFile << FPR << "," << TPR << endl;
-		// outputFile.close();
+		outputFile.close();
 	}
 }
 
@@ -214,9 +214,9 @@ vector<double> calculateFscore(Mat confusionMat){
 
 		fscore = (2.0) * (precisionRate*recallRate)/(precisionRate+recallRate);
 		if (truePositive == 0)
-		fScore.push_back(0);
+			fScore.push_back(0);
 		else
-		fScore.push_back(fscore*100.0);
+			fScore.push_back(fscore*100.0);
 	}
 
 	// falsePositiveRate = falsePositive/negative; // ROC: plotted on X axis
@@ -245,21 +245,21 @@ Mat confusionMatrix(int numClasses, Mat labelsTesting, Mat result){
 	}
 
 	// if (print){
-	//     cout << "---------------------------------------------------------------------------------------" << endl;
-	//     cout << "\t\t\t\tConfusion Matrix" << endl;
-	//     cout << "\t\tPredicted" << endl << "\t";
-	//     for(i = 0; i < confusionMat.cols; i++){
-	//         cout << "\t" << i;
-	//     }
-	//     cout << endl;
-	//     for(i = 0; i < confusionMat.rows; i++){
-	//         if (i == 0) cout << "Real";
-	//         cout << "\t"<< i;
-	//         for(int j = 0; j < confusionMat.cols; j++){
-	//             cout << "\t" << confusionMat.at<int>(i, j);
-	//         }
-	//         cout << endl;
-	//     }
+	    // cout << "---------------------------------------------------------------------------------------" << endl;
+	    // cout << "\t\t\t\tConfusion Matrix" << endl;
+	    // cout << "\t\tPredicted" << endl << "\t";
+	    // for(i = 0; i < confusionMat.cols; i++){
+	    //     cout << "\t" << i;
+	    // }
+	    // cout << endl;
+	    // for(i = 0; i < confusionMat.rows; i++){
+	    //     if (i == 0) cout << "Real";
+	    //     cout << "\t"<< i;
+	    //     for(int j = 0; j < confusionMat.cols; j++){
+	    //         cout << "\t" << confusionMat.at<int>(i, j);
+	    //     }
+	    //     cout << endl;
+	    // }
 	// }
 
 	// /* Output file to use the confusion matrix plot with python*/
@@ -324,7 +324,7 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 		// cout << "In class " << actualClass << " testing: " << testingNumber[actualClass] << " training: " << trainingNumber[actualClass] << endl;
 	}
 
-	// cout << "Total of imagens in training " << totalTraining << " and in testing " << totalTesting << endl;
+	cout << "Total of imagens in training " << totalTraining << " and in testing " << totalTesting << endl;
 
 	/* Repeated random sub-sampling validation */
 	for(repetition = 0; repetition < numRepetition; repetition++) {
@@ -405,7 +405,10 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 					minorityClass = classeId;
 				}
 			}
-			//fscore.push_back(calculateFscore(confusionMat, dataClasse)[minorityClass]);
+			// This only pushes the minority class fscore
+			vector<double> fscoreMinority;
+			fscoreMinority.push_back(calculateFscore(confusionMat)[minorityClass]);
+			fscore.push_back(fscoreMinority);
 		}
 		else {
 			fscoreClasses = calculateFscore(confusionMat);
@@ -421,7 +424,6 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 		}
 		// precision.push_back(precisionRate/confusionMat.rows);
 		// recall.push_back(recallRate/confusionMat.rows);
-
 
 		balancedAccuracy.push_back(calculateBalancedAccuracy(confusionMat));
 

@@ -246,7 +246,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 		 	}
 		}
 
-		cout << "class " << i << " : " << directory << " imagens " << numImages << endl;
+		cout << "class " << i << " : " << database + "/" + to_string(i) << " imagens " << numImages << endl;
 
 		for(j = 0; j < numImages; j++)	{
 

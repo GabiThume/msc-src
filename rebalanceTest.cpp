@@ -268,9 +268,7 @@ int main(int argc, char const *argv[]){
     string nameFile, name, nameDir, descriptorName, method, newDir, baseDir, featuresDir;
     string csvOriginal, csvSmote, csvRebalance, analysisDir, csvDesbalanced;
     string directory, str, bestDir;
-    Mat classes, minorityOverSampled, majority, majorityClasses, newClasses, total, synthetic;
-    Mat minorityTraining, minorityTesting, minorityRebalanced, trainTest, trainTestOriginal;
-    vector<Classes> data, imbalancedData, artificialData;
+    vector<Classes> imbalancedData, artificialData;
     vector<int> objperClass;
     vector<vector<double> > rebalancedFscore, desbalancedFscore;
     vector<double> fscores, bestFscore, desbalancedFscores;
@@ -338,6 +336,7 @@ int main(int argc, char const *argv[]){
                     if (numClasses != 0){
                         cout << "---------------------------------------------------------------------------------------" << endl;
                         cout << "Classification using desbalanced data" << endl;
+                        cout << "Features vectors file: " << originalDescriptor.c_str() << endl;
                         cout << "---------------------------------------------------------------------------------------" << endl;
                         desbalancedFscore = c.classify(prob, 1, imbalancedData, csvDesbalanced.c_str(), 2);
                     }
@@ -360,23 +359,23 @@ int main(int argc, char const *argv[]){
                         cout << "Features vectors file: " << name.c_str() << endl;
                         cout << "---------------------------------------------------------------------------------------" << endl;
                         c.classify(prob, 1, rebalancedData, csvSmote.c_str(), 2);
-                    }
 
-                    stringstream numberOfImages;
-                    numberOfImages.str("");
-                    numberOfImages << totalRebalanced;
-                    string name = featuresDir+descriptors[d-1]+"_"+methods[m-1]+"_256c_100r_"+numberOfImages.str()+"i_smote.csv";
+                        stringstream numberOfImages;
+                        numberOfImages.str("");
+                        numberOfImages << totalRebalanced;
+                        string name = featuresDir+descriptors[d-1]+"_"+methods[m-1]+"_256c_100r_"+numberOfImages.str()+"i_smote.csv";
 
-                    FILE *arq = fopen(name.c_str(), "w+");
-                    fprintf(arq,"%d %d\t%d\n", totalRebalanced, rebalancedData.size(), (int) rebalancedData[0].features.size().width);
-                    int imgNumber = 0;
-                    for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
-                        for (h = 0; h < it->features.size().height; h++, imgNumber++){
-                            fprintf(arq,"%d\t%d\t%d\t", imgNumber, it->classNumber, (int) it->trainOrTest.at<float>(h,0));
-                            for (w = 0; w < it->features.size().width; w++){
-                                fprintf(arq,"%.5f ", it->features.at<float>(h, w));
+                        FILE *arq = fopen(name.c_str(), "w+");
+                        fprintf(arq,"%d %d\t%d\n", totalRebalanced, rebalancedData.size(), (int) rebalancedData[0].features.size().width);
+                        int imgNumber = 0;
+                        for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
+                            for (h = 0; h < it->features.size().height; h++, imgNumber++){
+                                fprintf(arq,"%d\t%d\t%d\t", imgNumber, it->classNumber, (int) it->trainOrTest.at<float>(h,0));
+                                for (w = 0; w < it->features.size().width; w++){
+                                    fprintf(arq,"%.5f ", it->features.at<float>(h, w));
+                                }
+                                fprintf(arq,"\n");
                             }
-                            fprintf(arq,"\n");
                         }
                     }
 
