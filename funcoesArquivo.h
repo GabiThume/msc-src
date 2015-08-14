@@ -18,12 +18,18 @@
 using namespace cv;
 using namespace std;
 
+struct Classes {
+	int classNumber;
+	Mat features;
+	bool fixedTrainOrTest;
+	Mat trainOrTest;
+};
 
-Mat readFeatures(string filename, Mat *classes, Mat *trainOrTest, int *nClasses);
+vector<Classes> readFeatures(string filename);
 
 int qtdArquivos(string diretorio);
 
-int qtdImagensTotal(string base, int qtdClasses);
+int qtdImagensTotal(string base, int qtdClasses, vector<int> *objClass, int *maxs);
 
 string descriptor(string baseImagem, string diretorioDescritores, int method, int nColor, double nRes, int oNorm, int *param, int nparam, int oZero, int quantMethod, string id);
 

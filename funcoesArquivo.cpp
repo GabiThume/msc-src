@@ -4,21 +4,23 @@
  *		Gabriela Thumé
  *
  * 	Universidade de São Paulo / ICMC
- *  
+ *
  **/
 
 #include "funcoesArquivo.h"
 
 /* Read the features and save them in Mat data */
-Mat readFeatures(string filename, Mat *classes, Mat *trainOrTest, int *nClasses){
+vector<Classes> readFeatures(string filename){
 
-    int i, j;
+    int j, newSize = 0;
     float features;
-    Mat data;
-    size_t n, d;
-    ifstream myFile(filename.c_str());
+    size_t d;
     string line, infos, numImage, classe, trainTest, numFeatures, numClasses, objetos;
+	vector<Classes> data;
+    int previousClass = -1, actualClass;
+    Classes imgClass;
 
+    ifstream myFile(filename.c_str());
     if(!myFile)
         throw exception();
 
@@ -29,30 +31,46 @@ Mat readFeatures(string filename, Mat *classes, Mat *trainOrTest, int *nClasses)
     stringstream info(infos);
     getline(info, objetos, '\t');
     getline(info, numClasses, '\t');
-    (*nClasses) = atoi(numClasses.c_str());
+    //(*nClasses) = atoi(numClasses.c_str());
     getline(info, numFeatures, '\t');
 
-    n = atoi(objetos.c_str());
+    //n = atoi(objetos.c_str());
     d = atoi(numFeatures.c_str());
 
-    /* Create a Mat named data with the file data provided */
-    data.create(n, d, CV_32FC1);
-    (*classes).create(n, 1, CV_32FC1);
-    (*trainOrTest).create(n, 1, CV_32FC1);
     while (getline(myFile, line)) {
         stringstream vector_features(line);
         getline(vector_features, numImage, '\t');
         getline(vector_features, classe, '\t');
         getline(vector_features, trainTest, '\t');
-        i = atoi(numImage.c_str());
+        actualClass = atoi(classe.c_str());
+        if (previousClass != actualClass){
+
+	    	if (previousClass != -1){
+	    		data.push_back(imgClass);
+	    	}
+	    	previousClass = actualClass;
+			imgClass.features.create(0, d, CV_32FC1);
+			imgClass.trainOrTest.create(0, 1, CV_32FC1);
+			imgClass.fixedTrainOrTest = false;
+		}
+
+		newSize = imgClass.features.size().height+1;
+		imgClass.features.resize(newSize);
+		imgClass.trainOrTest.resize(newSize);
+
         j = 0;
         while(vector_features >> features) {
-            data.at<float>(i, j) = (float)features;
+			imgClass.features.at<float>(newSize-1,j) = (float) features;
             j++;
         }
-        (*classes).at<float>(i, 0)=atoi(classe.c_str());
-        (*trainOrTest).at<float>(i, 0)=atoi(trainTest.c_str());
+        imgClass.trainOrTest.at<float>(newSize-1, 0)=atoi(trainTest.c_str());
+	    imgClass.classNumber = actualClass;
+	    if (atoi(trainTest.c_str())!=0)
+	    	imgClass.fixedTrainOrTest = true;
     }
+	if (previousClass != -1){
+		data.push_back(imgClass);
+	}
 
     myFile.close();
     return data;
@@ -82,13 +100,13 @@ int qtdArquivos(string directory){
     return count;
 }
 
-int qtdImagensTotal(string base, int qtdClasses, int *objClass, int *maxs){
+int qtdImagensTotal(string base, int qtdClasses, vector<int> *objClass, int *maxs){
 
 	int i, count = 0, currentSize;
 	string directory;
 	*maxs = 0;
 
-	for (i = 1; i <= qtdClasses; i++){
+	for (i = 0; i < qtdClasses; i++){
 		directory = base + "/" + to_string(i)  + "/treino/";
 		currentSize = qtdArquivos(directory);
 		directory = base + "/" + to_string(i)  + "/teste/";
@@ -100,7 +118,7 @@ int qtdImagensTotal(string base, int qtdClasses, int *objClass, int *maxs){
 		 		fprintf(stderr,"Error! There is no directory named %s\n", directory.c_str());
 		 	}
 		}
-		objClass[i-1] = currentSize;
+		(*objClass).push_back(currentSize);
 		count += currentSize;
 		if (currentSize > *maxs || *maxs == 0)
 			*maxs = currentSize;
@@ -120,23 +138,23 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	FILE *arq;
 	string quantizationsNames[4] = {"Intensity", "Luminance", "Gleam", "MSB"};
 	string descriptors[8] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"};
+    vector<int> objperClass;
 
 	cout << "\n---------------------------------------------------------------------------------------" << endl;
 	cout << "Image feature extraction" << endl;
 	cout << "---------------------------------------------------------------------------------------" << endl;
 
 	directory = database+"/";
-	
+
 	// Check how many classes and images there are
 	qtdClasses = qtdArquivos(directory);
-	int *objperClass = (int *)malloc(qtdClasses*sizeof(int));
-	qtdImgTotal = qtdImagensTotal(database, qtdClasses, objperClass, &maxc);
+	qtdImgTotal = qtdImagensTotal(database, qtdClasses, &objperClass, &maxc);
 
 	if (method !=5)
 		nome = featuresDir+descriptors[method-1]+"_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
 
 	switch (method) {
-		case 1: 
+		case 1:
 			featureVectorSize = colors*2;
 			cout << "BIC and " << quantizationsNames[quantization-1] << ":";
 			break;
@@ -180,29 +198,29 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 			break;
 	}
 
-	// Allocates the feature vector of size featureVectorSize	
+	// Allocates the feature vector of size featureVectorSize
 	featureVector.create(1, featureVectorSize, CV_64F);
 	// Fill out with zeros
 	featureVector = Scalar::all(0);
-	
+
 	arq = fopen(nome.c_str(), "w+");
 	if (arq == 0){
 		cout << "It is not possible to open the feature's file: " << nome << endl;
 		return "";
 	}
 
-	fprintf(arq,"%d\t%d\t%d\n", qtdImgTotal, qtdClasses, featureVectorSize); 
-	
+	fprintf(arq,"%d\t%d\t%d\n", qtdImgTotal, qtdClasses, featureVectorSize);
+
 	cout << colors << " colors, size " << resizeFactor << endl;
 	cout << "File: " << nome << endl;
 	cout << "Objects: " << qtdImgTotal << " - Classes: " << qtdClasses << " - Features: " << featureVectorSize << endl;
 
 	for (i = 0; i < qtdClasses; i++) {
 		int bars = (int) (((float) objperClass[i] / (float) qtdImgTotal)*50.0);
-		cout << (i+1) << " ";
+		cout << i << " ";
 		for (j = 0; j < bars; j++){
 			cout << "|";
-		}	  
+		}
 		float porc = (float)objperClass[i]/(float)qtdImgTotal;
 		cout << " " << porc*100 << "%" << " (" << objperClass[i] << ")" <<endl;
 	}
@@ -211,7 +229,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	labels = Mat::zeros(qtdImgTotal, 1, CV_8U);
 	trainTest = Mat::zeros(qtdImgTotal, 1, CV_8U);
 
-	for(i = 1; i <= qtdClasses; i++) {
+	for(i = 0; i < qtdClasses; i++) {
 
 		directory = database + "/" + to_string(i)  + "/treino/";
 		numImages = qtdArquivos(directory);
@@ -228,34 +246,42 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 		 	}
 		}
 
-		cout << "class " << i << " : " << directory << " imagens " << numImages << endl;
-		
+		cout << "class " << i << " : " << database + "/" + to_string(i) << " imagens " << numImages << endl;
+
 		for(j = 0; j < numImages; j++)	{
 
-			img = imread(database +"/"+to_string(i)+"/"+to_string(j)+".jpg", CV_LOAD_IMAGE_COLOR);
-			trainTest.at<uchar>(imgTotal,0) = (uchar)0;
-			if (img.empty()) { 
-				img = imread(database +"/"+to_string(i)+"/treino/"+to_string(j)+".jpg", CV_LOAD_IMAGE_COLOR);
+            directory = database +"/"+to_string(i)+"/"+to_string(j);
+			img = imread(directory+".jpg", CV_LOAD_IMAGE_COLOR);
+			if (img.empty())
+                img = imread(directory+".png", CV_LOAD_IMAGE_COLOR);
+            trainTest.at<uchar>(imgTotal,0) = (uchar)0;
+			if (img.empty()) {
+                directory = database +"/"+to_string(i)+"/treino/"+to_string(j);
+				img = imread(directory+".jpg", CV_LOAD_IMAGE_COLOR);
+                if (img.empty())
+                    img = imread(directory+".png", CV_LOAD_IMAGE_COLOR);
 				trainTest.at<uchar>(imgTotal,0) = (uchar)1;
 				if (img.empty()){
-					directory = database +"/"+to_string(i)+"/teste/"+to_string(j-treino)+".jpg";
-					img = imread(directory, CV_LOAD_IMAGE_COLOR);
+					directory = database +"/"+to_string(i)+"/teste/"+to_string(j-treino);
+					img = imread(directory+".jpg", CV_LOAD_IMAGE_COLOR);
+                    if (img.empty())
+                        img = imread(directory+".png", CV_LOAD_IMAGE_COLOR);
 					trainTest.at<uchar>(imgTotal,0) = (uchar)2;
-					if (img.empty()){ 
-						cout << "Error when trying to open an image of " << directory << endl; 
-						return ""; 
+					if (img.empty()){
+						cout << "Error when trying to open an image of " << directory << endl;
+						return "";
 					}
 				}
 			}
 
 			if (resizeFactor < 1) {
 				resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
-				if (imgTotal==0) 
+				if (imgTotal==0)
 					imwrite("out.jpg", newimg);
-			} 
+			}
 			else
 				img.copyTo(newimg);
-			
+
 			switch(quantization){
 				case 1:
                     QuantizationIntensity(&newimg, &newimg, colors);
@@ -269,11 +295,11 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 				case 4:
                     QuantizationMSB(&newimg, &newimg, colors);
                     break;
-				default: 
+				default:
                     cout << "Error: this quantization method does not exists." << endl;
                     return "";
 			}
-			
+
 			switch(method){
 	            /* BIC: image, descriptor, number of colors, normalization */
 				case 1:
@@ -283,7 +309,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 				case 2:
                     GCH(&newimg, &featureVector, colors, normalization);
                     break;
-			    /* CCV: image, descriptor, number of colors, normalization, 
+			    /* CCV: image, descriptor, number of colors, normalization,
 			          limiar coerente/incoerente */
 				case 3:
                     CCV(&newimg, &featureVector, colors, normalization, param[0]);
@@ -312,7 +338,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
                     break;
 				case 9:
                     break;
-				default: 
+				default:
                     cout << "Error: this description method does not exists." << endl;
                     return "";
 			}
@@ -322,6 +348,8 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 				features.at<float>(imgTotal,k) = featureVector.at<float>(0, k);
 			}
 			imgTotal++;
+            img.release();
+            newimg.release();
 		}
 	}
 
@@ -329,7 +357,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 		normFactor = (normalization == 1) ? 1.0 : 255.0;
 
 		for(j = 0; j < features.cols; ++j){
-			min = features.at<float>(0,j); 
+			min = features.at<float>(0,j);
 			max = features.at<float>(0,j);
 
 			for(i = 1; i < features.rows; ++i){
@@ -355,29 +383,33 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 			else
 				fprintf(arq,"%.5f ", features.at<float>(i, k));
 		}
-		fprintf(arq,"\n");	
+		fprintf(arq,"\n");
 	}
 
-	// cout << ">>>>>>>> Wrote on data file " << nome << endl;
-	// cout << "---------------------------------------------------------------------------------------" << endl;
- //    FILE *arqVis = fopen((nome+"data").c_str(), "w+");
-	// int w, z;
-	// fprintf(arqVis,"%s\n", "DY");
-	// fprintf(arqVis,"%d\n", labels.size().height);
-	// fprintf(arqVis,"%d\n", features.size().width);
-	// for(z = 0; z < features.size().width-1; z++) {
-	//     fprintf(arqVis,"%s%d;", "attr",z);
-	// }
-	// fprintf(arqVis,"%s%d\n", "attr",z);
-	// for (w = 0; w < labels.size().height; w++) {
-	//     fprintf(arqVis,"%d%s;", w,".jpg");
-	//     for(z = 0; z < features.size().width; z++) {
-	//         fprintf(arqVis,"%.5f;", features.at<float>(w, z));
-	//     }
-	//     float numeroimg =  labels.at<uchar>(w,0);
-	//     fprintf(arqVis,"%1.1f\n", numeroimg);
-	//     // cout << labels.at<float>(w,0) << " versus " << numeroimg << endl;
-	// }
+    bool writeDataFile = false;
+    if (writeDataFile){
+
+        cout << "---------------------------------------------------------------------------------------" << endl;
+    	cout << "Wrote on data file named " << nome << endl;
+    	cout << "---------------------------------------------------------------------------------------" << endl;
+        FILE *arqVis = fopen((nome+"data").c_str(), "w+");
+    	int w, z;
+    	fprintf(arqVis,"%s\n", "DY");
+    	fprintf(arqVis,"%d\n", labels.size().height);
+    	fprintf(arqVis,"%d\n", features.size().width);
+    	for(z = 0; z < features.size().width-1; z++) {
+    	    fprintf(arqVis,"%s%d;", "attr",z);
+    	}
+    	fprintf(arqVis,"%s%d\n", "attr",z);
+    	for (w = 0; w < labels.size().height; w++) {
+    	    fprintf(arqVis,"%d%s;", w,".png");
+    	    for(z = 0; z < features.size().width; z++) {
+    	        fprintf(arqVis,"%.5f;", features.at<float>(w, z));
+    	    }
+    	    float numeroimg =  labels.at<uchar>(w,0);
+    	    fprintf(arqVis,"%1.1f\n", numeroimg);
+    	}
+    }
 
 	if (method == 4) {
 		for (i = 0; i < colors; i++) {
@@ -385,7 +417,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 		}
 		free(coocurrenceMatrix);
 	}
-	
+
 	fclose(arq);
 	return nome;
 }

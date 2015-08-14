@@ -4,20 +4,27 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/ml/ml.hpp>
 
+#include "funcoesArquivo.h"
+
 using namespace cv;
 using namespace std;
 
+
 class Classifier{
 
-    vector<float> accuracy, balancedAccuracy, precision, recall, fScore;
+    vector<double> accuracy, balancedAccuracy, precision, recall;
     int totalTest, totalTrain, numClasses;
-    pair<int, int> minority;
     string outputName;
 
     public:
-        void bayes(float, int, Mat, Mat, int, pair<int, int>, Mat, string);
-        void findSmallerClass(Mat, int, int*, int*, int*);
-        void printAccuracy();
+
+    	void bayesClassifier(Mat, Mat, Mat, Mat&);
+		void knn(Mat, Mat, Mat, Mat&);
+        vector<vector<double> > classify(double, int, vector<Classes>, string, int);
+        int findSmallerClass(vector<Classes>);
+        void printAccuracy(int id, vector<vector<double> > fScore);
+        double calculateMean(vector<double> accuracy);
+        double calculateStandardDeviation(vector<double> accuracy);
 };
 
 #endif
