@@ -18,11 +18,11 @@
  *	- fila de pixels
  *	- pixels ja visitados
  *	- tamanho da regiao */
-void find_neighbor(Mat *img, queue<Pixel> *pixels, int *visited, long int *tam_reg) {
+void find_neighbor(Mat img, queue<Pixel> *pixels, int *visited, long int *tam_reg) {
 	// testa os quatro vizinhos
 	// se podem ser visitados então marca visited, adiciona na fila e incrementa tam_reg
-	int height = (*img).rows;
-	int width = (*img).cols;
+	int height = img.rows;
+	int width = img.cols;
 
 	// pega o pixel da frente da fila
 	Pixel pix = (*pixels).front();
@@ -43,7 +43,7 @@ void find_neighbor(Mat *img, queue<Pixel> *pixels, int *visited, long int *tam_r
 	t = j;
 
 	if (s >= 0 && s < height && t >= 0 && t < width) {
-	    img_color = (*img).at<uchar>(s,t);
+	    img_color = img.at<uchar>(s,t);
 	    if (visited[s*width + t] == 0 && img_color == pix_color) {
 			pix.i = s;
 			pix.j = t;
@@ -57,7 +57,7 @@ void find_neighbor(Mat *img, queue<Pixel> *pixels, int *visited, long int *tam_r
 	t = j + 1;
 
 	if (s >= 0 && s < height && t >= 0 && t < width) {
-	    img_color = (*img).at<uchar>(s,t);
+	    img_color = img.at<uchar>(s,t);
 	    if (visited[s*width + t] == 0 && img_color == pix_color) {
 			pix.i = s;
 			pix.j = t;
@@ -70,7 +70,7 @@ void find_neighbor(Mat *img, queue<Pixel> *pixels, int *visited, long int *tam_r
 	s = i + 1;
 	t = j;
 	if (s >= 0 && s < height && t >= 0 && t < width) {
-	    img_color = (*img).at<uchar>(s,t);
+	    img_color = img.at<uchar>(s,t);
 	    if (visited[s*width + t] == 0 && img_color == pix_color) {
 			pix.i = s;
 			pix.j = t;
@@ -83,7 +83,7 @@ void find_neighbor(Mat *img, queue<Pixel> *pixels, int *visited, long int *tam_r
 	s = i;
 	t = j - 1;
 	if (s >= 0 && s < height && t >= 0 && t < width) {
-	    img_color = (*img).at<uchar>(s,t);
+	    img_color = img.at<uchar>(s,t);
 	    if (visited[s*width + t] == 0 && img_color == pix_color) {
 			pix.i = s;
 			pix.j = t;
@@ -108,10 +108,10 @@ void find_neighbor(Mat *img, queue<Pixel> *pixels, int *visited, long int *tam_r
  		int indicating if the normalization is requered
  		int level of coherency
  ****************************************************************************/
-void CCV(Mat *img, Mat *features, int colors, int normalization, int threshold){
+void CCV(Mat img, Mat *features, int colors, int normalization, int threshold){
 
 	int i, j;
-	Mat img_quant((*img).size(), CV_8UC1);
+	Mat img_quant(img.size(), CV_8UC1);
 	int height = img_quant.rows;
 	int width = img_quant.cols;
 	int *pxl_visited = new int[height*width]();
@@ -125,12 +125,12 @@ void CCV(Mat *img, Mat *features, int colors, int normalization, int threshold){
 	queue<Pixel> pixels;
 	Pixel pix;
 
-	if ((*img).channels() == 1) {
+	if (img.channels() == 1) {
 		double min, max;
 		Point maxLoc, minLoc;
-		minMaxLoc((*img), &min, &max, &minLoc, &maxLoc);
+		minMaxLoc(img, &min, &max, &minLoc, &maxLoc);
 		double stretch = ((double)((colors-1)) / (max - min ));
-		img_quant = (*img) - min;
+		img_quant = img - min;
 		img_quant = img_quant * stretch;
 	}
 	else {
@@ -157,7 +157,7 @@ void CCV(Mat *img, Mat *features, int colors, int normalization, int threshold){
 
 				// while queue is NOT empty, find neighbors
 				while (!pixels.empty())
-					find_neighbor(&img_quant, &pixels, pxl_visited, &tam_reg);
+					find_neighbor(img_quant, &pixels, pxl_visited, &tam_reg);
 
 				// check if size of the region is higher than the coherence threshold
 				if(tam_reg >= threshold)
@@ -196,19 +196,19 @@ void CCV(Mat *img, Mat *features, int colors, int normalization, int threshold){
  *	- imagem original
  *	- histrograma ja alocado
  *	- quantidade de cores usadas na imagem */
-void GCH(Mat *I, Mat *features, int colors, int normalization) {
+void GCH(Mat I, Mat *features, int colors, int normalization) {
 
 	int i;
 	vector<int> hist;
 	MatIterator_<uchar> it, end;
 
-	Mat Q((*I).size(), CV_8U, 1);
-	if ((*I).channels() == 1) {
+	Mat Q(I.size(), CV_8U, 1);
+	if (I.channels() == 1) {
 		double min, max;
 		Point maxLoc, minLoc;
-		minMaxLoc(*I, &min, &max, &minLoc, &maxLoc);
+		minMaxLoc(I, &min, &max, &minLoc, &maxLoc);
 		double stretch = ((double)((colors-1)) / (max - min ));
-		Q = (*I) - min;
+		Q = I - min;
 		Q = Q * stretch;
 	}
 	else {
@@ -254,21 +254,21 @@ void GCH(Mat *I, Mat *features, int colors, int normalization) {
  *	- histograma ja alocado, com tamanho de duas vezes a quantidade de cor
  *	- quantidade de cores usadas na imagem
  * No histograma, de 0 até (colors -1) = Borda, de colors até (2*colors -1) = Interior */
-void BIC(Mat *I, Mat *features, int colors, int normalization) {
+void BIC(Mat I, Mat *features, int colors, int normalization) {
 
-	Size imgSize = (*I).size();
+	Size imgSize = I.size();
 	int height = imgSize.height;
 	int width = imgSize.width;
 	int i, j;
 	vector<int> hist;
 	Mat Q(imgSize, CV_8U, 1);
 
-	if ((*I).channels() == 1) {
+	if (I.channels() == 1) {
 		double min, max;
 		Point maxLoc, minLoc;
-		minMaxLoc((*I), &min, &max, &minLoc, &maxLoc);
+		minMaxLoc(I, &min, &max, &minLoc, &maxLoc);
 		double stretch = ((double)((colors-1.0)) / (max - min ));
-		Q = (*I) - min;
+		Q = I - min;
 		Q = Q * stretch;
 	}
 	else {
@@ -326,18 +326,18 @@ void BIC(Mat *I, Mat *features, int colors, int normalization) {
  *	- matriz ja alocada, no tamanho colors x colors
  *	- quantidade de cores usadas na imagem
  *	- coordenadas dX e dY, que podem ser 0 ou 1 */
-void CoocurrenceMatrix(Mat *I, double **Cm, int colors, int dX, int dY) {
+void CoocurrenceMatrix(Mat I, double **Cm, int colors, int dX, int dY) {
 
 	int i, j, height, width;
 	double sum = 0;
 
-	Mat Q((*I).size(), CV_8U, 1);
-	if ((*I).channels() == 1) {
+	Mat Q(I.size(), CV_8U, 1);
+	if (I.channels() == 1) {
 		double min, max;
 		Point maxLoc, minLoc;
-		minMaxLoc((*I), &min, &max, &minLoc, &maxLoc);
+		minMaxLoc(I, &min, &max, &minLoc, &maxLoc);
 		double stretch = ((double)((colors-1)) / (max - min ));
-		Q = (*I) - min;
+		Q = I - min;
 		Q = Q * stretch;
 	}
 	else {
@@ -346,7 +346,7 @@ void CoocurrenceMatrix(Mat *I, double **Cm, int colors, int dX, int dY) {
 
 	// noma imagem quantizada chamada novaQ
 	// alocar uma nova imagem de tamanho maior para ser processada
-	Size newSize((*I).rows+((dX+1)*2), (*I).cols+((dY+1)*2)); // cria um objeto 'tamanho'
+	Size newSize(I.rows+((dX+1)*2), I.cols+((dY+1)*2)); // cria um objeto 'tamanho'
 	Mat novaQ(newSize, CV_8U, 1); // cria a imagem
 
 	// copia a imagem quantizada e replica os pixels das bordas
@@ -480,7 +480,7 @@ void Haralick6(double **Cm, int colors, Mat *features) {
  *	- energia (uniformidade)
  *	- homogeneidade
  *	- entropia */
-void HARALICK(Mat *I, double **Cm, Mat *features, int colors, int normalization) {
+void HARALICK(Mat I, double **Cm, Mat *features, int colors, int normalization) {
 	CoocurrenceMatrix(I, Cm, colors, 2, 0);
 	Haralick6(Cm, colors, features);
 }
@@ -494,7 +494,7 @@ void HARALICK(Mat *I, double **Cm, Mat *features, int colors, int normalization)
  *	- valor da distancia k entre os pixels
  *	- histograma ja alocado
  *	- quantidade de cores usadas na imagem */
-void ACC(Mat *I, Mat *features, int colors, int normalization, int *k, int totalk) {
+void ACC(Mat I, Mat *features, int colors, int normalization, int *k, int totalk) {
 
 	int i,j, x, y, maxdist, d, cd;
 	vector<long int> desc(colors*totalk);
@@ -502,7 +502,7 @@ void ACC(Mat *I, Mat *features, int colors, int normalization, int *k, int total
 
 	// aloca uma nova imagem do tamanho da original
 	// com 8 bits por pixel e 1 canal de cor
-	Mat Q((*I).size(), CV_8U, 1);
+	Mat Q(I.size(), CV_8U, 1);
 
 	QuantizationMSB(I, &Q, colors);
 
@@ -625,7 +625,7 @@ vector<int> initUniform(){
  		Mat features vector in which perform the operations
  		int number of colors
  ****************************************************************************/
-void LBP(Mat *img, Mat *features, int colors){
+void LBP(Mat img, Mat *features, int colors){
 
 	int bin, cellWidth, cellHeight, stride = 0, i, j, x, y, k, height, width;
 	int increaseX = 1, increaseY = 1, newWidth, newHeight;
@@ -633,14 +633,14 @@ void LBP(Mat *img, Mat *features, int colors){
 	vector<int> lookup = initUniform();
 	Size grid, cell;
 	float center;
-	height = (*img).rows;
-	width = (*img).cols;
-    Mat dst = Mat::zeros((*img).rows, (*img).cols, CV_32FC1);
+	height = img.rows;
+	width = img.cols;
+    Mat dst = Mat::zeros(img.rows, img.cols, CV_32FC1);
 
 	Size newSize(width+increaseY*2, height+increaseX*2);
 	Mat resizedImg(newSize, CV_8U, 1);
 
-	copyMakeBorder(*img, resizedImg, increaseX, increaseX, increaseY, increaseY, BORDER_REPLICATE);
+	copyMakeBorder(img, resizedImg, increaseX, increaseX, increaseY, increaseY, BORDER_REPLICATE);
 
 	Size imgSize = resizedImg.size();
 	newHeight = imgSize.height;
@@ -653,15 +653,15 @@ void LBP(Mat *img, Mat *features, int colors){
 				where the center pixel's value is greater than the neighbor's value, write "1". Otherwise, write "0".
 			*/
 			bitString = 0;
-			center = (*img).at<uchar>(i,j);
-			if((*img).at<uchar>(i+1,j+0) >= center) bitString |= 0x1 << 0;
-			if((*img).at<uchar>(i+1,j+1) >= center) bitString |= 0x1 << 1;
-			if((*img).at<uchar>(i+0,j+1) >= center) bitString |= 0x1 << 2;
-			if((*img).at<uchar>(i-1,j+1) >= center) bitString |= 0x1 << 3;
-			if((*img).at<uchar>(i-1,j+0) >= center) bitString |= 0x1 << 4;
-			if((*img).at<uchar>(i-1,j-1) >= center) bitString |= 0x1 << 5;
-			if((*img).at<uchar>(i+0,j-1) >= center) bitString |= 0x1 << 6;
-			if((*img).at<uchar>(i+1,j-1) >= center) bitString |= 0x1 << 7;
+			center = img.at<uchar>(i,j);
+			if(img.at<uchar>(i+1,j+0) >= center) bitString |= 0x1 << 0;
+			if(img.at<uchar>(i+1,j+1) >= center) bitString |= 0x1 << 1;
+			if(img.at<uchar>(i+0,j+1) >= center) bitString |= 0x1 << 2;
+			if(img.at<uchar>(i-1,j+1) >= center) bitString |= 0x1 << 3;
+			if(img.at<uchar>(i-1,j+0) >= center) bitString |= 0x1 << 4;
+			if(img.at<uchar>(i-1,j-1) >= center) bitString |= 0x1 << 5;
+			if(img.at<uchar>(i+0,j-1) >= center) bitString |= 0x1 << 6;
+			if(img.at<uchar>(i+1,j-1) >= center) bitString |= 0x1 << 7;
 			// This gives a bin corresponding to the binary code
 			bin = lookup[bitString];
 			dst.at<float>(i-increaseX, j-increaseY) = bin;
@@ -711,12 +711,12 @@ void LBP(Mat *img, Mat *features, int colors){
     }
 }
 
-void HOG(Mat *img, Mat *features){
+void HOG(Mat img, Mat *features){
 
 	HOGDescriptor hog;
 	vector<float> hogFeatures;
 	vector<Point>locs;
-	int i, width = (*img).size().width, height = (*img).size().height;
+	int i, width = img.size().width, height = img.size().height;
 
 	hog.winSize = Size(width, height);
 	hog.blockSize = Size(width, height);
@@ -727,7 +727,7 @@ void HOG(Mat *img, Mat *features){
 	if (hog.blockSize.height % hog.cellSize.height != 0)
 		hog.cellSize = Size(width, height);
 
-	hog.compute((*img),hogFeatures);
+	hog.compute(img,hogFeatures);
 
 	//The HOG features computed for grayImg are stored in ders vector to make it into a matrix which can be used for training later use the following for loop
 	// Hogfeat.create(hogFeatures.size(),1,CV_32FC1);
@@ -746,72 +746,70 @@ void HOG(Mat *img, Mat *features){
  		Mat original image
  		Mat features vector in which perform the operations
  ****************************************************************************/
-void contourExtraction(Mat *img, Mat *features){
+void contourExtraction(Mat img, Mat *features){
 
 	vector<vector<Point> > contours, contours0;
 	vector<Point> approx;
 	vector<Vec4i> hierarchy;
 	Mat bin;
-	Mat dst = Mat::zeros((*img).rows, (*img).cols, CV_8UC3);
-	int i;
-	vector<bool> k;
-	vector<double> area, areaApprox, perimeter;
+	Mat dst = Mat::zeros(img.rows, img.cols, CV_8UC3);
+	int i, biggestAreaIndex;
+	bool k;
+	double area, areaApprox, perimeter, biggestArea = 0;
+	Moments mu;
+	Point2f mc;
 
-	threshold(*img, bin, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-	// bin = bin > 1;
+	threshold(img, bin, 100, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 	findContours(bin, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
 
-	for (i = 0; i >= 0; i = hierarchy[i][0]){
-		Scalar color(rand()&255, rand()&255, rand()&255);
-		drawContours(dst, contours, i, color, CV_FILLED, 8, hierarchy);
+	// for (i = 0; i >= 0; i = hierarchy[i][0]){
+	// 	Scalar color(rand()&255, rand()&255, rand()&255);
+	// 	drawContours(dst, contours, i, color, CV_FILLED, 8, hierarchy);
+	// }
+	for(i = 0; i < (int) contours.size(); i++){
+		area = contourArea(contours[i], false);
+		if (area > biggestArea){
+			biggestArea = area;
+			biggestAreaIndex = i;
+		}
 	}
-
-	// namedWindow("Contours", 1);
-	// imshow("Contours", dst);
+	// Scalar color(255, 255, 255);
+	// drawContours(dst, contours, biggestAreaIndex, color, CV_FILLED, 8, hierarchy);
+	// namedWindow("Biggest Contour", 1);
+	// imshow("Biggest Contour", dst);
 	// waitKey(0);
 
 	// Get the moments
-	cout << " Numero de contornos " << contours.size() << endl;
-	vector<Moments> mu(contours.size());
-	vector<Point2f> mc(contours.size());
-	for(i = 0; i < (int) contours.size(); i++){
-		mu[i] = moments(contours[i], false);
-		//  Get the mass centers:
-		mc[i] = Point2f(mu[i].m10/mu[i].m00 , mu[i].m01/mu[i].m00);
+	mu = moments(contours[biggestAreaIndex], false);
+	//  Get the mass centers:
+	mc = Point2f(mu.m10/mu.m00, mu.m01/mu.m00);
+	(*features).at<float>(0,0) = mc.x;
+	(*features).at<float>(0,1) = mc.y;
 
-		// Number of pixels inside the contour
-		area[i] = contourArea(contours[i]);
-		// Contour perimeter
-		perimeter[i] = arcLength(contours[i], true);
+	// Number of pixels inside the contour
+	(*features).at<float>(0,2) = biggestArea;
 
-		// Remove small curves by approximating the contour more to a straight line
-		approxPolyDP(contours[i], approx, 0.1*perimeter[i], true);
-		areaApprox[i] = contourArea(approx);
+	// Contour perimeter
+	perimeter = arcLength(contours[biggestAreaIndex], true);
+	(*features).at<float>(0,3) = perimeter;
 
-		// Convex hull checks for convexity defects and corrects it
-		vector<int> hull;
-		convexHull(contours[i], hull); // returnPoints = true
+	// Remove small curves by approximating the contour more to a straight line
+	approxPolyDP(contours[biggestAreaIndex], approx, 0.1*perimeter, true);
+	areaApprox = contourArea(approx);
+	(*features).at<float>(0,4) = areaApprox;
 
-		vector<Point> hullPoints;
-		convexHull(contours[i], hullPoints);
-
-		k[i] = isContourConvex(contours[i]);
-	}
-
-	i = 0;
-	(*features).at<float>(0,0) = mc[i].x;
-	(*features).at<float>(0,1) = mc[i].y;
-	(*features).at<float>(0,2) = area[i];
-	(*features).at<float>(0,3) = perimeter[i];
-	(*features).at<float>(0,4) = areaApprox[i];
-	(*features).at<float>(0,5) = k[i];
-
-	// cout << " area = " << area << " areaApprox = " << areaApprox << " approx poly vertices = " << approx.size() << endl;
+	// Convex hull checks for convexity defects and corrects it
+	vector<int> hull;
+	convexHull(contours[biggestAreaIndex], hull); // returnPoints = true
+	vector<Point> hullPoints;
+	convexHull(contours[biggestAreaIndex], hullPoints);
+	k = isContourConvex(contours[biggestAreaIndex]);
+	(*features).at<float>(0,5) = k;
 }
 
 // Fisher e VLAD
 
-void SURF(Mat *img, Mat *features){
+void SURF(Mat img, Mat *features){
 
 	// vector<KeyPoint> keypoints;
 	// int i, minHessian = 400;

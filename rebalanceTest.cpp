@@ -27,21 +27,22 @@ string desc(string dir, string features, int d, int m, string id){
 }
 
 /* Generate a imbalanced class */
-string imbalance(string database, string newDir, double prob){
+string imbalance(string database, string newDir, double prob, double id){
 
     int pos = 0, samples, imagesTraining, i, imgsInClass;
+    int x, qtdClasses, qtdImgTotal, maxc;
     string dir;
     vector<int> vectorRand, objperClass;
     srand(time(0));
-    int x, qtdClasses, qtdImgTotal, maxc;
     string str, nameFile, name, nameDir, directory;
-    stringstream numImages, classNumber, image;
+    stringstream numImages, classNumber, image, globalFactor;
     Size size;
     ifstream myFile;
     Mat data, classes;
     double fator = 1.0;
 
-    dir = newDir+"/steps/";
+    globalFactor << id;
+    dir = newDir+"/steps-"+globalFactor.str()+"/";
     str = "rm -f -r "+dir+"*;"+"mkdir -p "+dir+";";
     str += "cp -r "+database+"* "+dir+";";
     //cout << " Executa " << str.c_str() << endl;
@@ -52,7 +53,6 @@ string imbalance(string database, string newDir, double prob){
     qtdImgTotal = qtdImagensTotal(database, qtdClasses, &objperClass, &maxc);
 
     for(i = 0; i < qtdClasses; i++) {
-
         classNumber.str("");
         classNumber << i;
         directory = database + "/" + classNumber.str()  + "/";
@@ -61,7 +61,6 @@ string imbalance(string database, string newDir, double prob){
             fprintf(stderr,"Error! There is no directory named %s\n", directory.c_str());
             exit(-1);
         }
-
         samples = imgsInClass*fator;
         if (samples > 0){
 
@@ -73,7 +72,6 @@ string imbalance(string database, string newDir, double prob){
             str += "mkdir -p "+dir+classNumber.str()+"/treino/;";
             str += "mkdir -p "+dir+classNumber.str()+"/teste/;";
 
-            //str = "mkdir -p "+dir+classNumber.str()+"/teste/ "+dir+classNumber.str()+"/treino/;";
             //cout << " Executa " << str.c_str() << endl;
             system(str.c_str());
 
@@ -82,18 +80,10 @@ string imbalance(string database, string newDir, double prob){
                 pos = rand() % imgsInClass;
                 if (!count(vectorRand.begin(), vectorRand.end(), pos)){
                     vectorRand.push_back(pos);
-               }
+                }
             }
 
-            // dir = newDir+numImages.str()+"/";
-            // str = "rm -f -r "+dir+"*;"+"mkdir -p "+dir+";";
-            // str += "cp -r "+database+"* "+dir+";";
-            // str += "rm "+dir+classNumber.str()+"/*;";
-            // str += "mkdir -p "+dir+classNumber.str()+"/teste/ "+dir+classNumber.str()+"/treino/;";
-            // cout << " Executa " << str.c_str() << endl;
-            //system(str.c_str());
-
-            /* Copy some of the originals in treino vs teste */
+            /* Copy some of the originals to a training folder */
             imagesTraining = vectorRand.size()*prob;
             for(x = 0; x < imagesTraining; x++){
                 image.str("");
@@ -104,6 +94,7 @@ string imbalance(string database, string newDir, double prob){
                 //cout << " Executa " << str.c_str() << endl;
             }
 
+            /* Copy the rest of originals to a testing folder */
             for(x = imagesTraining; x < (int)vectorRand.size(); x++){
                 image.str("");
                 image << vectorRand[x];
@@ -113,17 +104,13 @@ string imbalance(string database, string newDir, double prob){
                 //cout << " Executa " << str.c_str() << endl;
             }
 
-            /* Copy the rest of originals in teste */
-
             str = "bash "+newDir+"rename.sh "+dir+classNumber.str()+"/";
-
             //cout << " Executa " << str.c_str() << endl;
             system(str.c_str());
 
             vectorRand.clear();
         }
-        //fator -= 0.1;
-        fator -= 1.0/(double)qtdClasses;
+        fator -= id/(double)qtdClasses;
     }
     return dir;
 }
@@ -243,27 +230,14 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
     return rebalancedData;
 }
 
-// string fileDescriptor = desc(baseDir, featuresDir, d, m, "original");
-// data = readFeatures(fileDescriptor);
-// numClasses = data.size();
-// if (numClasses != 0){
-    // for (rep = 0; rep < 1; rep++){
-        // cout << "---------------------------------------------------------------------------------------" << endl;
-        // cout << "Classification using original vectors" << endl;
-        // cout << "Features vectors file: " << fileDescriptor.c_str() << endl;
-        // cout << "---------------------------------------------------------------------------------------" << endl;
-        // c.classify(prob, 10, data, csvOriginal.c_str(), 1);
-        // c.classify(prob, 10, data, csvSmote.c_str(), 1);
-        // c.classify(prob, 10, data, csvRebalance.c_str(), 1);
-
 int main(int argc, char const *argv[]){
 
     Classifier c;
     Size size;
     Artificial a;
     ofstream csvFile;
-    stringstream numImages;
-    int numClasses, rep, m, d, operation, i, initialMethod, endMethod, h, w, totalRebalanced;
+    stringstream numImages, globalFactor;
+    int numClasses, rep, m, d, operation, i, initialMethod, endMethod, h, w, totalRebalanced, x;
     double prob = 0.5, fscoreMean, bestFscoreMean;
     string nameFile, name, nameDir, descriptorName, method, newDir, baseDir, featuresDir;
     string csvOriginal, csvSmote, csvRebalance, analysisDir, csvDesbalanced;
@@ -272,6 +246,7 @@ int main(int argc, char const *argv[]){
     vector<int> objperClass;
     vector<vector<double> > rebalancedFscore, desbalancedFscore;
     vector<double> fscores, bestFscore, desbalancedFscores;
+    bool copyBestFscoreToOtherFolder = false;
 
     if (argc != 6){
         cout << "\nUsage: ./rebalanceTest (0) (1) (2) (3) (4)\n " << endl;
@@ -279,7 +254,7 @@ int main(int argc, char const *argv[]){
         cout << "\t(1) Image Directory\n" << endl;
         cout << "\t(2) Features Directory\n" << endl;
         cout << "\t(3) Analysis Directory\n" << endl;
-        cout << "\t(4) Artificial Generation Operation - Use 0 for ALL\n" << endl;
+        cout << "\t(4) Artificial Generation Operation - Use 1 for ALL\n" << endl;
         cout << "\t./rebalanceTest Desbalanced/ Desbalanced/original/ Desbalanced/features/ Desbalanced/analysis/ 0\n" << endl;
         exit(-1);
     }
@@ -290,25 +265,32 @@ int main(int argc, char const *argv[]){
     operation = atoi(argv[5]);
     string op = argv[5];
 
-    for (rep = 0; rep < 10; rep ++){
+    double factors[3] = {1.0, 1.5, 1.75};
+
+    for (x = 0; x < 1; x++){
+    // for (rep = 0; rep < 10; rep ++){
         /* Desbalancing Data */
         cout << "\n\n------------------------------------------------------------------------------------" << endl;
         cout << "Divide the number of original samples to create a minority class:" << endl;
         cout << "---------------------------------------------------------------------------------------" << endl;
-        string dirImbalanced = imbalance(baseDir, newDir, 0.5);
-
-        for (operation = 1; operation <= 15; operation ++){
+        string dirImbalanced = imbalance(baseDir, newDir, 0.5, factors[x]);
+        // string dirImbalanced = imbalance(baseDir, newDir, 0.5, 0.5);
+        // imbalance(baseDir, newDir, 0.5, 0.25);
+        //for (operation = 1; operation <= 15; operation ++){
 
             stringstream operationstr;
             operationstr << operation;
             op = operationstr.str();
             /* Generate Artificial Images */
-            string dirRebalanced = a.generate(dirImbalanced, operation);
+            stringstream globalFactor;
+            globalFactor << factors[x];
+            string newDirectory = dirImbalanced+"/../Rebalanced-"+globalFactor.str();
+            string dirRebalanced = a.generate(dirImbalanced, newDirectory, operation);
             /*  Available
                     Descriptors: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"}
                     Quantization methods: {"Intensity", "Luminance", "Gleam", "MSB"}
             */
-            for (d = 1; d <= 7; d++){
+            for (d = 1; d <= 1; d++){
                 initialMethod = 1;
                 endMethod = 1;
                 if (d < 6)
@@ -338,7 +320,9 @@ int main(int argc, char const *argv[]){
                         cout << "Classification using desbalanced data" << endl;
                         cout << "Features vectors file: " << originalDescriptor.c_str() << endl;
                         cout << "---------------------------------------------------------------------------------------" << endl;
-                        desbalancedFscore = c.classify(prob, 1, imbalancedData, csvDesbalanced.c_str(), 2);
+                        cout << "X: " << x << "ID: " << factors[x] << endl;
+                        desbalancedFscore = c.classify(prob, 1, imbalancedData, csvDesbalanced.c_str(), x);
+                        imbalancedData.clear();
                     }
 
                     string fileDescriptor = desc(dirRebalanced, featuresDir, d, m, "artificial");
@@ -348,17 +332,19 @@ int main(int argc, char const *argv[]){
                         cout << "Classification using rebalanced data" << endl;
                         cout << "Features vectors file: " << fileDescriptor.c_str() << endl;
                         cout << "---------------------------------------------------------------------------------------" << endl;
-                        rebalancedFscore = c.classify(prob, 1, artificialData, csvRebalance.c_str(), 2);
+                        rebalancedFscore = c.classify(prob, 1, artificialData, csvRebalance.c_str(), x);
+                        artificialData.clear();
                     }
 
                     /* Generate Synthetic SMOTE samples */
+                    imbalancedData = readFeatures(originalDescriptor);
                     vector<Classes> rebalancedData = performSmote(imbalancedData, operation, &totalRebalanced);
                     if (rebalancedData.size() != 0){
                         cout << "---------------------------------------------------------------------------------------" << endl;
                         cout << "Classification using SMOTE" << endl;
                         cout << "Features vectors file: " << name.c_str() << endl;
                         cout << "---------------------------------------------------------------------------------------" << endl;
-                        c.classify(prob, 1, rebalancedData, csvSmote.c_str(), 2);
+                        c.classify(prob, 1, rebalancedData, csvSmote.c_str(), x);
 
                         stringstream numberOfImages;
                         numberOfImages.str("");
@@ -377,59 +363,64 @@ int main(int argc, char const *argv[]){
                                 fprintf(arq,"\n");
                             }
                         }
+                        rebalancedData.clear();
                     }
 
-                    for (i = 0; i < (int) rebalancedFscore.size(); i++){
-                		fscores.push_back(c.calculateMean(rebalancedFscore[i]));
-                        desbalancedFscores.push_back(c.calculateMean(desbalancedFscore[i]));
-                        if (bestFscore.size() < fscores.size()){
-                            bestFscore.push_back(0);
-                            bestFscoreMean = 0;
-                        }
-                	}
-                    fscoreMean = c.calculateMean(fscores);
-                    if (fscoreMean > bestFscoreMean){
-                        bestFscoreMean = fscoreMean;
-                        bestDir = newDir+"/BestMeanFscore/";
-                        str = "rm -f -r "+bestDir+"/*;";
-                        str += "mkdir -p "+bestDir+";";
-                        str += "cp -R "+dirRebalanced+"/* "+bestDir+";";
-                        str += "cp -R "+csvSmote+"FScore.csv "+bestDir+";";
-                        str += "cp -R "+csvRebalance+"FScore.csv "+bestDir+";";
-                        str += "cp -R "+csvDesbalanced+"FScore.csv "+bestDir+";";
-                        str += "cp -R "+csvSmote+"BalancedAccuracy.csv "+bestDir+";";
-                        str += "cp -R "+csvRebalance+"BalancedAccuracy.csv "+bestDir+";";
-                        str += "cp -R "+csvDesbalanced+"BalancedAccuracy.csv "+bestDir+";";
-                        system(str.c_str());
-                    }
-                    for (i = 0; i < (int) rebalancedFscore.size(); i++){
-                        /* If it is a better generation for some class */
-                        double diff = fscores[i] - desbalancedFscores[i];
-                        cout << "DIFF " << diff <<  endl;
-                        if (diff > bestFscore[i]){
-                            bestFscore[i] = diff;
-                            stringstream classe;
-                            classe << i;
-                            bestDir = newDir+"/BestFscore/Generation_"+classe.str()+"/";
-                        	str = "rm -f -r "+bestDir+"/*;";
-                        	str += "mkdir -p "+bestDir+";";
-                        	str += "cp -R "+dirRebalanced+"/* "+bestDir+";";
+                    if (copyBestFscoreToOtherFolder){
+
+                        for (i = 0; i < (int) rebalancedFscore.size(); i++){
+                    		fscores.push_back(c.calculateMean(rebalancedFscore[i]));
+                            desbalancedFscores.push_back(c.calculateMean(desbalancedFscore[i]));
+                            if (bestFscore.size() < fscores.size()){
+                                bestFscore.push_back(0);
+                                bestFscoreMean = 0;
+                            }
+                    	}
+                        fscoreMean = c.calculateMean(fscores);
+                        if (fscoreMean > bestFscoreMean){
+                            bestFscoreMean = fscoreMean;
+                            bestDir = newDir+"/BestMeanFscore/";
+                            str = "rm -f -r "+bestDir+"/*;";
+                            str += "mkdir -p "+bestDir+";";
+                            str += "cp -R "+dirRebalanced+"/* "+bestDir+";";
                             str += "cp -R "+csvSmote+"FScore.csv "+bestDir+";";
                             str += "cp -R "+csvRebalance+"FScore.csv "+bestDir+";";
                             str += "cp -R "+csvDesbalanced+"FScore.csv "+bestDir+";";
-                            str += "cp -R "+csvSmote+"BalancedAccuracy.csv "+bestDir+";";
-                            str += "cp -R "+csvRebalance+"BalancedAccuracy.csv "+bestDir+";";
-                            str += "cp -R "+csvDesbalanced+"BalancedAccuracy.csv "+bestDir+";";
-                            cout << "Copy generation of class " << i << " to " << bestDir << endl;
-                            // cout << str << endl;
-                        	system(str.c_str());
+                            // str += "cp -R "+csvSmote+"BalancedAccuracy.csv "+bestDir+";";
+                            // str += "cp -R "+csvRebalance+"BalancedAccuracy.csv "+bestDir+";";
+                            // str += "cp -R "+csvDesbalanced+"BalancedAccuracy.csv "+bestDir+";";
+                            system(str.c_str());
+                        }
+                        for (i = 0; i < (int) rebalancedFscore.size(); i++){
+                            /* If it is a better generation for some class */
+                            double diff = fscores[i] - desbalancedFscores[i];
+                            cout << "DIFF " << diff <<  endl;
+                            if (diff > bestFscore[i]){
+                                bestFscore[i] = diff;
+                                stringstream classe;
+                                classe << i;
+                                bestDir = newDir+"/BestFscore/Generation_"+classe.str()+"/";
+                            	str = "rm -f -r "+bestDir+"/*;";
+                            	str += "mkdir -p "+bestDir+";";
+                            	str += "cp -R "+dirRebalanced+"/* "+bestDir+";";
+                                str += "cp -R "+csvSmote+"FScore.csv "+bestDir+";";
+                                str += "cp -R "+csvRebalance+"FScore.csv "+bestDir+";";
+                                str += "cp -R "+csvDesbalanced+"FScore.csv "+bestDir+";";
+                                // str += "cp -R "+csvSmote+"BalancedAccuracy.csv "+bestDir+";";
+                                // str += "cp -R "+csvRebalance+"BalancedAccuracy.csv "+bestDir+";";
+                                // str += "cp -R "+csvDesbalanced+"BalancedAccuracy.csv "+bestDir+";";
+                                cout << "Copy generation of class " << i << " to " << bestDir << endl;
+                                // cout << str << endl;
+                            	system(str.c_str());
+                            }
                         }
                     }
                     fscores.clear();
                     desbalancedFscores.clear();
                 }
             }
-        }
+        //}
+    // }
     }
     return 0;
 }

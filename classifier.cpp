@@ -64,7 +64,7 @@ double Classifier::calculateStandardDeviation(vector<double> accuracy){
 	return std;
 }
 
-void Classifier::printAccuracy(int id, vector<vector<double> > fScore){
+void Classifier::printAccuracy(double id, vector<vector<double> > fScore){
 
 	int i;
 	ofstream outputFile;
@@ -278,7 +278,7 @@ Mat confusionMatrix(int numClasses, Mat labelsTesting, Mat result){
 	return confusionMat;
 }
 
-vector<vector<double> > Classifier::classify(double trainingRatio, int numRepetition, vector<Classes> imageClasses, string name, int id){
+vector<vector<double> > Classifier::classify(double trainingRatio, int numRepetition, vector<Classes> imageClasses, string name, double id){
 
 	Mat result, confusionMat;
 	int i, hits, width, trained, numTraining, num_testing, minorNumber, classeId;

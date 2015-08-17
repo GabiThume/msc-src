@@ -1,7 +1,7 @@
 /**
  * 	Authors:
- *  	Luciana Calixta Escobar
  *		Gabriela Thumé
+ *  	Luciana Calixta Escobar
  *
  * 	Universidade de São Paulo / ICMC
  *
@@ -151,7 +151,8 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	qtdImgTotal = qtdImagensTotal(database, qtdClasses, &objperClass, &maxc);
 
 	if (method !=5)
-		nome = featuresDir+descriptors[method-1]+"_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
+		nome = featuresDir+descriptors[method-1]+"_"+quantizationsNames[quantization-1];
+        nome += "_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
 
 	switch (method) {
 		case 1:
@@ -175,7 +176,8 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 			cout << "Haralick-6 and " << quantizationsNames[quantization-1] << ":";
 			break;
 		case 5:
-			nome = featuresDir+"/ACC_"+quantizationsNames[quantization-1]+"_"+to_string(colors)+"c_"+to_string(nparam)+"d_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
+			nome = featuresDir+"/ACC_"+quantizationsNames[quantization-1]+"_"+to_string(colors);
+            nome += "c_"+to_string(nparam)+"d_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
 			featureVectorSize = (colors*nparam);
 			cout << "ACC and " << quantizationsNames[quantization-1] << " c/ " << nparam << " distancias : ";
 			break;
@@ -189,7 +191,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 			cout << "HOG and " << quantizationsNames[quantization-1] << endl;
 			break;
 		case 8:
-			featureVectorSize = 10;
+			featureVectorSize = 6;
 			cout << "Contour and " << quantizationsNames[quantization-1] << endl;
 			break;
 		case 9:
@@ -199,7 +201,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	}
 
 	// Allocates the feature vector of size featureVectorSize
-	featureVector.create(1, featureVectorSize, CV_64F);
+	featureVector.create(1, featureVectorSize, CV_32F);
 	// Fill out with zeros
 	featureVector = Scalar::all(0);
 
@@ -210,11 +212,8 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	}
 
 	fprintf(arq,"%d\t%d\t%d\n", qtdImgTotal, qtdClasses, featureVectorSize);
-
-	cout << colors << " colors, size " << resizeFactor << endl;
 	cout << "File: " << nome << endl;
 	cout << "Objects: " << qtdImgTotal << " - Classes: " << qtdClasses << " - Features: " << featureVectorSize << endl;
-
 	for (i = 0; i < qtdClasses; i++) {
 		int bars = (int) (((float) objperClass[i] / (float) qtdImgTotal)*50.0);
 		cout << i << " ";
@@ -284,16 +283,16 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 
 			switch(quantization){
 				case 1:
-                    QuantizationIntensity(&newimg, &newimg, colors);
+                    QuantizationIntensity(newimg, &newimg, colors);
                     break;
 				case 2:
-                    QuantizationLuminance(&newimg, &newimg, colors);
+                    QuantizationLuminance(newimg, &newimg, colors);
                     break;
 				case 3:
-                    QuantizationGleam(&newimg, &newimg, colors);
+                    QuantizationGleam(newimg, &newimg, colors);
                     break;
 				case 4:
-                    QuantizationMSB(&newimg, &newimg, colors);
+                    QuantizationMSB(newimg, &newimg, colors);
                     break;
 				default:
                     cout << "Error: this quantization method does not exists." << endl;
@@ -303,38 +302,38 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 			switch(method){
 	            /* BIC: image, descriptor, number of colors, normalization */
 				case 1:
-                    BIC(&newimg, &featureVector, colors, normalization);
+                    BIC(newimg, &featureVector, colors, normalization);
                     break;
 			    /* GCH: image, descriptor, number of colors, normalization */
 				case 2:
-                    GCH(&newimg, &featureVector, colors, normalization);
+                    GCH(newimg, &featureVector, colors, normalization);
                     break;
 			    /* CCV: image, descriptor, number of colors, normalization,
 			          limiar coerente/incoerente */
 				case 3:
-                    CCV(&newimg, &featureVector, colors, normalization, param[0]);
+                    CCV(newimg, &featureVector, colors, normalization, param[0]);
                     break;
 			    /* HARALICK: image, co-occurrence matrix, descriptor
 			               numero de cores, normalization */
 				case 4:
-                    HARALICK(&newimg, coocurrenceMatrix, &featureVector, colors, normalization);
+                    HARALICK(newimg, coocurrenceMatrix, &featureVector, colors, normalization);
                     break;
 			    /* ACC: image, descriptor, number of colors, normalization,
 			          distance vector, distance number */
 				case 5:
-                    ACC(&newimg, &featureVector, colors, normalization, param, nparam);
+                    ACC(newimg, &featureVector, colors, normalization, param, nparam);
                     break;
 			    /* LBP */
 				case 6:
-                    LBP(&newimg, &featureVector, colors);
+                    LBP(newimg, &featureVector, colors);
                     break;
 			    /* HOG */
 				case 7:
-					HOG(&newimg, &featureVector);
+					HOG(newimg, &featureVector);
                     break;
 			    /* Contour */
 				case 8:
-                    contourExtraction(&newimg, &featureVector);
+                    contourExtraction(newimg, &featureVector);
                     break;
 				case 9:
                     break;

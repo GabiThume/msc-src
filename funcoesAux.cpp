@@ -18,7 +18,7 @@
   Returns:
 	- gamma-corrected image
 */
-Mat correctGamma(Mat *img, double gamma ) {
+Mat correctGamma(Mat img, double gamma ) {
 
     Mat result;
     Mat lut_matrix(1, 256, CV_8UC1 );
@@ -28,7 +28,7 @@ Mat correctGamma(Mat *img, double gamma ) {
     for( int i = 0; i < 256; i++ ){
         ptr[i] = (int)(pow((double)i/255.0, gamma) * 255.0);
     }
-    LUT(*img, lut_matrix, result);
+    LUT(img, lut_matrix, result);
 
     return result;
 }
@@ -57,15 +57,15 @@ void reduceImageColors(Mat *I, int nColors) {
 	- Q : image to store quantized version
 	- nColors : number of colors after quantization
 */
-void QuantizationIntensity(Mat *I, Mat *Q, int nColors){
+void QuantizationIntensity(Mat I, Mat *Q, int nColors){
 
     vector<Mat> imColors(3);
     // separate input image into RGB channels
-    split((*I), imColors);
+    split(I, imColors);
     // Compute Intensity image
     (*Q) = (imColors[0]/3) + (imColors[1]/3) + (imColors[2]/3);
     // Gamma function
-    (*Q) = correctGamma(Q, 1/2.2);
+    (*Q) = correctGamma((*Q), 1/2.2);
     // reduce number of colors
     if (nColors < 256)
         reduceImageColors(Q,nColors);
@@ -77,17 +77,17 @@ void QuantizationIntensity(Mat *I, Mat *Q, int nColors){
 	- Q : image to store quantized version
 	- nColors : number of colors after quantization
 */
-void QuantizationGleam(Mat *I, Mat *Q, int nColors){
+void QuantizationGleam(Mat I, Mat *Q, int nColors){
 
     vector<Mat> imColors(3);
     double pot = 1.0/2.2;
 
     // using image 'out', split channels in tree matrix
-    split(*I, imColors);
+    split(I, imColors);
 
-    imColors[0] = correctGamma(&(imColors[0]), pot);
-    imColors[1] = correctGamma(&(imColors[1]), pot);
-    imColors[2] = correctGamma(&(imColors[2]), pot);
+    imColors[0] = correctGamma(imColors[0], pot);
+    imColors[1] = correctGamma(imColors[1], pot);
+    imColors[2] = correctGamma(imColors[2], pot);
 
     // sum of 1/3 of each channel with gamma correction for each pixel
     (*Q) = imColors[0]/(3.0) + imColors[1]/(3.0) + imColors[2]/(3.0);
@@ -103,15 +103,15 @@ void QuantizationGleam(Mat *I, Mat *Q, int nColors){
 	- Q : image to store quantized version
 	- nColors : number of colors after quantization
 */
-void QuantizationLuminance(Mat *I, Mat *Q, int nColors){
+void QuantizationLuminance(Mat I, Mat *Q, int nColors){
 
     vector<Mat> imColors(3);
     // split image in RGB channels
-    split(*I, imColors);
+    split(I, imColors);
     // Luminance image computation
     (*Q) = (0.299*imColors[2]) + (0.587*imColors[1]) + (0.114*imColors[0]);
     // Gamma correction
-    (*Q) = correctGamma(Q, 1/2.2);
+    (*Q) = correctGamma((*Q), 1/2.2);
     // reduce number of colors
     if (nColors < 256)
         reduceImageColors(Q,nColors);
@@ -123,7 +123,7 @@ void QuantizationLuminance(Mat *I, Mat *Q, int nColors){
 	- Q : image to store quantized version
 	- nColors : number of colors after quantization
 */
-void QuantizationMSB(Mat *I, Mat *Q, int nColors){
+void QuantizationMSB(Mat I, Mat *Q, int nColors){
 
     int bitsc, cc, rest, k;
 	MatIterator_<Vec3b> it, end;
@@ -141,7 +141,7 @@ void QuantizationMSB(Mat *I, Mat *Q, int nColors){
 		GRBb[k]++;
 	}
 
-	for( it2 = (*Q).begin<uchar>(), end2 = (*Q).end<uchar>(), it = (*I).begin<Vec3b>(), end = (*I).end<Vec3b>(); it != end; ++it, ++it2){
+	for( it2 = (*Q).begin<uchar>(), end2 = (*Q).end<uchar>(), it = I.begin<Vec3b>(), end = I.end<Vec3b>(); it != end; ++it, ++it2){
 		uchar dR = (8-GRBb[1]);
 		uchar dG = (8-GRBb[0]);
 		uchar dB = (8-GRBb[2]);

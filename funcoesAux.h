@@ -29,7 +29,7 @@ using namespace std;
   Returns:
 	- gamma-corrected image
 */
-Mat correctGamma(Mat *img, double gamma );
+Mat correctGamma(Mat img, double gamma );
 
 /*
   Function to reduce the number of colors in a single channel image
@@ -46,7 +46,7 @@ void reduceImageColors(Mat *I, int nColors);
 	- Q : image to store quantized version
 	- nColors : number of colors after quantization
 */
-void QuantizationIntensity(Mat *I, Mat *Q, int nColors);
+void QuantizationIntensity(Mat I, Mat *Q, int nColors);
 
 
 /*
@@ -56,7 +56,7 @@ void QuantizationIntensity(Mat *I, Mat *Q, int nColors);
 	- Q : image to store quantized version
 	- nColors : number of colors after quantization
 */
-void QuantizationGleam(Mat *I, Mat *Q, int nColors);
+void QuantizationGleam(Mat I, Mat *Q, int nColors);
 
 
 /*
@@ -66,7 +66,7 @@ void QuantizationGleam(Mat *I, Mat *Q, int nColors);
 	- Q : image to store quantized version
 	- nColors : number of colors after quantization
 */
-void QuantizationLuminance(Mat *I, Mat *Q, int nColors);
+void QuantizationLuminance(Mat I, Mat *Q, int nColors);
 
 
 /*
@@ -76,7 +76,7 @@ void QuantizationLuminance(Mat *I, Mat *Q, int nColors);
 	- Q : image to store quantized version
 	- nColors : number of colors after quantization
 */
-void QuantizationMSB(Mat *I, Mat *Q, int nColors);
+void QuantizationMSB(Mat I, Mat *Q, int nColors);
 
 
 /*

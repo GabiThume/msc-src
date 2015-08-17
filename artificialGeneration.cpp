@@ -173,9 +173,6 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
     originalImage.copyTo(subImg);
     int roiWidth, roiHeight, subImage, newImage, operation;
     int startWidth, startHeight, randH, randW;
-	// namedWindow("Display window", WINDOW_AUTOSIZE );
-    // imshow("original", originalImage);
-    // waitKey(0);
 
     startWidth = startHeight = 0;
     for (subImage = 1; subImage <= fator; subImage++){
@@ -187,24 +184,10 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
 	            newImage = rand() % total;
 	        } while(count(vectorRand.begin(), vectorRand.end(), newImage) && vectorRand.size() < total);
 	        vectorRand.push_back(newImage);
-			// cout << "newImage " << newImage << endl;
-
-	        // newImage = rand() % total;
-	        /* Find out if the subimage has the same size */
 	        images[newImage].copyTo(img);
-			// imshow("newImage", img);
-		    // waitKey(0);
-	        // if (img.size() != subImg.size()){
-	        //     subImage--;
-	        //     continue;
-	        // }
-	        // img.copyTo(generated);
-			// imshow("generated", generated);
-		    // waitKey(0);
 		}
 
         operation = 1 + (rand() % 6);
-		// cout << " operation " << operation <<  endl;
         switch(operation){
             case 1:
                 generated = generateBlur(img);
@@ -226,49 +209,29 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
             default:
                 break;
         }
-		// imshow("generated", generated);
-	    // waitKey(0);
-		// cout << "original size width: " << originalImage.size().width << " height " << originalImage.size().height << endl;
-
         roiHeight = subImg.size().height/sqrt(fator);
         roiWidth = subImg.size().width/sqrt(fator);
 
-		// cout << "generated size width: " << generated.size().width << " height " << generated.size().height << endl;
-		// cout << " roi size " << roiWidth << " height " << roiHeight << endl;
         if (generated.size().width < roiWidth || generated.size().height < roiHeight){
-			// cout << " subImage " << subImage << endl;
             subImage--;
             continue;
         }
 		if (!option){
-			// cout << "!option" << endl;
 	        randW = rand() % (generated.size().width - roiWidth);
 	        randH = rand() % (generated.size().height - roiHeight);
-			// cout << ">> " << randW << " " << randH << " " << roiWidth << " " << roiHeight << " " << endl;
 	        generated(Rect(randW, randH, roiWidth, roiHeight)).copyTo(roi);
 		}
 		else{
-			// cout << "option" << endl;
 			if (generated.size() == subImg.size()){
-				// cout << ">>if " << startWidth << " " << startHeight << " " << roiWidth << " " << roiHeight << " " << endl;
 			    generated(Rect(startWidth, startHeight, roiWidth, roiHeight)).copyTo(roi);
 			}
 			else {
-				// cout << ">>else " << 0 << " " << 0 << " " << roiWidth << " " << roiHeight << " " << endl;
 			    generated(Rect(0, 0, roiWidth, roiHeight)).copyTo(roi);
 			}
 		}
-		// cout << "startWidth " << startWidth << " startHeight " << startHeight << endl;
-		// cout << "subImg" <<  "width: " << subImg.size().width << " height " << subImg.size().height << endl;
-		// imshow("roi", roi);
-	    // waitKey(0);
 
         Mat dst_roi = subImg(Rect(startWidth, startHeight, roiWidth, roiHeight));
-		// cout << "copyto" << endl;
         roi.copyTo(dst_roi);
-		// imshow("subImg", subImg);
-	    // waitKey(0);
-		// cout << "copied " << endl;
         if ((startWidth + 2*roiWidth) <= subImg.size().width){
             startWidth = startWidth + roiWidth;
         }
@@ -281,8 +244,6 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
         roi.release();
 		dst_roi.release();
     }
-	// imshow("subImg", subImg);
-    // waitKey(0);
     return subImg;
 }
 
@@ -442,12 +403,12 @@ Mat Artificial::generateSmoteImg(Mat originalImage, vector<Mat> images, int tota
     return generated;
 }
 
-string Artificial::generate(string base, int whichOperation = 0){
+string Artificial::generate(string base, string newDirectory, int whichOperation = 0){
 
 	int i, qtdClasses = 0, generationType, rebalanceTotal = 0;
     int maior = -1, maiorClasse, rebalance, qtdImg, eachClass;
     Mat img, noise;
-    string imgName, classe, minorityClass, str, newDir;
+    string imgName, classe, minorityClass, str;
 	struct dirent *sDir = NULL;
     DIR *dir = NULL, *minDir = NULL;
     vector<int> totalImage, vectorRand;
@@ -459,14 +420,14 @@ string Artificial::generate(string base, int whichOperation = 0){
 		cout << "Error! Directory " << base << " don't exist. " << endl;
 		exit(1);
 	}
-	newDir = base+"/../generated/";
-	str = "rm -f -r "+newDir+"/*;";
-	str += "mkdir -p "+newDir+";";
-	str += "cp -R "+base+"/* "+newDir+";";
+
+	str = "rm -f -r "+newDirectory+"/*;";
+	str += "mkdir -p "+newDirectory+";";
+	str += "cp -R "+base+"/* "+newDirectory+";";
 	system(str.c_str());
-	dir = opendir(newDir.c_str());;
+	dir = opendir(newDirectory.c_str());;
 	if(dir == NULL) {
-		cout << "Error! Directory " << newDir << " don't exist. " << endl;
+		cout << "Error! Directory " << newDirectory << " don't exist. " << endl;
 		exit(1);
 	}
 
@@ -474,11 +435,11 @@ string Artificial::generate(string base, int whichOperation = 0){
     cout << "Artifical generation of images to rebalance classes" << endl;
     cout << "---------------------------------------------------------------------------------------" << endl;
 
-    qtdClasses = classesNumber(newDir);
+    qtdClasses = classesNumber(newDirectory);
     cout << "Number of classes: " << qtdClasses << endl;
     /* Count how many files there are in classes and which is the majority */
     for(i = 0; i < qtdClasses; i++) {
-        classe = newDir + "/" + to_string(i) + "/";
+        classe = newDirectory + "/" + to_string(i) + "/";
         qtdImg = classesNumber(classe+"/treino/");
         if (qtdImg == 0){
            qtdImg = classesNumber(classe);
@@ -495,7 +456,7 @@ string Artificial::generate(string base, int whichOperation = 0){
         rebalance = totalImage[maiorClasse] - totalImage[eachClass];
         if (rebalance > 0){
 
-            minorityClass = newDir + "/" + to_string(eachClass) + "/treino/";
+            minorityClass = newDirectory + "/" + to_string(eachClass) + "/treino/";
             cout << "Class: " << minorityClass << " contain " << totalImage[eachClass] << " images" << endl;
             minDir = opendir(minorityClass.c_str());
 
@@ -594,5 +555,5 @@ string Artificial::generate(string base, int whichOperation = 0){
             images.clear();
         }
     }
-	return newDir;
+	return newDirectory;
 }

@@ -12,7 +12,7 @@ import os
 import itertools
 
 directory = "Analysis/"
-algorithms = ["original","pca", "smote"]
+algorithms = ["original","pcaSmote", "smote"]
 descriptors = ["BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"]
 # descriptors = {"HOG"}
 methods = ["Intensity", "Gleam", "Luminance", "MSB"]
@@ -20,7 +20,7 @@ operations = ["Replication", "ALL", "Blur", "Noise", "Blending", "UnsharpMasking
 
 which = 0
 
-marker = itertools.cycle(('o', 's', '^')) 
+marker = itertools.cycle(('o', 's', '^'))
 
 # for which in range(0,2):
 for desc in descriptors:

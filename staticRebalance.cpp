@@ -172,7 +172,7 @@ int main(int argc, char const *argv[]){
             csvOriginal = path+"Analysis/original_"+descriptors[d-1]+"_"+methods[m-1]+"_";
             csvSmote = path+"Analysis/smote_"+descriptors[d-1]+"_"+methods[m-1]+"_";
             csvRebalance = path+"Analysis/"+id+"_"+descriptors[d-1]+"_"+methods[m-1]+"_";
-            for (level = 0; level <= 0; level++){
+            for (level = 0; level <= 2; level++){
                 /* Feature extraction from images */
                 string originalDescriptor = desc(path+baseDirOriginal[level], featuresDir, d, m, "original");
                 // string idDescriptor = desc(path+baseDirID[level], featuresDir, d, m, id);
