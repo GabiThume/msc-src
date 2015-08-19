@@ -290,7 +290,7 @@ int main(int argc, char const *argv[]){
                     Descriptors: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"}
                     Quantization methods: {"Intensity", "Luminance", "Gleam", "MSB"}
             */
-            for (d = 1; d <= 1; d++){
+            for (d = 1; d <= 8; d++){
                 initialMethod = 1;
                 endMethod = 1;
                 if (d < 6)

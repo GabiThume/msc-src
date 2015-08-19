@@ -130,7 +130,7 @@ int qtdImagensTotal(string base, int qtdClasses, vector<int> *objClass, int *max
 string descriptor(string database, string featuresDir, int method, int colors, double resizeFactor, int normalization, int *param, int nparam, int deleteNull, int quantization, string id = ""){
 
 	int i, j, k, numImages = 0, qtdClasses = 0, qtdImgTotal = 0, imgTotal = 0, treino = 0, grid;
-	int featureVectorSize = 0, resizingFactor = (int)(resizeFactor*100), maxc = 0;
+	int resizingFactor = (int)(resizeFactor*100), maxc = 0, x;
 	float min, max, normFactor;
 	string nome, directory;
 	double **coocurrenceMatrix = NULL;
@@ -141,90 +141,14 @@ string descriptor(string database, string featuresDir, int method, int colors, d
     vector<int> objperClass;
 
 	cout << "\n---------------------------------------------------------------------------------------" << endl;
-	cout << "Image feature extraction" << endl;
+	cout << "Image feature extraction using " << descriptors[method-1] << " and " << quantizationsNames[quantization-1] << endl;
 	cout << "---------------------------------------------------------------------------------------" << endl;
 
-	directory = database+"/";
-
 	// Check how many classes and images there are
+    directory = database+"/";
 	qtdClasses = qtdArquivos(directory);
 	qtdImgTotal = qtdImagensTotal(database, qtdClasses, &objperClass, &maxc);
 
-	if (method !=5)
-		nome = featuresDir+descriptors[method-1]+"_"+quantizationsNames[quantization-1];
-        nome += "_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
-
-	switch (method) {
-		case 1:
-			featureVectorSize = colors*2;
-			cout << "BIC and " << quantizationsNames[quantization-1] << ":";
-			break;
-		case 2:
-			featureVectorSize = colors;
-			cout << "GCH and " << quantizationsNames[quantization-1] << ":";
-			break;
-		case 3:
-			featureVectorSize = colors*2;
-			cout << "CCV and " << quantizationsNames[quantization-1] << ":";
-			break;
-		case 4:
-			coocurrenceMatrix = (double **)calloc(colors, sizeof(double*));
-			for (i=0; i<colors; i++) {
-				coocurrenceMatrix[i]= (double *)calloc(colors, sizeof(double));
-			}
-			featureVectorSize = 6;
-			cout << "Haralick-6 and " << quantizationsNames[quantization-1] << ":";
-			break;
-		case 5:
-			nome = featuresDir+"/ACC_"+quantizationsNames[quantization-1]+"_"+to_string(colors);
-            nome += "c_"+to_string(nparam)+"d_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
-			featureVectorSize = (colors*nparam);
-			cout << "ACC and " << quantizationsNames[quantization-1] << " c/ " << nparam << " distancias : ";
-			break;
-		case 6:
-			grid = 4;
-			featureVectorSize = 58*grid;
-			cout << "LBP and " << quantizationsNames[quantization-1] << endl;
-			break;
-		case 7:
-			featureVectorSize = 58;
-			cout << "HOG and " << quantizationsNames[quantization-1] << endl;
-			break;
-		case 8:
-			featureVectorSize = 6;
-			cout << "Contour and " << quantizationsNames[quantization-1] << endl;
-			break;
-		case 9:
-			break;
-		default:
-			break;
-	}
-
-	// Allocates the feature vector of size featureVectorSize
-	featureVector.create(1, featureVectorSize, CV_32F);
-	// Fill out with zeros
-	featureVector = Scalar::all(0);
-
-	arq = fopen(nome.c_str(), "w+");
-	if (arq == 0){
-		cout << "It is not possible to open the feature's file: " << nome << endl;
-		return "";
-	}
-
-	fprintf(arq,"%d\t%d\t%d\n", qtdImgTotal, qtdClasses, featureVectorSize);
-	cout << "File: " << nome << endl;
-	cout << "Objects: " << qtdImgTotal << " - Classes: " << qtdClasses << " - Features: " << featureVectorSize << endl;
-	for (i = 0; i < qtdClasses; i++) {
-		int bars = (int) (((float) objperClass[i] / (float) qtdImgTotal)*50.0);
-		cout << i << " ";
-		for (j = 0; j < bars; j++){
-			cout << "|";
-		}
-		float porc = (float)objperClass[i]/(float)qtdImgTotal;
-		cout << " " << porc*100 << "%" << " (" << objperClass[i] << ")" <<endl;
-	}
-
-	features = Mat::zeros(qtdImgTotal, featureVectorSize, CV_32F);
 	labels = Mat::zeros(qtdImgTotal, 1, CV_8U);
 	trainTest = Mat::zeros(qtdImgTotal, 1, CV_8U);
 
@@ -245,7 +169,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 		 	}
 		}
 
-		cout << "class " << i << " : " << database + "/" + to_string(i) << " imagens " << numImages << endl;
+		cout << "class " << i << ": " << database + "/" + to_string(i) << " has " << numImages << " images" << endl;
 
 		for(j = 0; j < numImages; j++)	{
 
@@ -296,7 +220,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
                     break;
 				default:
                     cout << "Error: this quantization method does not exists." << endl;
-                    return "";
+                    exit(1);
 			}
 
 			switch(method){
@@ -316,6 +240,10 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 			    /* HARALICK: image, co-occurrence matrix, descriptor
 			               numero de cores, normalization */
 				case 4:
+                    coocurrenceMatrix = (double **)calloc(colors, sizeof(double*));
+        			for (x = 0; x < colors; x++) {
+        				coocurrenceMatrix[x]= (double *)calloc(colors, sizeof(double));
+        			}
                     HARALICK(newimg, coocurrenceMatrix, &featureVector, colors, normalization);
                     break;
 			    /* ACC: image, descriptor, number of colors, normalization,
@@ -339,16 +267,18 @@ string descriptor(string database, string featuresDir, int method, int colors, d
                     break;
 				default:
                     cout << "Error: this description method does not exists." << endl;
-                    return "";
+                    exit(1);
 			}
 
 			labels.at<uchar>(imgTotal,0) = (uchar)i;
-			for(k = 0; k < featureVectorSize; k++) {
-				features.at<float>(imgTotal,k) = featureVector.at<float>(0, k);
-			}
+            if (features.size().height == 0){
+                features = Mat::zeros(0, featureVector.size().width, CV_32F);
+            }
+            features.push_back(featureVector);
 			imgTotal++;
             img.release();
             newimg.release();
+            featureVector.release();
 		}
 	}
 
@@ -370,12 +300,38 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 		}
 	}
 
-	cout << "Wrote on file " << nome << endl;
-	cout << "---------------------------------------------------------------------------------------" << endl;
+    if (method != 5){
+		nome = featuresDir+descriptors[method-1]+"_"+quantizationsNames[quantization-1];
+        nome += "_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
+    }
+    else {
+        nome = featuresDir+"/ACC_"+quantizationsNames[quantization-1]+"_"+to_string(colors);
+        nome += "c_"+to_string(nparam)+"d_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
+    }
+
+	arq = fopen(nome.c_str(), "w+");
+	if (arq == 0){
+		cout << "It is not possible to open the feature's file: " << nome << endl;
+		return "";
+	}
+
+	fprintf(arq,"%d\t%d\t%d\n", qtdImgTotal, qtdClasses, features.cols);
+	cout << "File: " << nome << endl;
+	cout << "Objects: " << qtdImgTotal << " - Classes: " << qtdClasses << " - Features: " << features.cols << endl;
+	for (i = 0; i < qtdClasses; i++) {
+		int bars = (int) (((float) objperClass[i] / (float) qtdImgTotal)*50.0);
+		cout << i << " ";
+		for (j = 0; j < bars; j++){
+			cout << "|";
+		}
+		float porc = (float)objperClass[i]/(float)qtdImgTotal;
+		cout << " " << porc*100 << "%" << " (" << objperClass[i] << ")" <<endl;
+	}
+
 	for (i = 0; i < imgTotal; i++) {
 	    // Write the image number and the referenced class
 		fprintf(arq, "%d\t%d\t%d\t", i, labels.at<uchar>(i,0), trainTest.at<uchar>(i,0));
-		for(k = 0; k < featureVectorSize; k++) {
+		for(k = 0; k < features.cols; k++) {
 			if (normalization == 2)  {
 				fprintf(arq,"%.f ", features.at<float>(i, k));
 			}

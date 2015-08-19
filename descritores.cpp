@@ -95,7 +95,7 @@ void find_neighbor(Mat img, queue<Pixel> *pixels, int *visited, long int *tam_re
 }
 
 /****************************************************************************
- CVV Descriptor
+ CCV Descriptor
 
  	Creates two histograms:
  		- histogram of coherent pixels
@@ -168,8 +168,11 @@ void CCV(Mat img, Mat *features, int colors, int normalization, int threshold){
 		}
 	}
 
+	(*features).create(1, colors*2, CV_32F);
+	(*features) = Scalar::all(0);
+
 	if (normalization == 0) {
-		for (i = 0; i < colors*2 ; i++) {
+		for (i = 0; i < colors*2; i++) {
 			(*features).at<float>(0,i) = (float)descriptor[i];
 		}
 	}
@@ -179,8 +182,8 @@ void CCV(Mat img, Mat *features, int colors, int normalization, int threshold){
 			NormalizeHist(&descriptor, norm, 2*colors, 1);
 		else if (normalization == 2)
 			NormalizeHist(&descriptor, norm, 2*colors, 255);
-		for (i = 0; i < colors*2 ; i++) {
-			(*features).at<float>(0,i) = norm[i];// copia no vetor "features"
+		for (i = 0; i < colors*2; i++) {
+			(*features).at<float>(0,i) = norm[i];
 		}
 		delete[] norm;
 	}
@@ -221,11 +224,14 @@ void GCH(Mat I, Mat *features, int colors, int normalization) {
 
 	end = Q.end<uchar>();
 	for (it = Q.begin<uchar>(); it != end; it++) {
-		hist[(*it)]++;  // incrementa o valor da cor encontrada no histograma
+		hist[(*it)]++;
 	}
 
+	(*features).create(1, colors, CV_32F);
+	(*features) = Scalar::all(0);
+
 	if (normalization == 0) {
-		for (i = 0; i < colors ; i++) {
+		for (i = 0; i < colors; i++) {
 			(*features).at<float>(0,i) = (float)hist[i];
 		}
 	}
@@ -236,8 +242,8 @@ void GCH(Mat I, Mat *features, int colors, int normalization) {
 	    else if (normalization == 2)
 			NormalizeHist(&hist, norm, colors, 255);
 
-	    for (i = 0; i < colors ; i++) {
-			(*features).at<float>(0,i) = norm[i];// copia no vetor "features"
+	    for (i = 0; i < colors; i++) {
+			(*features).at<float>(0,i) = norm[i];
 	    }
 	    delete[] norm;
 	}
@@ -298,8 +304,11 @@ void BIC(Mat I, Mat *features, int colors, int normalization) {
 		}
 	}
 
+	(*features).create(1, colors*2, CV_32F);
+	(*features) = Scalar::all(0);
+
 	if (normalization == 0) {
-		for (i = 0; i < colors*2 ; i++) {
+		for (i = 0; i < colors*2; i++) {
 			(*features).at<float>(0,i) = (float)hist[i];
 		}
 	}
@@ -310,7 +319,7 @@ void BIC(Mat I, Mat *features, int colors, int normalization) {
 	    else if (normalization == 2)
 			NormalizeHist(&hist, norm, colors*2, 1024);
 
-	    for (i = 0; i < colors*2 ; i++) {
+	    for (i = 0; i < colors*2; i++) {
 			(*features).at<float>(0,i) = norm[i];
 	    }
 	    delete[] norm;
@@ -454,8 +463,10 @@ void Haralick6(double **Cm, int colors, Mat *features) {
 		}
 	}
 
-	entr = -entr;
+	(*features).create(1, 6, CV_32F);
+	(*features) = Scalar::all(0);
 
+	entr = -entr;
 	(*features).at<float>(0, 0) = maxp;
 	(*features).at<float>(0, 1) = corr;
 	(*features).at<float>(0, 2) = cont;
@@ -570,6 +581,9 @@ void ACC(Mat I, Mat *features, int colors, int normalization, int *k, int totalk
 		norm[i] = (float)(desc[i]/(float)descNorm);
 		descsum += norm[i];
 	}
+
+	(*features).create(1, colors*totalk, CV_32F);
+	(*features) = Scalar::all(0);
 
 	if (normalization == 0) {
 		for (i = 0; i < colors*totalk ; i++) {
@@ -687,10 +701,12 @@ void LBP(Mat img, Mat *features, int colors){
     	bias = 1;
     }
     stride = 0;
-	// For each grid
+
+	(*features).create(1, 58*grid.width*grid.height, CV_32F);
+	(*features) = Scalar::all(0);
+
     for(i = 0; i < grid.height; i++) {
         for(j = 0; j < grid.width; j++) {
-        	// cout << " img " << i*cellHeight+bias << " " << j*cellWidth+bias << " " << cellHeight << " " << cellWidth << endl;
             Mat cell = lbp(Rect(i*cellWidth+bias, j*cellHeight+bias, cellWidth, cellHeight));
 
             Mat cellHist = Mat::zeros(1, 58, CV_32FC1);
@@ -698,7 +714,6 @@ void LBP(Mat img, Mat *features, int colors){
 			for(x = 0; x < cellHeight; x++) {
 				for(y = 0; y < cellWidth; y++) {
 					bin = cell.at<float>(x,y);
-					// cout << " bin " << bin << endl;
 					cellHist.at<float>(0,bin) += 1;
 				}
 			}
@@ -711,6 +726,13 @@ void LBP(Mat img, Mat *features, int colors){
     }
 }
 
+/****************************************************************************
+ Orientation Descriptor - Histogram of Oriented Gradients
+
+ 	Input
+ 		Mat original image
+ 		Mat features vector in which perform the operations
+ ****************************************************************************/
 void HOG(Mat img, Mat *features){
 
 	HOGDescriptor hog;
@@ -719,23 +741,17 @@ void HOG(Mat img, Mat *features){
 	int i, width = img.size().width, height = img.size().height;
 
 	hog.winSize = Size(width, height);
-	hog.blockSize = Size(width, height);
+	hog.blockSize = Size(16, 16);
 	hog.blockStride = Size(8,8);
-	hog.cellSize = Size(width/2, height/2);
-	if (hog.blockSize.width % hog.cellSize.width != 0)
-		hog.cellSize = Size(width, height);
-	if (hog.blockSize.height % hog.cellSize.height != 0)
-		hog.cellSize = Size(width, height);
+	hog.cellSize = Size(8, 8);
 
 	hog.compute(img,hogFeatures);
 
-	//The HOG features computed for grayImg are stored in ders vector to make it into a matrix which can be used for training later use the following for loop
-	// Hogfeat.create(hogFeatures.size(),1,CV_32FC1);
-	// cout << " " << hogFeatures.size() << endl;
-	if ((int) hogFeatures.size() <= (int) (*features).size().width){
-		for(i = 0; i < (int) hogFeatures.size(); i++){
-			(*features).at<float>(0,i) = hogFeatures.at(i);
-		}
+	(*features).create(1, hogFeatures.size(), CV_32F);
+	(*features) = Scalar::all(0);
+
+	for(i = 0; i < (int) hogFeatures.size(); i++){
+		(*features).at<float>(0,i) = hogFeatures.at(i);
 	}
 }
 
@@ -779,6 +795,9 @@ void contourExtraction(Mat img, Mat *features){
 	// imshow("Biggest Contour", dst);
 	// waitKey(0);
 
+	(*features).create(1, 6, CV_32F);
+	(*features) = Scalar::all(0);
+
 	// Get the moments
 	mu = moments(contours[biggestAreaIndex], false);
 	//  Get the mass centers:
@@ -817,6 +836,9 @@ void SURF(Mat img, Mat *features){
 	// SurfFeatureDetector detector( minHessian );
 
 	// detector.detect(img, keypoints);
+
+	// (*features).create(1, keypoints.size(), CV_32F);
+	// (*features) = Scalar::all(0);
 
 	// for(i = 0; i < (int) keypoints.size(); i++){
 	// 	features.at<float>(0,i) = keypoints.at(i);
