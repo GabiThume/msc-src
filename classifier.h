@@ -6,10 +6,6 @@
 
 #include "funcoesArquivo.h"
 
-using namespace cv;
-using namespace std;
-
-
 class Classifier{
 
     vector<double> accuracy, balancedAccuracy, precision, recall;

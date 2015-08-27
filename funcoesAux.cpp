@@ -49,6 +49,9 @@ void reduceImageColors(Mat *I, int nColors) {
     stretch = ((double)((nColors-1)) / (max - min));
     (*I) = (*I) - min;
     (*I) = (*I) * stretch;
+    namedWindow( "Display window", WINDOW_AUTOSIZE );
+    imshow("Reduced", *I);
+    waitKey(0);
 }
 
 /* Image quantization by Gamma corrected Intensity
@@ -60,6 +63,7 @@ void reduceImageColors(Mat *I, int nColors) {
 void QuantizationIntensity(Mat I, Mat *Q, int nColors){
 
     vector<Mat> imColors(3);
+    (*Q).create((*Q).size(), CV_8U);
     // separate input image into RGB channels
     split(I, imColors);
     // Compute Intensity image
@@ -81,6 +85,7 @@ void QuantizationGleam(Mat I, Mat *Q, int nColors){
 
     vector<Mat> imColors(3);
     double pot = 1.0/2.2;
+    (*Q).create((*Q).size(), CV_8U);
 
     // using image 'out', split channels in tree matrix
     split(I, imColors);
@@ -106,6 +111,7 @@ void QuantizationGleam(Mat I, Mat *Q, int nColors){
 void QuantizationLuminance(Mat I, Mat *Q, int nColors){
 
     vector<Mat> imColors(3);
+    (*Q).create((*Q).size(), CV_8U);
     // split image in RGB channels
     split(I, imColors);
     // Luminance image computation
@@ -128,6 +134,7 @@ void QuantizationMSB(Mat I, Mat *Q, int nColors){
     int bitsc, cc, rest, k;
 	MatIterator_<Vec3b> it, end;
 	MatIterator_<uchar> it2, end2;
+    (*Q).create((*Q).size(), CV_8U);
 
 	// computes number of bits needed to obtain nColors
 	bitsc = log(nColors)/log(2);

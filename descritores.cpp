@@ -353,10 +353,8 @@ void CoocurrenceMatrix(Mat I, double **Cm, int colors, int dX, int dY) {
 		QuantizationMSB(I, &Q, colors);
 	}
 
-	// noma imagem quantizada chamada novaQ
-	// alocar uma nova imagem de tamanho maior para ser processada
-	Size newSize(I.rows+((dX+1)*2), I.cols+((dY+1)*2)); // cria um objeto 'tamanho'
-	Mat novaQ(newSize, CV_8U, 1); // cria a imagem
+	Size newSize(I.rows+((dX+1)*2), I.cols+((dY+1)*2));
+	Mat novaQ(newSize, CV_8U, 1);
 
 	// copia a imagem quantizada e replica os pixels das bordas
 	copyMakeBorder(Q, novaQ, (dX+1)*2, (dX+1)*2, (dY+1)*2, (dY+1)*2, BORDER_REPLICATE);
@@ -514,8 +512,17 @@ void ACC(Mat I, Mat *features, int colors, int normalization, int *k, int totalk
 	// aloca uma nova imagem do tamanho da original
 	// com 8 bits por pixel e 1 canal de cor
 	Mat Q(I.size(), CV_8U, 1);
-
-	QuantizationMSB(I, &Q, colors);
+	if (I.channels() == 1) {
+		double min, max;
+		Point maxLoc, minLoc;
+		minMaxLoc(I, &min, &max, &minLoc, &maxLoc);
+		double stretch = ((double)((colors-1.0)) / (max - min));
+		Q = I - min;
+		Q = Q * stretch;
+	}
+	else {
+		QuantizationMSB(I, &Q, colors);
+	}
 
 	Size imgSize = Q.size();
 	int height = imgSize.height;// altura
@@ -654,7 +661,20 @@ void LBP(Mat img, Mat *features, int colors){
 	Size newSize(width+increaseY*2, height+increaseX*2);
 	Mat resizedImg(newSize, CV_8U, 1);
 
-	copyMakeBorder(img, resizedImg, increaseX, increaseX, increaseY, increaseY, BORDER_REPLICATE);
+	Mat quantized(img.size(), CV_8U, 1);
+	if (img.channels() == 1) {
+		double min, max;
+		Point maxLoc, minLoc;
+		minMaxLoc(img, &min, &max, &minLoc, &maxLoc);
+		double stretch = ((double)((colors-1.0)) / (max - min ));
+		quantized = img - min;
+		quantized = quantized * stretch;
+	}
+	else {
+		QuantizationMSB(img, &quantized, colors);
+	}
+
+	copyMakeBorder(quantized, resizedImg, increaseX, increaseX, increaseY, increaseY, BORDER_REPLICATE);
 
 	Size imgSize = resizedImg.size();
 	newHeight = imgSize.height;
@@ -683,11 +703,11 @@ void LBP(Mat img, Mat *features, int colors){
         }
 	}
 
-	/* // Displays the lbp image
-	   namedWindow("LBP Image", WINDOW_AUTOSIZE);
-	   imshow("LBP Image", (dst/255.0)*4);
-	   waitKey(0);
-	*/
+	// Displays the lbp image
+	// namedWindow("LBP Image", WINDOW_AUTOSIZE);
+	// imshow("LBP Image", (dst/255.0)*4);
+	// waitKey(0);
+
 	Mat lbp = Mat::zeros(imgSize, CV_8U);
 	copyMakeBorder(dst, lbp, 1, 1, 1, 1, BORDER_REPLICATE);
 
@@ -733,25 +753,49 @@ void LBP(Mat img, Mat *features, int colors){
  		Mat original image
  		Mat features vector in which perform the operations
  ****************************************************************************/
-void HOG(Mat img, Mat *features){
+void HOG(Mat img, Mat *features, int numFeatures){
 
 	HOGDescriptor hog;
 	vector<float> hogFeatures;
-	vector<Point>locs;
-	int i, width = img.size().width, height = img.size().height;
+	vector<Point> locs;
+	int i, cellSize, feat;
 
-	hog.winSize = Size(width, height);
-	hog.blockSize = Size(16, 16);
-	hog.blockStride = Size(8,8);
-	hog.cellSize = Size(8, 8);
+	Mat quantized(img.size(), CV_8U, 1);
+	int colors = 256;
+	if (img.channels() == 1) {
+		double min, max;
+		Point maxLoc, minLoc;
+		minMaxLoc(img, &min, &max, &minLoc, &maxLoc);
+		double stretch = ((double)((colors-1.0)) / (max - min ));
+		quantized = img - min;
+		quantized = quantized * stretch;
+	}
+	else {
+		QuantizationMSB(img, &quantized, colors);
+	}
 
-	hog.compute(img,hogFeatures);
+	/*numFeatures = hog.nbins * (blockSize.width/cellSize.width)
+		* (blockSize.height/cellSize.height)
+		* ((winSize.width - blockSize.width)/blockStride.width + 1)
+		* ((winSize.height - blockSize.height)/ blockStride.height + 1); */
+	hog.winSize = Size(quantized.size().width, quantized.size().height);
+	cellSize = 8;
+	if (numFeatures != 0)
+		hog.nbins = numFeatures/((hog.winSize.width/cellSize-1) * (hog.winSize.height/cellSize-1) *2*2);
+	hog.blockSize = Size(cellSize*2, cellSize*2);
+	hog.blockStride = Size(cellSize, cellSize);
+	hog.cellSize = Size(cellSize, cellSize);
 
-	(*features).create(1, hogFeatures.size(), CV_32F);
+	hog.compute(quantized,hogFeatures);
+
+	feat = (numFeatures == 0) ? hogFeatures.size() : numFeatures;
+	(*features).create(1, feat, CV_32F);
 	(*features) = Scalar::all(0);
 
-	for(i = 0; i < (int) hogFeatures.size(); i++){
-		(*features).at<float>(0,i) = hogFeatures.at(i);
+	for(i = 0; i < feat; i++){
+		if ((int)hogFeatures.size() > i){
+			(*features).at<float>(0,i) = hogFeatures.at(i);
+		}
 	}
 }
 
@@ -764,35 +808,52 @@ void HOG(Mat img, Mat *features){
  ****************************************************************************/
 void contourExtraction(Mat img, Mat *features){
 
-	vector<vector<Point> > contours, contours0;
+	vector<vector<Point> > contours;
 	vector<Point> approx;
 	vector<Vec4i> hierarchy;
 	Mat bin;
 	Mat dst = Mat::zeros(img.rows, img.cols, CV_8UC3);
-	int i, biggestAreaIndex;
+	int i, biggestAreaIndex = 0;
 	bool k;
 	double area, areaApprox, perimeter, biggestArea = 0;
 	Moments mu;
 	Point2f mc;
 
-	threshold(img, bin, 100, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-	findContours(bin, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
+	Mat quantized(img.size(), CV_8U, 1);
+	int colors = 256;
+	if (img.channels() == 1) {
+		double min, max;
+		Point maxLoc, minLoc;
+		minMaxLoc(img, &min, &max, &minLoc, &maxLoc);
+		double stretch = ((double)((colors-1.0)) / (max - min ));
+		quantized = img - min;
+		quantized = quantized * stretch;
+	}
+	else {
+		QuantizationMSB(img, &quantized, colors);
+	}
 
-	// for (i = 0; i >= 0; i = hierarchy[i][0]){
-	// 	Scalar color(rand()&255, rand()&255, rand()&255);
-	// 	drawContours(dst, contours, i, color, CV_FILLED, 8, hierarchy);
-	// }
-	for(i = 0; i < (int) contours.size(); i++){
+	threshold(quantized, bin, 100, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+	findContours(bin, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
+
+	Mat contourImage(bin.size(), CV_8UC3, Scalar(0,0,0));
+	for (i = 0; i < (int)contours.size(); i++) {
+		// Scalar color(rand()&255, rand()&255, rand()&255);
+		// drawContours(contourImage, contours, i, color);
 		area = contourArea(contours[i], false);
 		if (area > biggestArea){
 			biggestArea = area;
 			biggestAreaIndex = i;
 		}
 	}
-	// Scalar color(255, 255, 255);
-	// drawContours(dst, contours, biggestAreaIndex, color, CV_FILLED, 8, hierarchy);
+	// namedWindow("All", 1);
+	// imshow("All", contourImage);
+	// waitKey(0);
+
+	Scalar color(255, 255, 255);
+	drawContours(contourImage, contours, biggestAreaIndex, color, 1, 8, hierarchy);
 	// namedWindow("Biggest Contour", 1);
-	// imshow("Biggest Contour", dst);
+	// imshow("Biggest Contour", contourImage);
 	// waitKey(0);
 
 	(*features).create(1, 6, CV_32F);
@@ -817,31 +878,91 @@ void contourExtraction(Mat img, Mat *features){
 	areaApprox = contourArea(approx);
 	(*features).at<float>(0,4) = areaApprox;
 
-	// Convex hull checks for convexity defects and corrects it
-	vector<int> hull;
-	convexHull(contours[biggestAreaIndex], hull); // returnPoints = true
-	vector<Point> hullPoints;
-	convexHull(contours[biggestAreaIndex], hullPoints);
-	k = isContourConvex(contours[biggestAreaIndex]);
-	(*features).at<float>(0,5) = k;
+	// // Convex hull checks for convexity defects and corrects it
+	// vector<int> hull;
+	// convexHull(contours[biggestAreaIndex], hull); // returnPoints = true
+	// vector<Point> hullPoints;
+	// convexHull(contours[biggestAreaIndex], hullPoints);
+	// k = isContourConvex(contours[biggestAreaIndex]);
+	// (*features).at<float>(0,5) = k;
 }
 
-// Fisher e VLAD
+// /****************************************************************************
+//  SURF - extract Speeded Up Robust Features
+//
+//  	Input
+//  		Mat original image
+//  		Mat features vector in which perform the operations
+//  ****************************************************************************/
+// void surf(Mat img, Mat *features){
+//
+// 	cv::initModule_nonfree();
+// 	vector<KeyPoint> keypoints;
+// 	int i, minHessian = 500;
+//
+// 	SurfFeatureDetector detector(minHessian);
+// 	SurfDescriptorExtractor extractor;
+//
+// 	detector.detect(img, keypoints);
+//
+// 	Mat imgKey;
+// 	drawKeypoints(img, keypoints, imgKey, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
+// 	// imshow("Keypoints", imgKey);
+// 	// waitKey(0);
+// 	Mat descriptors;
+// 	extractor.compute(img, keypoints, descriptors);
+//
+// 	cout << descriptors.size();
+// 	(*features).create(descriptors.rows, 1, CV_32F);
+// 	(*features) = Scalar::all(0);
+//
+// 	for(i = 0; i < descriptors.rows; i++){
+// 		(*features).at<float>(0,i) = descriptors.at<float>(i,0);
+// 	}
+// }
 
-void SURF(Mat img, Mat *features){
+/****************************************************************************
+ Fisher Vectors Encoding
 
-	// vector<KeyPoint> keypoints;
-	// int i, minHessian = 400;
+ 	Input
+ 		Mat original image
+ 		Mat features vector in which perform the operations
 
-	// SurfFeatureDetector detector( minHessian );
+	- Extract features with SIFT
+	- Calculate a Gaussian Mixture Model (GMM)
+	- Obtain the Fisher Vector encoding of a set of features
+ ****************************************************************************/
+void fisherVectors(Mat img, Mat *feature){
+	float *means, *covariances, *priors, *posteriors, *enc;
+	// int numClusters = 30;//, numData = img.cols,
+	// int dimension = 3;
 
-	// detector.detect(img, keypoints);
+ 	vector<KeyPoint> keypoints;
+	Mat descriptors;
+	float* data;
+	vl_size numData, dimension, numClusters;
+	// // create a GMM object and cluster input data to get means, covariances
+	// // and priors of the estimated mixture
+	// gmm = vl_gmm_new (VL_TYPE_FLOAT) ;
+	// VLGMM** gmm;
+	// vl_gmm_cluster (gmm, data, dimension, numData, numClusters);
 
-	// (*features).create(1, keypoints.size(), CV_32F);
-	// (*features) = Scalar::all(0);
-
-	// for(i = 0; i < (int) keypoints.size(); i++){
-	// 	features.at<float>(0,i) = keypoints.at(i);
-	// }
-
-}
+	// // allocate space for the encoding
+	// enc = vl_malloc(sizeof(float) * 2 * dimension * numClusters);
+	// // run fisher encoding
+	// vl_fisher_encode(
+	// 	enc, VL_F_TYPE,
+	// 	vl_gmm_get_means(gmm), dimension, numClusters,
+	// 	vl_gmm_get_covariances(gmm),
+	// 	vl_gmm_get_priors(gmm),
+	// 	dataToEncode, numDataToEncode,
+	// 	VL_FISHER_FLAG_IMPROVED
+	// );
+	//
+	// 	(*features).create(enc.size(), 1, CV_32F);
+	// 	(*features) = Scalar::all(0);
+	//
+	// 	for(i = 0; i < enc.size(); i++){
+	// 		(*features).at<float>(0,i) = enc.at(i);
+	// 	}
+ }

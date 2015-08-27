@@ -176,16 +176,16 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
 
     startWidth = startHeight = 0;
     for (subImage = 1; subImage <= fator; subImage++){
-		if (option == 2){
-			originalImage.copyTo(img);
-		}
-		else {
+		// if (option == 2){
+		// 	originalImage.copyTo(img);
+		// }
+		// else {
 	        do{
 	            newImage = rand() % total;
 	        } while(count(vectorRand.begin(), vectorRand.end(), newImage) && vectorRand.size() < total);
 	        vectorRand.push_back(newImage);
 	        images[newImage].copyTo(img);
-		}
+		// }
 
         operation = 1 + (rand() % 6);
         switch(operation){
@@ -193,20 +193,20 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
                 generated = generateBlur(img);
                 break;
             case 2:
-                generated = generateNoise(img);
-                break;
-            case 3:
                 generated = generateBlending(img, images, total);
                 break;
-            case 4:
+            case 3:
                 generated = generateUnsharp(img);
                 break;
-            case 5:
+            case 4:
                 generated = generateThreshold(img, images, total);
                 break;
-            case 6:
+            case 5:
                 generated = generateSaliency(img, images, total);
-            default:
+				break;
+			case 6:
+				generated = generateSmoteImg(img, images, total, 1);
+	        default:
                 break;
         }
         roiHeight = subImg.size().height/sqrt(fator);
@@ -216,7 +216,7 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
             subImage--;
             continue;
         }
-		if (!option){
+		if (option){
 	        randW = rand() % (generated.size().width - roiWidth);
 	        randH = rand() % (generated.size().height - roiHeight);
 	        generated(Rect(randW, randH, roiWidth, roiHeight)).copyTo(roi);
@@ -254,18 +254,13 @@ Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images, int tot
 
     //Create binary image using Otsu's threshold
     cvtColor(originalImage, bin, CV_BGR2GRAY);
-    threshold(bin, bin, 0, 255, CV_THRESH_OTSU);
+    threshold(bin, bin, 127, 255, THRESH_BINARY_INV | CV_THRESH_OTSU);
 
-    // // Select the foreground
-    //erode(bin,bin,Mat(),Point(-1,-1), 2, 1, 1);
-    //dilate(bin,bin,Mat(),Point(-1,-1), 2, 1, 1);
     // MORPH_RECT
-    morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(2*2+1, 2*2+1), Point(2,2)), Point(-1,-1));
-    originalImage.copyTo(foreground, bin&1);
-
-    // namedWindow("Display window", WINDOW_AUTOSIZE );
-    // imshow("foreground", bin);
-    // waitKey(0);
+	int erosion_size = 1;
+	morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(2*erosion_size+1, 2*erosion_size+1), Point(erosion_size,erosion_size)), Point(-1,-1));
+	// originalImage.copyTo(foreground, bin&1);
+	originalImage.copyTo(foreground, bin);
 
     // Select another image with the same size
     randomSecondImg = 0 + (rand() % total);
@@ -277,22 +272,14 @@ Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images, int tot
     bitwise_not(bin, bin);
     images[randomSecondImg].copyTo(background, bin);
 
-    // namedWindow("Display window", WINDOW_AUTOSIZE );
-    // imshow("background", background);
-    // waitKey(0);
-
     // Blend of background and foreground
     generated = background + foreground;
 
     // namedWindow("Display window", WINDOW_AUTOSIZE );
+	// imshow("foreground", bin);
+	// imshow("background", background);
     // imshow("generated", generated);
     // waitKey(0);
-
-    // originalImage.copyTo(bin);
-    // // Select just the most salient region, given a threshold value
-    // bin = saliency_map * 255;
-    // GaussianBlur(bin, bin, Size(1,1), 0, 0);
-    // bin.convertTo(bin, CV_8U); // threshold needs an int Mat
 
     return generated;
 }
@@ -315,13 +302,12 @@ Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int tota
 
     // Select just the most salient region, given a threshold value
     bin = saliency_map * 255;
-    GaussianBlur(bin, bin, Size(1,1), 0, 0);
-    bin.convertTo(bin, CV_8U); // threshold needs an int Mat
-    threshold(bin, bin, 0, 255, THRESH_BINARY | THRESH_OTSU);
+    // GaussianBlur(bin, bin, Size(1,1), 0, 0);
+    bin.convertTo(bin, CV_8U);
+    threshold(bin, bin, 127, 255, THRESH_BINARY_INV | THRESH_OTSU);
 
-    // Eliminate small regions (Mat() == default 3x3 kernel)
-    // morphologyEx(bin, bin, 3, getStructuringElement(2, Size( 2*20 + 1, 2*20+1 ), Point(20, 20)));
-    original.copyTo(foreground, bin&1);
+ 	morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(2*1+1, 2*1+1), Point(1,1)), Point(-1,-1));
+	original.copyTo(foreground, bin);
 
     // imwrite(nameGeneratedImage+"_saliency", bin);
     // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
@@ -341,7 +327,7 @@ Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int tota
     // Blend of background and foreground
     generated = background + foreground;
 
-    // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
+    // namedWindow( "Display window", WINDOW_AUTOSIZE );
     // imshow("saliency", generated);
     // waitKey(0);
     return generated;
@@ -349,19 +335,22 @@ Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int tota
 
 Mat smoteImg(Mat first, Mat second, bool option){
 
-    Mat out(first.size(), CV_8U, 3);
-	int i, j, newpixel;
+	int i, j, newpixel, sizeHeight, sizeWidth;
 	double diff, gap;
 
-	for (i = 0; i < first.size().height; i++) {
-		for (j = 0; j < first.size().width; j++) {
-			diff = (int)first.at<uchar>(i,j) - second.at<uchar>(i,j);
+	sizeHeight = (first.size().height < second.size().height) ? first.size().height : second.size().height;
+	sizeWidth = (first.size().width < second.size().width) ? first.size().width : second.size().width;
+	Mat out(Size(sizeWidth, sizeHeight), CV_8U, 3);
+
+	for (i = 0; i < sizeHeight; i++) {
+		for (j = 0; j < sizeWidth; j++) {
+			/* Calculate de difference between the same pixel in different images */
+			diff = (int)first.at<uchar>(i,j) - (int)second.at<uchar>(i,j);
 			/* Multiply this difference with a number between 0 and 1 */
 			gap = (double)rand()/(RAND_MAX);
-			//cout << "gap " << gap << endl;
 			newpixel = (int)first.at<uchar>(i,j);
-			if (!option)
-				newpixel = (int)first.at<uchar>(i,j) + gap*diff;
+			if (option)
+				newpixel += gap*diff;
 			else
 				newpixel += (((newpixel + gap*diff) < 0) || ((newpixel + gap*diff) > 255) ) ? -gap*diff : gap*diff;
 			newpixel = (newpixel > 255) ? 255 : newpixel;
@@ -379,11 +368,7 @@ Mat Artificial::generateSmoteImg(Mat originalImage, vector<Mat> images, int tota
 	vector<Mat> imColors(3), imColorsSecond(3);
 	Mat generated, second;
 
-    /* Select another image with the same size */
     randomSecondImg = rand() % total;
-    while (originalImage.size() != images[randomSecondImg].size()){
-        randomSecondImg = rand() % total;
-    }
     originalImage.copyTo(generated);
 	split(generated, imColors);
 	images[randomSecondImg].copyTo(second);
@@ -395,11 +380,12 @@ Mat Artificial::generateSmoteImg(Mat originalImage, vector<Mat> images, int tota
 
     merge(imColors, generated);
 
-    // namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
+    // namedWindow( "Display window", WINDOW_AUTOSIZE);
 	// imshow("original", originalImage);
-    // waitKey(0);
+	// imshow("second", second);
     // imshow("smoteimg", generated);
     // waitKey(0);
+
     return generated;
 }
 
@@ -478,7 +464,7 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
                 /* Choose an operation
                     Case 1: All operation */
                 if (whichOperation == 1)
-                    generationType = 2 + (rand() % 14);
+                    generationType = 2 + (rand() % 7);
                 else
                     generationType = whichOperation;
 
@@ -493,57 +479,57 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
                         imwrite(nameGeneratedImage, generated);
                         break;
                     case 3:
-                        generated = generateNoise(original);
-                        imwrite(nameGeneratedImage, generated);
-                        break;
-                    case 4:
                         generated = generateBlending(original, images, totalImage[eachClass]);
                         imwrite(nameGeneratedImage, generated);
                         break;
-                    case 5:
+                    case 4:
                         generated = generateUnsharp(original);
                         imwrite(nameGeneratedImage, generated);
                         break;
-                    case 6:
-                        generated = generateComposition(original, images, totalImage[eachClass], 4, 0);
-                        imwrite(nameGeneratedImage, generated);
-                        break;
-                    case 7:
-                        generated = generateComposition(original, images, totalImage[eachClass], 16, 0);
-                        imwrite(nameGeneratedImage, generated);
-                        break;
-                    case 8:
-                        generated = generateThreshold(original, images, totalImage[eachClass]);
-                        imwrite(nameGeneratedImage, generated);
-                        break;
-                    case 9:
-                        generated = generateSaliency(original, images, totalImage[eachClass]);
-                        imwrite(nameGeneratedImage, generated);
-                        break;
-					case 10:
-                        generated = generateSmoteImg(original, images, totalImage[eachClass], 0);
-                        imwrite(nameGeneratedImage, generated);
-                        break;
-					case 11:
-                        generated = generateSmoteImg(original, images, totalImage[eachClass], 1);
-                        imwrite(nameGeneratedImage, generated);
-                        break;
-					case 12:
-                        generated = generateComposition(original, images, totalImage[eachClass], 4, 1);
-                        imwrite(nameGeneratedImage, generated);
-                        break;
-                    case 13:
+                    case 5:
                         generated = generateComposition(original, images, totalImage[eachClass], 16, 1);
                         imwrite(nameGeneratedImage, generated);
                         break;
-					case 14:
-                        generated = generateComposition(original, images, totalImage[eachClass], 4, 2);
+                    case 6:
+                        generated = generateThreshold(original, images, totalImage[eachClass]);
                         imwrite(nameGeneratedImage, generated);
                         break;
-					case 15:
-                        generated = generateComposition(original, images, totalImage[eachClass], 16, 2);
+                    case 7:
+                        generated = generateSaliency(original, images, totalImage[eachClass]);
                         imwrite(nameGeneratedImage, generated);
                         break;
+					case 8:
+                        generated = generateSmoteImg(original, images, totalImage[eachClass], 1);
+                        imwrite(nameGeneratedImage, generated);
+                        break;
+					// case 11:
+                    //     generated = generateSmoteImg(original, images, totalImage[eachClass], 0);
+                    //     imwrite(nameGeneratedImage, generated);
+                    //     break;
+					// case 3:
+                    //     generated = generateNoise(original);
+                    //     imwrite(nameGeneratedImage, generated);
+                    //     break;
+					// case 6:
+                    //     generated = generateComposition(original, images, totalImage[eachClass], 4, 0);
+                    //     imwrite(nameGeneratedImage, generated);
+                    //     break;
+					// case 12:
+                    //     generated = generateComposition(original, images, totalImage[eachClass], 16, 1);
+                    //     imwrite(nameGeneratedImage, generated);
+                    //     break;
+                    // case 13:
+                    //     generated = generateComposition(original, images, totalImage[eachClass], 4, 1);
+                    //     imwrite(nameGeneratedImage, generated);
+                    //     break;
+					// case 14:
+                    //     generated = generateComposition(original, images, totalImage[eachClass], 4, 2);
+                    //     imwrite(nameGeneratedImage, generated);
+                    //     break;
+					// case 15:
+                    //     generated = generateComposition(original, images, totalImage[eachClass], 16, 2);
+                    //     imwrite(nameGeneratedImage, generated);
+                    //     break;
                     default:
                         break;
                 }

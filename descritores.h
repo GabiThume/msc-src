@@ -7,9 +7,16 @@
 #include <queue>
 #include <vector>
 #include "funcoesAux.h"
+#include <opencv2/nonfree/nonfree.hpp>
+
+// #include "vlfeat/vl/sift.h"
+#include <vl/sift.h>
 
 using namespace cv;
 using namespace std;
+
+const string quantizationMethod[4] = {"Intensity", "Luminance", "Gleam", "MSB"};
+const string descriptorMethod[9] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"};
 
 typedef struct {
 	int i;
@@ -117,8 +124,10 @@ void ACC(Mat I, Mat *features, int nColor, int oNorm, int *k, int totalk);
 
 void LBP(Mat img, Mat *features, int colors);
 
-void HOG(Mat img, Mat *features);
+void HOG(Mat img, Mat *features, int numFeatures);
 
 void contourExtraction(Mat Img, Mat *features);
+
+// void surf(Mat Img, Mat *features);
 
 #endif

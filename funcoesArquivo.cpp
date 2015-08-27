@@ -136,12 +136,10 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	double **coocurrenceMatrix = NULL;
 	Mat img, featureVector, features, labels, trainTest, newimg;
 	FILE *arq;
-	string quantizationsNames[4] = {"Intensity", "Luminance", "Gleam", "MSB"};
-	string descriptors[8] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"};
     vector<int> objperClass;
 
 	cout << "\n---------------------------------------------------------------------------------------" << endl;
-	cout << "Image feature extraction using " << descriptors[method-1] << " and " << quantizationsNames[quantization-1] << endl;
+	cout << "Image feature extraction using " << descriptorMethod[method-1] << " and " << quantizationMethod[quantization-1] << endl;
 	cout << "---------------------------------------------------------------------------------------" << endl;
 
 	// Check how many classes and images there are
@@ -257,7 +255,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
                     break;
 			    /* HOG */
 				case 7:
-					HOG(newimg, &featureVector);
+					HOG(newimg, &featureVector, features.cols);
                     break;
 			    /* Contour */
 				case 8:
@@ -270,9 +268,19 @@ string descriptor(string database, string featuresDir, int method, int colors, d
                     exit(1);
 			}
 
+            if (featureVector.cols == 0){
+                cout << "Error: the feature vector is null" << endl;
+                exit(1);
+            }
+
 			labels.at<uchar>(imgTotal,0) = (uchar)i;
             if (features.size().height == 0){
                 features = Mat::zeros(0, featureVector.size().width, CV_32F);
+            }
+            if (features.cols != featureVector.cols){
+                cout << "OMG" << endl;
+                cout << "features.cols " << features.cols << endl;
+                cout << "featureVector.cols " << featureVector.cols << endl;
             }
             features.push_back(featureVector);
 			imgTotal++;
@@ -282,7 +290,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 		}
 	}
 
-	if(method == 4 && normalization != 0){
+	if((method == 4 || method == 6 || method == 7 || method == 8 ) && normalization != 0){
 		normFactor = (normalization == 1) ? 1.0 : 255.0;
 
 		for(j = 0; j < features.cols; ++j){
@@ -301,11 +309,11 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 	}
 
     if (method != 5){
-		nome = featuresDir+descriptors[method-1]+"_"+quantizationsNames[quantization-1];
+		nome = featuresDir+descriptorMethod[method-1]+"_"+quantizationMethod[quantization-1];
         nome += "_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
     }
     else {
-        nome = featuresDir+"/ACC_"+quantizationsNames[quantization-1]+"_"+to_string(colors);
+        nome = featuresDir+"/ACC_"+quantizationMethod[quantization-1]+"_"+to_string(colors);
         nome += "c_"+to_string(nparam)+"d_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
     }
 

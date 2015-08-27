@@ -5,8 +5,6 @@
 *
 **/
 
-#include <iostream>
-#include <fstream>
 #include "classifier.h"
 
 /* Train and predict using the Normal Bayes classifier */
@@ -109,20 +107,19 @@ void Classifier::printAccuracy(double id, vector<vector<double> > fScore){
 	if (outputName != ""){
 		cout << "Write on " << (outputName+"FScore.csv").c_str() << endl;
 		cout << "---------------------------------------------------------------------------------------" << endl;
-		// outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), ios::out | ios::app);
+		outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), ios::out | ios::app);
 		// outputFile.open((outputName+"BalancedAccuracy.csv").c_str());
+		outputFile << id << "," << balancedMean << "\n";
 		// outputFile << balancedMean << "\n";
-		// outputFile << minority.second << "," << balancedMean << "\n";
-		// outputFile.close();
+		outputFile.close();
+
 		outputFile.open((outputName+"FScore.csv").c_str(), ios::out | ios::app);
 		// outputFile.open((outputName+"FScore.csv").c_str());
 		outputFile << id << "," << fscoreMean << "\n";
+		// outputFile << fscoreMean << "\n";
 		// for (i = 0; i < (int) fscores.size(); i++){
 		// 	outputFile << i << "," << fscores[i] << "\n";
 		// }
-		// outputFile.close();
-		// outputFile.open((outputName+"ROC.csv").c_str(), ios::out | ios::app);
-		// outputFile << FPR << "," << TPR << endl;
 		outputFile.close();
 	}
 }

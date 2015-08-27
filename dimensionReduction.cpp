@@ -19,11 +19,7 @@
 #include <cmath>
 #include <vector>
 
-#include "funcoesArquivo.h"
 #include "classifier.h"
-
-using namespace cv;
-using namespace std;
 
 double log2(double number){
    return log(number)/log(2);
@@ -38,31 +34,31 @@ Mat entropyReduction(Mat data, int tam_janela, string name_my_file){
     string arq_saida;
     stringstream tam;
     tam << tam_janela;
-        
+
     height = data.size().height;
     width = data.size().width;
     Mat vectorEntropy(height, ceil((float)width/tam_janela), CV_32FC1);
 
-    arq_saida = "entropy/ENTROPIA_" + tam.str() + "_"  + name_my_file; 
+    arq_saida = "entropy/ENTROPIA_" + tam.str() + "_"  + name_my_file;
     ofstream arq(arq_saida.c_str());
-   
+
     for (i = 0; i < height; i++){
         janela = 0;
         indice_janela = 0;
-        
+
         while (janela < width){
             entropy = 0;
 
             fim_janela = janela+tam_janela;
             if (fim_janela > width)
                 fim_janela = width;
-            
+
             frequencias.clear();
             for (j = janela; j < fim_janela; j++){
                 float valor =  trunc(10000*data.at<float>(i, j))/10000;
                 frequencias[valor]++;
             }
-            
+
             for (iterator = frequencias.begin(); iterator != frequencias.end(); ++iterator) {
                 prob = static_cast<double>(iterator->second) / (fim_janela -janela) ;
                 entropy += prob * log2( prob ) ;
@@ -76,7 +72,7 @@ Mat entropyReduction(Mat data, int tam_janela, string name_my_file){
         }
     }
     arq << vectorEntropy;
-    arq.close();    
+    arq.close();
     return vectorEntropy;
 }
 
@@ -86,7 +82,7 @@ Mat pcaReduction(Mat data, int nComponents, string name_my_file){
     stringstream n;
     n << nComponents;
 
-    string arq_saida = "pca/PCA_" + n.str() + "_" + name_my_file; 
+    string arq_saida = "pca/PCA_" + n.str() + "_" + name_my_file;
     ofstream arq(arq_saida.c_str());
 
     PCA pca(data, Mat(), CV_PCA_DATA_AS_ROW, nComponents);
@@ -94,7 +90,7 @@ Mat pcaReduction(Mat data, int nComponents, string name_my_file){
     projection = pca.project(data);
 
     arq << projection;
-    arq.close();    
+    arq.close();
     return projection;
 }
 
@@ -126,17 +122,17 @@ int main(int argc, const char *argv[]){
         case 0: /* Just classification */
             break;
         case 1: /* PCA */
-            if (argc < 4) 
+            if (argc < 4)
                 inputError();
             atributos = atoi(argv[3]);
             break;
         case 2: /* Entropy */
-            if (argc < 4) 
+            if (argc < 4)
                 inputError();
             janela = atoi(argv[3]);
             break;
         case 3: /* PCA + Entropy */
-            if (argc < 5) 
+            if (argc < 5)
                 inputError();
             atributos = atoi(argv[3]);
             janela = atoi(argv[4]);
@@ -253,4 +249,3 @@ int main(int argc, const char *argv[]){
     }
     return 0;
 }
-

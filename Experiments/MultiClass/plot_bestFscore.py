@@ -11,7 +11,7 @@ import sys
 import os
 import itertools
 
-directory = "BestFScore/"
+directory = "BestFscore-Tropical/"
 # directory = "BestFscore-Corel/"
 algorithms = ["desbalanced", "artificial", "smote"]
 descriptors = ["BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"]
@@ -23,7 +23,7 @@ which = 0
 marker = itertools.cycle(('o', 's', '^'))
 
 # for which in range(0,2):
-for generation in range(0,10):
+for generation in range(13,14):
     for operation in range(0,14):
         for desc in descriptors:
             for met in methods:
