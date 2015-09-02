@@ -8,7 +8,7 @@
  **/
 
 #include "descritores.h"
-#include "funcoesAux.h"
+#include "quantization.h"
 
 /* Funcao Find Neighbor
  * Encontra os vizinhos de um pixel
@@ -778,7 +778,9 @@ void HOG(Mat img, Mat *features, int numFeatures){
 		* (blockSize.height/cellSize.height)
 		* ((winSize.width - blockSize.width)/blockStride.width + 1)
 		* ((winSize.height - blockSize.height)/ blockStride.height + 1); */
-	hog.winSize = Size(quantized.size().width, quantized.size().height);
+	int divideW = quantized.size().width / 8;
+	int divideH = quantized.size().height / 8;
+	hog.winSize = Size(divideW*8, divideH*8);
 	cellSize = 8;
 	if (numFeatures != 0)
 		hog.nbins = numFeatures/((hog.winSize.width/cellSize-1) * (hog.winSize.height/cellSize-1) *2*2);

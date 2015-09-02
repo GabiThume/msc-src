@@ -278,9 +278,8 @@ string descriptor(string database, string featuresDir, int method, int colors, d
                 features = Mat::zeros(0, featureVector.size().width, CV_32F);
             }
             if (features.cols != featureVector.cols){
-                cout << "OMG" << endl;
-                cout << "features.cols " << features.cols << endl;
-                cout << "featureVector.cols " << featureVector.cols << endl;
+                cout << "This descriptor is generating different sizes of vectors " << endl;
+                exit(1);
             }
             features.push_back(featureVector);
 			imgTotal++;
@@ -310,11 +309,11 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 
     if (method != 5){
 		nome = featuresDir+descriptorMethod[method-1]+"_"+quantizationMethod[quantization-1];
-        nome += "_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
+        nome += "_"+to_string(colors)+"c_"+to_string(resizingFactor)+"r_"+to_string(features.rows)+"i_"+id+".csv";
     }
     else {
         nome = featuresDir+"/ACC_"+quantizationMethod[quantization-1]+"_"+to_string(colors);
-        nome += "c_"+to_string(nparam)+"d_"+to_string(resizingFactor)+"r_"+to_string(qtdImgTotal)+"i_"+id+".csv";
+        nome += "c_"+to_string(nparam)+"d_"+to_string(resizingFactor)+"r_"+to_string(features.rows)+"i_"+id+".csv";
     }
 
 	arq = fopen(nome.c_str(), "w+");
@@ -323,20 +322,20 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 		return "";
 	}
 
-	fprintf(arq,"%d\t%d\t%d\n", qtdImgTotal, qtdClasses, features.cols);
+	fprintf(arq,"%d\t%d\t%d\n", features.rows, qtdClasses, features.cols);
 	cout << "File: " << nome << endl;
-	cout << "Objects: " << qtdImgTotal << " - Classes: " << qtdClasses << " - Features: " << features.cols << endl;
+	cout << "Objects: " << features.rows << " - Classes: " << qtdClasses << " - Features: " << features.cols << endl;
 	for (i = 0; i < qtdClasses; i++) {
-		int bars = (int) (((float) objperClass[i] / (float) qtdImgTotal)*50.0);
+		int bars = (int) (((float) objperClass[i] / (float) features.rows)*50.0);
 		cout << i << " ";
 		for (j = 0; j < bars; j++){
 			cout << "|";
 		}
-		float porc = (float)objperClass[i]/(float)qtdImgTotal;
+		float porc = (float)objperClass[i]/(float)features.rows;
 		cout << " " << porc*100 << "%" << " (" << objperClass[i] << ")" <<endl;
 	}
 
-	for (i = 0; i < imgTotal; i++) {
+	for (i = 0; i < features.rows; i++) {
 	    // Write the image number and the referenced class
 		fprintf(arq, "%d\t%d\t%d\t", i, labels.at<uchar>(i,0), trainTest.at<uchar>(i,0));
 		for(k = 0; k < features.cols; k++) {
@@ -348,6 +347,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 		}
 		fprintf(arq,"\n");
 	}
+    fclose(arq);
 
     bool writeDataFile = false;
     if (writeDataFile){
@@ -381,6 +381,5 @@ string descriptor(string database, string featuresDir, int method, int colors, d
 		free(coocurrenceMatrix);
 	}
 
-	fclose(arq);
 	return nome;
 }

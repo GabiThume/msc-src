@@ -10,7 +10,7 @@
 void classifica(string base, string features, string outfileName){
 
     Classifier c;
-    int smallerClass;
+    int smallerClass, minoritySize;
     float prob = 0.5;
     DIR *directory;
     struct dirent *arq;
@@ -36,10 +36,10 @@ void classifica(string base, string features, string outfileName){
             data = readFeatures(name);
             if (data.size() != 0){
 
-                smallerClass = c.findSmallerClass(data);
+                smallerClass = c.findSmallerClass(data, &minoritySize);
                 id << smallerClass;
                 id << "_";
-                id << data[smallerClass].features.size().height;
+                id << minoritySize;
 
                 c.classify(prob, 20, data, outfileName+id.str(), data[smallerClass].features.size().height);
             }

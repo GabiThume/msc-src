@@ -17,7 +17,7 @@ class Classifier{
     	void bayesClassifier(Mat, Mat, Mat, Mat&);
 		void knn(Mat, Mat, Mat, Mat&);
         vector<vector<double> > classify(double, int, vector<Classes>, string, double);
-        int findSmallerClass(vector<Classes>);
+        int findSmallerClass(vector<Classes>, int*);
         void printAccuracy(double, vector<vector<double> >);
         double calculateMean(vector<double>);
         double calculateStandardDeviation(vector<double>);

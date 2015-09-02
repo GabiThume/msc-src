@@ -125,19 +125,19 @@ void Classifier::printAccuracy(double id, vector<vector<double> > fScore){
 }
 
 /* Find which is the smaller class */
-int Classifier::findSmallerClass(vector<Classes> imageClasses){
+int Classifier::findSmallerClass(vector<Classes> imageClasses, int *minoritySize){
 
-	int classeId = 0, minorityClass, minorNumber;
+	int classeId = 0, minorityClass;
 	std::vector<Classes>::iterator it;
+	(*minoritySize) = imageClasses[0].features.size().height;
 
 	for(it = imageClasses.begin(); it != imageClasses.end(); ++it) {
-		if (it->features.size().height < minorNumber){
-			minorNumber = it->features.size().height;
+		if (it->features.size().height < (*minoritySize)){
+			(*minoritySize) = it->features.size().height;
 			minorityClass = classeId;
 		}
 		classeId++;
 	}
-
 	return minorityClass;
 }
 

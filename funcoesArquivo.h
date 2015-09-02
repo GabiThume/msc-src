@@ -14,6 +14,7 @@
 #include <fstream>
 #include "descritores.h"
 #include "funcoesAux.h"
+#include "quantization.h"
 
 using namespace cv;
 using namespace std;

@@ -1,13 +1,3 @@
-/**
- * Auxiliar Functions for Feature Extraction:
- *	Image enhancement
- *	Image quantization
- *	Normalization
- * 	Distance Functions
- *
- *	Authors: Moacir Ponti, Luciana Escobar
- *	Universidade de São Paulo / ICMC / 2012-2014
- **/
 #ifndef _FUNCOESAUX_H
 #define _FUNCOESAUX_H
 
@@ -29,7 +19,7 @@ using namespace std;
   Returns:
 	- gamma-corrected image
 */
-Mat correctGamma(Mat img, double gamma );
+void correctGamma(Mat *I, double gamma);
 
 /*
   Function to reduce the number of colors in a single channel image
@@ -38,45 +28,6 @@ Mat correctGamma(Mat img, double gamma );
 	- nColors: final number of colors
 */
 void reduceImageColors(Mat *I, int nColors);
-
-/*
-  Image quantization by Gamma corrected Intensity
-  Requires
-	- I : image to be converted
-	- Q : image to store quantized version
-	- nColors : number of colors after quantization
-*/
-void QuantizationIntensity(Mat I, Mat *Q, int nColors);
-
-
-/*
-  Image quantization by Gleam
-   Requires
-	- I : image to be converted
-	- Q : image to store quantized version
-	- nColors : number of colors after quantization
-*/
-void QuantizationGleam(Mat I, Mat *Q, int nColors);
-
-
-/*
-  Image quantization by gamma-corrected Luminance
-   Requires
-	- I : image to be converted
-	- Q : image to store quantized version
-	- nColors : number of colors after quantization
-*/
-void QuantizationLuminance(Mat I, Mat *Q, int nColors);
-
-
-/*
-  Image quantization using the Most Significant Bits (MSB)
-  Require:
-	- I : image to be converted
-	- Q : image to store quantized version
-	- nColors : number of colors after quantization
-*/
-void QuantizationMSB(Mat I, Mat *Q, int nColors);
 
 
 /*

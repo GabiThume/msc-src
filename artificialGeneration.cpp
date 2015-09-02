@@ -409,8 +409,14 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 
 	str = "rm -f -r "+newDirectory+"/*;";
 	str += "mkdir -p "+newDirectory+";";
-	str += "cp -R "+base+"/* "+newDirectory+";";
+	str += "mkdir -p "+newDirectory+"/original/;";
+	str += "cp -R "+base+"/* "+newDirectory+"/original/;";
 	system(str.c_str());
+	str = "rm -f -r "+newDirectory+"/features/;";
+	str += "mkdir -p "+newDirectory+"/features/;";
+	system(str.c_str());
+
+	newDirectory += "/original/";
 	dir = opendir(newDirectory.c_str());;
 	if(dir == NULL) {
 		cout << "Error! Directory " << newDirectory << " don't exist. " << endl;

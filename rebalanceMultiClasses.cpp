@@ -276,10 +276,9 @@ int main(int argc, char const *argv[]){
             Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
     */
 
-    double factors[3] = {1.0, 1.5, 1.75};
+    vector<double> factors = {1.0, 1.5, 1.75};
 
-    // for (x = 0; x < 1; x++){
-    // for (rep = 0; rep < 10; rep ++){
+    for (x = 0; x < factors.size(); x++){
         /* Desbalancing Data */
         cout << "\n\n------------------------------------------------------------------------------------" << endl;
         cout << "Divide the number of original samples to create a minority class:" << endl;
@@ -287,31 +286,17 @@ int main(int argc, char const *argv[]){
         string dirImbalanced = imbalance(baseDir, newDir, 0.5, factors[x]);
         // string dirImbalanced = imbalance(baseDir, newDir, 0.5, 0.5);
         // imbalance(baseDir, newDir, 0.5, 0.25);
-        // for (operation = 1; operation <= 15; operation ++){
+        for (operation = 1; operation <= 15; operation ++){
         //
         //     stringstream operationstr;
         //     operationstr << operation;
         //     op = operationstr.str();
             /* Generate Artificial Images */
-            stringstream globalFactor;
             globalFactor << factors[x];
             string newDirectory = dirImbalanced+"/../Rebalanced-"+globalFactor.str();
             string dirRebalanced = a.generate(dirImbalanced, newDirectory, operation);
-            // for (d = 1; d <= 8; d++){
-            //     initialMethod = 4;
-            //     endMethod = 4;
-            //     if (d < 6)
-            //         endMethod = 1;
-            //     if (d == 4){ // For Haralick use Intensity quantization
-            //         initialMethod = 1;
-            //         endMethod = 1;
-            //     }
-            //     else if (d == 7){ // If it is HOG then use Intensity and Luminance quantization
-            //         initialMethod = 1;
-            //         endMethod = 2;
-            //     }
-            //
-            //     for (m = initialMethod; m <= endMethod; m++){
+            for (d = 1; d <= 8; d++){
+                for (m = 1; m <= 4; m++){
                     csvOriginal = analysisDir+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
                     csvDesbalanced = analysisDir+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
                     csvSmote = analysisDir+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
@@ -427,7 +412,6 @@ int main(int argc, char const *argv[]){
                 }
             }
         }
-    // }
-    // }
+    }
     return 0;
 }
