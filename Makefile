@@ -20,7 +20,7 @@ quantization:
 	@g++ -Wall -c -g quantization.cpp $(OPENCV)
 
 descritores:
-	@g++ -Wall -c -g descritores.cpp $(OPENCV) $(VLFEAT)
+	@g++ -std=c++11 -Wall -c -g descritores.cpp $(OPENCV) $(VLFEAT)
 
 funcoesArquivo:
 	@g++ -std=c++11 -Wall -c -g funcoesArquivo.cpp $(OPENCV) $(VLFEAT)
