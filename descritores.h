@@ -101,31 +101,11 @@ void GCH(Mat I, Mat *features, int nColor, int oNorm);
 void BIC(Mat I, Mat *features, int nColor, int oNorm);
 
 
-/* Funcao CoocurrenceMatrix
- * Cria uma matriz que contem a ocorrencia de cada cor em cada pixel da imagem
- * Requer:
- *    - imagem original
- *    - matriz ja alocada, no tamanho nColor x nColor
- *    - quantidade de cores usadas na imagem
- *    - coordenadas dX e dY, que podem ser 0 ou 1 */
-void CoocurrenceMatrix(Mat I, double **Cm, int nColor, int dX, int dY);
+void CoocurrenceMatrix(Mat img, vector< vector<double> > *co_occurence,
+                      int colors, int distance, int angle);
 
-
-/* Funcao Haralick6
- * Cria um histograma com 6 descritores de textura
- * Requer:
- *    - matriz de coocorrencia
- *    - quantidade de cores usadas na imagem
- *    - histograma ja alocado
- * Os descritores sao:
- *    - maxima Probabilidade
- *    - correlacao
- *    - contraste
- *    - energia (uniformidade)
- *    - homogeneidade
- *    - entropia */
-void Haralick6(double **Cm, int nColor, Mat *features);
-
+void Haralick6(vector< vector<double> > co_occurence, Mat *features);
+void HARALICK(Mat img, Mat *features, int colors, int normalization);
 
 /* Descritor Haralick
  * Cria um histograma com 6 descritores de textura

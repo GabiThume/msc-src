@@ -130,16 +130,16 @@ Computes two histograms:
 
 Requires:
 - Mat original image
-- Mat histogram with size equal to 2*colors
+- Mat* histogram with size equal to 2*colors
   * coherent: [0, colors-1]
   * incoherent: [colors, colors*2-1]
 - int number of colors
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 - int level of coherency
 *******************************************************************************/
-void CalculateCCV(Mat img, Mat *features, int num_colors, int normalization,
+void CalculateCCV(Mat img, Mat *features, int numean_colsolors, int normalization,
                   int threshold){
-  int x, y, new_num_colors;
+  int x, y, new_numean_colsolors;
   int64 size_region;
   queue<Pixel> pixels;
   Pixel pix;
@@ -153,11 +153,11 @@ void CalculateCCV(Mat img, Mat *features, int num_colors, int normalization,
   blur(img, blur_img, Size(3,3));
 
   // 2 - Discretize the colorspace to 1/4 of the colors
-  new_num_colors = static_cast<int>(num_colors/4.0);
-  reduceImageColors(&blur_img, new_num_colors);
+  new_numean_colsolors = static_cast<int>(numean_colsolors/4.0);
+  reduceImageColors(&blur_img, new_numean_colsolors);
 
-  vector<int> coherent(new_num_colors, 0);
-  vector<int> incoherent(new_num_colors, 0);
+  vector<int> coherent(new_numean_colsolors, 0);
+  vector<int> incoherent(new_numean_colsolors, 0);
 
   // 3 - For each pixel, classify it as either coherent or incoherent
   for (y = 0; y < height; y++) {
@@ -213,15 +213,15 @@ Compute color coherent vector for each channel and concatenate them
 
 Requires:
 - Mat original image
-- Mat feature vector where to save the histograms
+- Mat* feature vector where to save the histograms
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 - int threshold to indicate the size of the region that is coherent
 *******************************************************************************/
-void CCV(Mat img, Mat *features, int num_colors, int normalization,
+void CCV(Mat img, Mat *features, int numean_colsolors, int normalization,
         int threshold) {
   if (img.channels() == 1) {
-    CalculateCCV(img, features, num_colors, normalization, threshold);
+    CalculateCCV(img, features, numean_colsolors, normalization, threshold);
   }
   else {
     vector<Mat> channel(3);
@@ -230,9 +230,9 @@ void CCV(Mat img, Mat *features, int num_colors, int normalization,
     Mat G_CCV((*features).size(), CV_8UC1);
     Mat R_CCV((*features).size(), CV_8UC1);
 
-    CalculateCCV(channel[0], &B_CCV, num_colors, normalization, threshold);
-    CalculateCCV(channel[1], &G_CCV, num_colors, normalization, threshold);
-    CalculateCCV(channel[2], &R_CCV, num_colors, normalization, threshold);
+    CalculateCCV(channel[0], &B_CCV, numean_colsolors, normalization, threshold);
+    CalculateCCV(channel[1], &G_CCV, numean_colsolors, normalization, threshold);
+    CalculateCCV(channel[2], &R_CCV, numean_colsolors, normalization, threshold);
     (*features).push_back(B_CCV);
     (*features).push_back(G_CCV);
     (*features).push_back(R_CCV);
@@ -247,20 +247,20 @@ Usually a 64-bins histogram is used.
 
 Requires:
 - Mat original image
-- Mat feature vector where to save the histogram
+- Mat* feature vector where to save the histogram
 - int number of colors wanted in the image (64)
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
 void CalculateGCH(Mat img, Mat *features, int colors, int normalization) {
   int histogram_size[] = {colors};
   float ranges[] = {0, 256};
-  const float* histogram_ranges[] = {ranges};
+  const float* histogramean_rowsanges[] = {ranges};
   MatND histogram;
   bool uniform = true, accumulate = false;
 
   // Calculate the histogram. Be aware that the discretization occur
   // when a bin < 256 is given as input to his function
-  calcHist(&img, 1, 0, Mat(), histogram, 1, histogram_size, histogram_ranges,
+  calcHist(&img, 1, 0, Mat(), histogram, 1, histogram_size, histogramean_rowsanges,
           uniform, accumulate);
 
   (*features).create(1, histogram.rows, CV_32F);
@@ -277,13 +277,13 @@ Compute a global color histogram for each channel and concatenate them
 
 Requires:
 - Mat original image
-- Mat feature vector where to save the two histograms
+- Mat* feature vector where to save the two histograms
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void GCH(Mat img, Mat *features, int num_colors, int normalization) {
+void GCH(Mat img, Mat *features, int numean_colsolors, int normalization) {
   if (img.channels() == 1) {
-    CalculateGCH(img, features, num_colors, normalization);
+    CalculateGCH(img, features, numean_colsolors, normalization);
   }
   else {
     vector<Mat> channel(3);
@@ -292,9 +292,9 @@ void GCH(Mat img, Mat *features, int num_colors, int normalization) {
     Mat G_GCH((*features).size(), CV_8UC1);
     Mat R_GCH((*features).size(), CV_8UC1);
 
-    CalculateGCH(channel[0], &B_GCH, num_colors, normalization);
-    CalculateGCH(channel[1], &G_GCH, num_colors, normalization);
-    CalculateGCH(channel[2], &R_GCH, num_colors, normalization);
+    CalculateGCH(channel[0], &B_GCH, numean_colsolors, normalization);
+    CalculateGCH(channel[1], &G_GCH, numean_colsolors, normalization);
+    CalculateGCH(channel[2], &R_GCH, numean_colsolors, normalization);
     (*features).push_back(B_GCH);
     (*features).push_back(G_GCH);
     (*features).push_back(R_GCH);
@@ -313,7 +313,7 @@ Usually 64 bins each color histogram.
 
 Requires:
 - Mat original image
-- Mat feature vector where to save the two histograms
+- Mat* feature vector where to save the two histograms
     * Borda: [0, colors-1]
     * Interior: [colors, colors*2-1]
 - int number of colors wanted in the image
@@ -324,7 +324,7 @@ void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
   int y, x;
   int histogram_size[] = {colors};
   float ranges[] = {0, 256};
-  const float* histogram_ranges[] = {ranges};
+  const float* histogramean_rowsanges[] = {ranges};
   bool uniform = true, accumulate = false;
   MatND histogram_border, histogram_interior;
   uchar pixel_color;
@@ -360,9 +360,9 @@ void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
 
   // Calculate the histogram for border and interior, normalize and concatenate
   calcHist(&border, 1, 0, Mat(), histogram_border, 1, histogram_size,
-          histogram_ranges, uniform, accumulate);
+          histogramean_rowsanges, uniform, accumulate);
   calcHist(&interior, 1, 0, Mat(), histogram_interior, 1, histogram_size,
-          histogram_ranges, uniform, accumulate);
+          histogramean_rowsanges, uniform, accumulate);
 
   (*features).create(1, histogram_border.rows+histogram_interior.rows, CV_32F);
   (*features) = Scalar::all(0);
@@ -382,13 +382,13 @@ Compute a Border/Interior pixel classification for each channel
 
 Requires:
 - Mat original image
-- Mat feature vector where to save the two histograms
+- Mat* feature vector where to save the two histograms
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void BIC(Mat img, Mat *features, int num_colors, int normalization) {
+void BIC(Mat img, Mat *features, int numean_colsolors, int normalization) {
   if (img.channels() == 1) {
-    CalculateBIC(img, features, num_colors, normalization);
+    CalculateBIC(img, features, numean_colsolors, normalization);
   }
   else {
     vector<Mat> channel(3);
@@ -397,9 +397,9 @@ void BIC(Mat img, Mat *features, int num_colors, int normalization) {
     Mat G_BIC((*features).size(), CV_8UC1);
     Mat R_BIC((*features).size(), CV_8UC1);
 
-    CalculateBIC(channel[0], &B_BIC, num_colors, normalization);
-    CalculateBIC(channel[1], &G_BIC, num_colors, normalization);
-    CalculateBIC(channel[2], &R_BIC, num_colors, normalization);
+    CalculateBIC(channel[0], &B_BIC, numean_colsolors, normalization);
+    CalculateBIC(channel[1], &G_BIC, numean_colsolors, normalization);
+    CalculateBIC(channel[2], &R_BIC, numean_colsolors, normalization);
     (*features).push_back(B_BIC);
     (*features).push_back(G_BIC);
     (*features).push_back(R_BIC);
@@ -412,6 +412,8 @@ features
 *******************************************************************************/
 vector<int> NearestNeighborAngle(int x, int y, int distance, int angle){
   vector<int> neighbor(2, 0);
+  neighbor[0] = 0;
+  neighbor[1] = 0;
 
   if (angle == 0){
     // Right pixel
@@ -438,10 +440,12 @@ vector<int> NearestNeighborAngle(int x, int y, int distance, int angle){
 
 /*******************************************************************************
 A co-occurrence matriz is a matriz that is defined over an image to be the
-distribution of co-occurring values at a given offset
+distribution of co-occurring values at a given offset (distance).
 
-Considers the relation between two pixels at a time, called the reference and
-the neighbor pixel
+1 - Count the occurrences and fill the matrix: considers the relation between two
+pixels at a time, called the reference and the neighbor pixel.
+2 - Make it symmetrical.
+3 - Normalize the matrix to turn it into probabilities.
 
 Requires:
 - Mat original image
@@ -454,87 +458,105 @@ void CoocurrenceMatrix(Mat img, vector< vector<double> > *co_occurence,
                       int colors, int distance, int angle) {
   int64 number_occurences = 0;
   int color_reference, color_neighbor;
-  int x, y, height = img.rows, width = img.cols;
+  int row, col, height = img.rows, width = img.cols;
   vector<int> neighbor;
 
-  for (y = distance; y < height-distance; ++y) {
-    for (x = distance; x < width-distance; ++x) {
-      neighbor = NearestNeighborAngle(x, y, distance, angle);
-      color_reference = img.at<uchar>(y, x);
-      color_neighbor = img.at<uchar>(neighbor[1], neighbor[0]);
+  (*co_occurence).resize(colors, vector<double>(colors, 0));
+
+  for (row = distance; row < height-distance; ++row) {
+    for (col = distance; col < width-distance; ++col) {
+      neighbor = NearestNeighborAngle(row, col, distance, angle);
+      color_reference = img.at<uchar>(row, col);
+      color_neighbor = img.at<uchar>(neighbor[0], neighbor[1]);
       (*co_occurence)[color_reference][color_neighbor]++;
+      number_occurences++;
+      // Symmetry will be achieved if each pixel pair is counted twice
+      (*co_occurence)[color_neighbor][color_reference]++;
       number_occurences++;
     }
   }
 
-  // The matriz is normalized by dividing each entry in the matrix by the
-  // sum of pairs
-  for (y = 0; y < (*co_occurence).size(); y++) {
-    for (x = 0; x < (*co_occurence)[0].size(); x++) {
-      (*co_occurence)[y][x] /= number_occurences;
+  // Normalize to turn it into probabilities, by dividing each entry in the
+  // matrix by the sum of pairs
+  for (row = 0; row < (*co_occurence).size(); row++) {
+    for (col = 0; col < (*co_occurence)[0].size(); col++) {
+      (*co_occurence)[row][col] /= number_occurences;
     }
   }
 }
 
 /*******************************************************************************
-* Cria um histograma com 6 descritores de textura
-* Requer:
-*    - matriz de coocorrelationencia
-*    - quantidade de cores usadas na imagem
-*    - histograma ja alocado
-* Os descritores sao:
-*    - maxima Probabilidade
-*    - correlationelacao
-*    - contraste
-*    - energia (uniformidade)
-*    - homogeneidade
-*    - entropia
+Image texture refers to local differences in intensity levels. That is why it
+needs a GLCM matrix to calculate the statistics.
+
+- Max_probability: stronger response at the co-occurence matrix
+Range: [0,1]
+- Correlation: describes the correlations between the rows and columns of the co-occurrence matrix
+Range: [-1,1]
+- Contrast: measures the local variations in the gray-level co-occurrence matrix
+Range: [0, (colors-1)^2]
+- Uniformity: Sum of squared elements. Also known as energy or the angular second moment
+Range: [0,1]
+- Homogeneity: measures the closeness of the distribution of elements to the diagonal
+Range: [0,1]
+- Entropy: descriptor of randomness
+Range:  [0, 2 * log_2 colors]
+
+Requires:
+- vector< vector<double> >* GLCM matrix
+- Mat* to write the 6 measurements after computing them
 *******************************************************************************/
-void Haralick6(vector< vector<double> > co_occurence, int colors, Mat *features) {
+void Haralick6(vector< vector<double> > co_occurence, Mat *features) {
 
-  int i,j;
-  double m_r = 0, m_c = 0, s_r = 0, s_c = 0, entropy = 0, auxv = 0;
-  double max_probability = 0, correlation = 0, contrast = 0, uniform = 0, homogeneous = 0;
-  vector <double> frequency_y (colors, 0);
-  vector <double> frequency_x (colors, 0);
+  int i, j;
+  double mean_rows = 0, mean_cols = 0, standard_deviation_rows = 0;
+  double standard_deviation_cols = 0, entropy = 0, homogeneity = 0;
+  double max_probability = 0, correlation = 0, contrast = 0, uniform = 0;
+  double variance_rows = 0, variance_cols = 0, p_ij;
+  int colors = co_occurence.size();
+  vector <double> frequency_rows (colors, 0);
+  vector <double> frequency_cols (colors, 0);
 
   for (i = 0; i < colors; i++) {
     for (j = 0; j < colors; j++) {
-      frequency_y[i] += co_occurence[i][j];
-      frequency_x[j] += co_occurence[i][j];
+      frequency_rows[i] += co_occurence[i][j];
+      frequency_cols[i] += co_occurence[j][i];
     }
-    m_r += i*frequency_y[i];
-    m_c += j*frequency_x[j];
   }
 
   for (i = 0; i < colors; i++) {
-    s_r += ((i-m_r)*(i-m_r)) * frequency_y[i];
-    s_c += ((i-m_c)*(i-m_c)) * frequency_x[i];
+    mean_rows += static_cast<double>(i) * frequency_rows[i];
+    mean_cols += static_cast<double>(i) * frequency_cols[i];
   }
-  s_r = sqrt(s_r);
-  s_c = sqrt(s_c);
 
   for (i = 0; i < colors; i++) {
-    for (j = 0; j < colors; j++) {
-      auxv = co_occurence[i][j];
+    variance_rows += pow((i - mean_rows), 2.0) * frequency_rows[i];
+    variance_cols += pow((i - mean_cols), 2.0) * frequency_cols[i];
+  }
+  standard_deviation_rows = sqrt(variance_rows);
+  standard_deviation_cols = sqrt(variance_cols);
 
-      if (max_probability < auxv) {
-        max_probability = auxv;
+  for (i = 0; i < colors; ++i) {
+    for (j = 0; j < colors; ++j) {
+      p_ij = co_occurence[i][j];
+      // Find the max value in the co-occurence matrix
+      if (max_probability < p_ij) {
+        max_probability = p_ij;
       }
-
-      if (s_r > 0 && s_c > 0) {
-        correlation += ((i-m_r)*(j-m_c)*auxv) / (s_r*s_c);
+      // Correlations between the rows and columns of the co-occurrence matrix
+      if (standard_deviation_rows != 0 && standard_deviation_cols != 0) {
+        correlation += p_ij * (((i-mean_rows)*(j-mean_cols)) /
+                      (standard_deviation_rows*standard_deviation_cols));
       }
-
-      contrast += ( (i-j)*(i-j)*auxv );
-
-      uniform += (auxv*auxv);
-
-      homogeneous += (auxv) / (1 + abs(i-j));
-
-      if (auxv != 0) {
-        //entr+= auxv*( log(auxv) / log(2) );
-        entropy += auxv*( log2(auxv));
+      // Local variations in the gray-level co-occurrence matrix
+      contrast += pow(i - j, 2) * p_ij;
+      // Sum of squared elements
+      uniform += pow(p_ij, 2);
+      // Closeness of the distribution of elements to the diagonal
+      homogeneity += p_ij / (1 + pow(i-j, 2)); // (i-j)^2 seems to be very common [0,1]
+      // Randomness
+      if (p_ij != 0) {
+        entropy += p_ij * log2(p_ij);
       }
     }
   }
@@ -547,26 +569,44 @@ void Haralick6(vector< vector<double> > co_occurence, int colors, Mat *features)
   (*features).at<float>(0, 1) = correlation;
   (*features).at<float>(0, 2) = contrast;
   (*features).at<float>(0, 3) = uniform;
-  (*features).at<float>(0, 4) = homogeneous;
+  (*features).at<float>(0, 4) = homogeneity;
   (*features).at<float>(0, 5) = entropy;
 }
 
 /*******************************************************************************
+Texture descriptor: Haralick feature extraction
+
+1 - Calculates a GLCM rotationally invariant
+2 - Extract 6 Haralick features from it
+
+Requires:
+- Mat original image
+- Mat* feature vector where to write the features
+- int number of colors wanted in the image
+- int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
 void HARALICK(Mat img, Mat *features, int colors, int normalization) {
 
-  vector< vector<double> > occurence_0, occurence_45, occurence_90;
-  vector< vector<double> > occurence_135, co_occurence;
-  int distance = 2;
+  vector< vector<double> > GLCM_0, GLCM_45, GLCM_90, GLCM_135, GLCM;
+  int distance, i, j;
 
-  // CoocurrenceMatrix(img, occurence_0, colors, distance, 0);
-  // CoocurrenceMatrix(img, occurence_45, colors, distance, 45);
-  // CoocurrenceMatrix(img, occurence_90, colors, distance, 90);
-  // CoocurrenceMatrix(img, occurence_135, colors, distance, 135);
-  // Calculate the average, then
-  // Haralick6(co_occurence, colors, features);
+  distance = 1;
+  CoocurrenceMatrix(img, &GLCM_0, colors, distance, 0);
+  CoocurrenceMatrix(img, &GLCM_45, colors, distance, 45);
+  CoocurrenceMatrix(img, &GLCM_90, colors, distance, 90);
+  CoocurrenceMatrix(img, &GLCM_135, colors, distance, 135);
+
+  // The GLCM matrix is the average of four matrixes with different directions
+  GLCM.resize(colors, vector<double>(colors, 0));
+  for (i = 0; i < colors; ++i){
+    for (j = 0; j < colors; ++j){
+      GLCM[i][j] =
+        (GLCM_0[i][j] + GLCM_45[i][j] + GLCM_90[i][j] + GLCM_135[i][j]) / 4.0;
+    }
+  }
+
+  Haralick6(GLCM, features);
 }
-
 
 /*******************************************************************************
  Descritor Autocorrelationelograma
@@ -1005,7 +1045,7 @@ Mat features vector in which perform the operations
 //   // and priors of the estimated mixture
 //   gmm = vl_gmm_new (VL_TYPE_FLOAT) ;
 //   VLGMM** gmm;
-//   vl_gmm_cluster (gmm, data, dimension, numData, numClusters);
+//   vl_gmmean_colsluster (gmm, data, dimension, numData, numClusters);
 //
 //   // allocate space for the encoding
 //   enc = vl_malloc(sizeof(float) * 2 * dimension * numClusters);
