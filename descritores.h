@@ -57,90 +57,17 @@ typedef struct {
     uchar color;
 } Pixel;
 
-/* Funcao Find Neighbor
- * Encontra os vizinhos de um pixel
- * Usada no descritor CCV
- * Requer:
- *    - imagem original
- *    - fila de pixels
- *    - pixels ja visitados
- *    - tamanho da regiao */
 void find_neighbor(Mat img, queue<Pixel> *pixels, int *visited, long int *tam_reg);
-
-
-/* Descritor CCV
- * Cria dois histogramas de cor da imagem:
- * 1 -> histograma de pixels coerentes
- * 2 -> histograma de pixels incoerentes
- * Requer:
- *    - imagem original
- *    - fistograma ja alocado, com duas vezes a quantidade de cor
- *    - quantidade de cores usadas na imagem
- *    - nivel de coerencia */
 void CCV(Mat img, Mat *features, int nColor, int oNorm, int threshold);
-
-
-/* Descritor GCH
- * Cria histrograma de cor da imagem.
- * Requer:
- *    - imagem original
- *    - histrograma ja alocado
- *    - quantidade de cores usadas na imagem */
 void GCH(Mat I, Mat *features, int nColor, int oNorm);
-
-
-/* Descritor BIC
- * Cria dois histrogramas de cor da imagem:
- * 1 -> histograma de borda
- * 2 -> histograma de interior
- * Requer:
- *    - imagem original
- *    - histograma ja alocado, com tamanho de duas vezes a quantidade de cor
- *    - quantidade de cores usadas na imagem
- * No histograma, de 0 até (nColor -1) = Borda, de nColor até (2*nColor -1) = Interior */
 void BIC(Mat I, Mat *features, int nColor, int oNorm);
-
-
 void CoocurrenceMatrix(Mat img, vector< vector<double> > *co_occurence,
                       int colors, int distance, int angle);
-
 void Haralick6(vector< vector<double> > co_occurence, Mat *features);
 void HARALICK(Mat img, Mat *features, int colors, int normalization);
-
-/* Descritor Haralick
- * Cria um histograma com 6 descritores de textura
- * Chama as funcoes Haralick6 e CoocurrenceMatrix
- * Requer:
- *     - imagem original
- *    - matriz de coocorrencia
- *    - quantidade de cores usadas na imagem
- *    - histograma ja alocado
- * Os descritores sao:
- *    - maxima Probabilidade
- *    - correlacao
- *    - contraste
- *    - energia (uniformidade)
- *    - homogeneidade
- *    - entropia */
-void HARALICK(Mat I, Mat *features, int nColor, int oNorm);
-
-
-/* Descritor Autocorrelograma
- * Cria um histograma de cor que descreve a distribuição
- * global da correlação entre a localização espacial de cores
- * Requer:
- *    - imagem original
- *    - valor da distancia k entre os pixels
- *    - histograma ja alocado
- *    - quantidade de cores usadas na imagem */
-void ACC(Mat I, Mat *features, int nColor, int oNorm, int *k, int totalk);
-
+void ACC(Mat I, Mat *features, int colors, int normalization, vector<int> distances);
 void LBP(Mat img, Mat *features, int colors);
-
 void HOG(Mat img, Mat *features, int numFeatures);
-
 void contourExtraction(Mat Img, Mat *features);
-
-// void surf(Mat Img, Mat *features);
 
 #endif

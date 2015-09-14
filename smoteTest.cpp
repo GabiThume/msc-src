@@ -76,7 +76,8 @@ int main(int argc, char const *argv[]){
     featuresDir = string(argv[2]);
 
     /* Feature extraction from images */
-    descriptor(baseDir.c_str(), featuresDir.c_str(), 4, 256, 1, 0, 0, 0, 0, 4, "");
+    vector<int> parameters;
+    descriptor(baseDir.c_str(), featuresDir.c_str(), 4, 256, 1, 0, parameters, 0, 4, "");
 
     nameDir = string(featuresDir.c_str()) + "/";
     directory = opendir(nameDir.c_str());
@@ -109,9 +110,9 @@ int main(int argc, char const *argv[]){
                     // c.findSmallerClass(data, &smallerClass);
                     // imbalance(data, i, &imbalancedData, smallerClass);
                     // size = imbalancedData.size();
-                    // /* Classifying without rebalancing */                    
+                    // /* Classifying without rebalancing */
                     // c.classify(prob, 10, imbalancedData, "original.csv");
-                    
+
                     // /* Copy the feature data to minorityClass */
                     // imbalancedData.rowRange(start,end).copyTo(minorityClass);
                     // /* Amount of SMOTE % */
@@ -120,7 +121,7 @@ int main(int argc, char const *argv[]){
                     // /* Over-sampling the minority class */
                     // synthetic = s.smote(minorityClass, amountSmote, neighbors);
 
-                    //  Concatenate the minority class with the synthetic 
+                    //  Concatenate the minority class with the synthetic
                     // vconcat(minorityClass, synthetic, minorityOverSampled);
                     //Mat minorityClasses(minorityOverSampled.size().height, 1, CV_32FC1, smallerClass+1);
 

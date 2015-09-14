@@ -47,7 +47,7 @@ artificialGenerationTest: artificialGenerationTest.cpp
 	@g++ -Wall GMRsaliency.o SLIC.o artificialGeneration.o descritores.o funcoesAux.o funcoesArquivo.o quantization.o classifier.o artificialGenerationTest.cpp -o artificialGenerationTest $(OPENCV) $(OPENCVCONF) $(VLFEAT)
 
 rebalanceTest: rebalanceTest.cpp
-	@g++ -Wall GMRsaliency.o SLIC.o artificialGeneration.o descritores.o funcoesAux.o funcoesArquivo.o quantization.o classifier.o smote.o rebalanceTest.cpp -o rebalanceTest $(OPENCV) $(OPENCVCONF) $(VLFEAT)
+	@g++ -std=c++11 -Wall GMRsaliency.o SLIC.o artificialGeneration.o descritores.o funcoesAux.o funcoesArquivo.o quantization.o classifier.o smote.o rebalanceTest.cpp -o rebalanceTest $(OPENCV) $(OPENCVCONF) $(VLFEAT)
 
 rebalanceTwoClasses: rebalanceTwoClasses.cpp
 	@g++ -std=c++11 -Wall GMRsaliency.o SLIC.o artificialGeneration.o descritores.o funcoesAux.o quantization.o funcoesArquivo.o classifier.o smote.o rebalanceTwoClasses.cpp -o rebalanceTwoClasses $(OPENCV) $(OPENCVCONF) $(VLFEAT)

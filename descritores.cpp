@@ -628,37 +628,38 @@ vector < vector<int>> ChessboardNeighbors(int x, int y, int distance) {
 }
 
 /*******************************************************************************
- Descritor Autocorrelationelograma
+Auto-correlogram of colors Descritor
 
- Capture the spacial correlation between identical colors
+Capture the spacial correlation between identical colors given a set of distance
+values. The features vector consist in concatenation of auto-correlograms, one
+for each distance.
 
-* Cria um histograma de cor que descreve a distribuição
-* global da correlationelação entre a localização espacial de cores
-* Requer:
-*    - imagem original
-*    - valor da distancia k entre os pixels
-*    - histograma ja alocado ????
-*    - quantidade de cores usadas na imagem
+Requires:
+- Mat original image
+- Mat* feature vector where to write the colors*distances_number features
+- int number of colors wanted in the image
+- int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
+- vector<int> set of distances
 *******************************************************************************/
 void ACC(Mat I, Mat *features, int colors, int normalization, vector<int> distances) {
 
   int i,j, x, y, maxdist, d, current_distance, pos, chess;
-  (*features).create(1, colors*distances.size(), CV_32F);
-  (*features) = Scalar::all(0);
   vector < vector<int>> neighbors;
-  vector<int> neighbor;
-
+  uchar current_pixel, neighbor_color;
   int histogram_size[] = {colors};
   float ranges[] = {0, colors};
   const float* histogram_ranges[] = {ranges};
   MatND histogram;
   bool uniform = true, accumulate = false;
+  (*features).create(1, colors*distances.size(), CV_32F);
+  (*features) = Scalar::all(0);
+  Mat autocorrelogram(1, colors, CV_32F, 0);
 
-  // Build the histogram
+  // Build the histogram with 'colors'
   calcHist(&I, 1, 0, Mat(), histogram, 1, histogram_size, histogram_ranges,
           uniform, accumulate);
 
-  // For each distance
+  // For each given distance in 'distances' set
   for (d = 0; d < distances.size(); ++d) {
     current_distance = distances[d];
     // For each pixel
@@ -669,27 +670,22 @@ void ACC(Mat I, Mat *features, int colors, int normalization, vector<int> distan
         neighbors = ChessboardNeighbors(i, j, current_distance);
         // For each neighbor
         for (chess = 0; chess < neighbors.size(); ++chess){
-          neighbor = I.at<uchar>(neighbors[chess][0], neighbors[chess][1]);
+          neighbor_color = I.at<uchar>(neighbors[chess][0], neighbors[chess][1]);
           // If both pixels have the same color, plus one in the correlogram
-          if (current_pixel == neighbor) {
-            (*features)[current_pixel + (k * distances.size())]++;
+          if (current_pixel == neighbor_color) {
+            autocorrelogram.at<float>(0, current_pixel + (d*colors))++;
           }
         }
       }
     }
-  }
 
-  if (normalization != 0) {
-    normalize((*features), (*features), 0, normalization,
-              NORM_MINMAX, -1, Mat());
+    // Normalize for each distance, not when already concatenated
+    if (normalization != 0) {
+      normalize(autocorrelogram, autocorrelogram, 0, normalization, NORM_MINMAX,
+                -1, Mat());
+    }
+    (*features).push_back(autocorrelogram);
   }
-
-  float descsum = 0;
-  for (i = 0; i < (colors*distances.size()); i++) {
-    descsum += (*features)[i];
-  }
-  cout << "sum: " << descsum << endl;
-
 }
 
 /*******************************************************************************

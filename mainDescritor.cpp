@@ -3,6 +3,7 @@
 int main(int argc, char *argv[]){
 
     int descMethod, colors, normalization, quantMethod, deleteNull, numParameters;
+    vector<int> params;
     double resize;
     string id = "", databaseDir = "", descMethodDir = "";
 
@@ -60,13 +61,12 @@ int main(int argc, char *argv[]){
 	}
 
 	numParameters = (argc-8);
-	int *params = new int[numParameters];
-	if (descMethod == 3 || descMethod == 3) {
-        for (int i = 0; i < numParameters; i++){
-            params[i] = atoi(argv[6+i]);
-        }
+	if (descMethod == 3 || descMethod == 5) {
+      for (int i = 0; i < numParameters; i++){
+          params.push_back(atoi(argv[6+i]));
+      }
 	}
 
-	descriptor(databaseDir, descMethodDir, descMethod, colors, resize, normalization, params, numParameters, deleteNull, quantMethod, id);
+	descriptor(databaseDir, descMethodDir, descMethod, colors, resize, normalization, params, deleteNull, quantMethod, id);
 	return 0;
 }

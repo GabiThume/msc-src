@@ -21,7 +21,8 @@ void classifica(string base, string features, string outfileName){
     vector<Classes> data;
 
     /* Feature extraction */
-    descriptor(base.c_str(), features.c_str(), 4, 256, 1, 0, 0, 0, 0, 4, "");
+    vector<int> parameters;
+    descriptor(base.c_str(), features.c_str(), 4, 256, 1, 0, parameters, 0, 4, "");
 
     nameDir = features + "/";
     directory = opendir(nameDir.c_str());

@@ -13,17 +13,17 @@
 // descriptor(databaseDir.c_str(), descMethodDir.c_str(), descMethod, colors, resize, normalization, params, numParameters, deleteNull, quantMethod, id.c_str());
 string desc(string dir, string features, int d, int m, string id){
 
-    int paramCCV[1] = {25};
-    int paramACC[4] = {1, 3, 5, 7};
-
+    vector<int> paramCCV = {25};
+    vector<int> paramACC = {1, 3, 5, 7};
+    vector<int> parameters;
     /* If descriptor ==  CCV, threshold is required */
     if (d == 3)
-        return descriptor(dir, features, d, 256, 1, 1, paramCCV, 1, 0, m, id);
+        return descriptor(dir, features, d, 256, 1, 1, paramCCV, 0, m, id);
     /* If descriptor ==  ACC, distances are required */
     else if (d == 5)
-        return descriptor(dir, features, d, 256, 1, 1, paramACC, 4, 0, m, id);
+        return descriptor(dir, features, d, 256, 1, 1, paramACC, 0, m, id);
     else
-        return descriptor(dir, features, d, 256, 1, 1, 0, 0, 0, m, id);
+        return descriptor(dir, features, d, 256, 1, 1, parameters, 0, m, id);
 }
 
 /* Generate a imbalanced class */

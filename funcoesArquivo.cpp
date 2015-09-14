@@ -127,7 +127,7 @@ int qtdImagensTotal(string base, int qtdClasses, vector<int> *objClass, int *max
     return count;
 }
 
-string descriptor(string database, string featuresDir, int method, int colors, double resizeFactor, int normalization, int *param, int nparam, int deleteNull, int quantization, string id = ""){
+string descriptor(string database, string featuresDir, int method, int colors, double resizeFactor, int normalization, vector<int> param, int deleteNull, int quantization, string id = ""){
 
     int i, j, k, numImages = 0, qtdClasses = 0, qtdImgTotal = 0, imgTotal = 0, treino = 0, grid;
     int resizingFactor = (int)(resizeFactor*100), maxc = 0, x;
@@ -243,7 +243,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
                 /* ACC: image, descriptor, number of colors, normalization,
                       distance vector, distance number */
                 case 5:
-                    ACC(newimg, &featureVector, colors, normalization, param, nparam);
+                    ACC(newimg, &featureVector, colors, normalization, param);
                     break;
                 /* LBP */
                 case 6:
@@ -309,7 +309,7 @@ string descriptor(string database, string featuresDir, int method, int colors, d
     }
     else {
         nome = featuresDir+"/ACC_"+quantizationMethod[quantization-1]+"_"+to_string(colors);
-        nome += "c_"+to_string(nparam)+"d_"+to_string(resizingFactor)+"r_"+to_string(features.rows)+"i_"+id+".csv";
+        nome += "c_"+to_string(param.size())+"d_"+to_string(resizingFactor)+"r_"+to_string(features.rows)+"i_"+id+".csv";
     }
 
     arq = fopen(nome.c_str(), "w+");
