@@ -661,6 +661,7 @@ void ACC(Mat I, Mat *features, int colors, int normalization, vector<int> distan
 
   // For each given distance in 'distances' set
   for (d = 0; d < distances.size(); ++d) {
+    autocorrelogram = Scalar::all(0);
     current_distance = distances[d];
     // For each pixel
     for (i = current_distance; i < I.rows - current_distance; ++i) {
