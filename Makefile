@@ -1,85 +1,83 @@
 OPENCV = -I /usr/include/opencv
 OPENCVCONF = `pkg-config opencv --libs`
-VLFEAT = -I vlfeat
+VLFEAT = -I lib/vlfeat
+GMR = lib/Saliency/GMRsaliency.cpp
+SLIC = lib/SLIC/SLIC.cpp
 FIND=find -name
+BIN = $(FIND) "*.o"
+BINPATH=`bin/`
+FLAGS = -std=c++11 -Wall
 RM=rm -rf
-
-all: clean funcoesAux quantization descritores funcoesArquivo merge_datasets classifier dimensionReduction smote smoteTest artificialGeneration artificialGenerationTest rebalanceTest rebalanceTwoClasses rebalanceMultiClasses
-	@g++ -Wall quantization.o descritores.o funcoesAux.o funcoesArquivo.o mainDescritor.cpp -o mainDescritor $(OPENCV) $(OPENCVCONF) $(VLFEAT)
-
-debug: descritores funcoesAux funcoesArquivo
-	@g++ -Wall -g descritores.o funcoesAux.o funcoesArquivo.o mainDescritor.cpp -o mainDescritor $(OPENCV)
-
-teste: descritores funcoesAux
-	@g++ -Wall -g descritores.o funcoesAux.o teste.cpp -o teste $(OPENCV)
+CLASSIFICATION = source/classification/
+DESCRIPTION = source/description/
+PREPROCESSING = source/preprocessing/
+QUANTIZATION = source/quantization/
+UTILS = source/utils/
+EXAMPLES = examples/
+# all: clean funcoesAux quantization descritores funcoesArquivo merge_datasets classifier dimensionReduction smote smoteTest artificialGeneration artificialGenerationTest rebalanceTest rebalanceTwoClasses rebalanceMultiClasses
+# 	@g++ -Wall quantization.o descritores.o funcoesAux.o funcoesArquivo.o mainDescritor.cpp -o mainDescritor $(OPENCV) $(OPENCVCONF) $(VLFEAT)
 
 funcoesAux:
-	@g++ -Wall -c -g funcoesAux.cpp $(OPENCV)
+	@g++ $(FLAGS) -c -g $(UTILS)funcoesAux.cpp $(OPENCV)
 
 quantization:
-	@g++ -Wall -c -g quantization.cpp $(OPENCV)
+	@g++ $(FLAGS) -c -g $(QUANTIZATION)quantization.cpp $(OPENCV)
 
 descritores:
-	@g++ -std=c++11 -Wall -c -g descritores.cpp $(OPENCV) $(VLFEAT)
+	@g++ $(FLAGS) -c -g $(DESCRIPTION)descritores.cpp $(OPENCV) $(VLFEAT)
 
 funcoesArquivo:
-	@g++ -std=c++11 -Wall -c -g funcoesArquivo.cpp $(OPENCV) $(VLFEAT)
-
-dimensionReduction: dimensionReduction.cpp
-	@g++ -Wall -o dimensionReduction descritores.o funcoesAux.o funcoesArquivo.o quantization.o classifier.o dimensionReduction.cpp $(OPENCV) $(OPENCVCONF) $(VLFEAT)
-
-merge_datasets: mergeDataSets.cpp
-	@g++ -Wall -o mergeDataSets mergeDataSets.cpp
+	@g++ $(FLAGS) -c -g $(UTILS)funcoesArquivo.cpp $(OPENCV) $(VLFEAT)
 
 classifier:
-	@g++ -Wall -c -g classifier.cpp $(OPENCV) $(VLFEAT)
+	@g++ $(FLAGS) -c -g $(CLASSIFICATION)classifier.cpp $(OPENCV) $(VLFEAT)
 
 smote:
-	@g++ -Wall -c -g smote.cpp $(OPENCV) $(VLFEAT)
+	@g++ $(FLAGS) -c -g $(PREPROCESSING)smote.cpp $(OPENCV) $(VLFEAT)
 
 smoteTest: smoteTest.cpp
-	@g++ -Wall descritores.o funcoesAux.o quantization.o funcoesArquivo.o classifier.o smote.o smoteTest.cpp -o smoteTest $(OPENCV) $(OPENCVCONF) $(VLFEAT)
+	@g++ $(FLAGS) $(BIN) $(PREPROCESSING)smoteTest.cpp -o smoteTest $(OPENCV) $(OPENCVCONF) $(VLFEAT)
 
 artificialGeneration:
-	@g++ -Wall -c -g Saliency/GMRsaliency.cpp SLIC/SLIC.cpp artificialGeneration.cpp -std=c++0x $(OPENCV) $(VLFEAT)
+	@g++ $(FLAGS) -c -g $(GMR) $(SLIC) $(PREPROCESSING)artificialGeneration.cpp -std=c++0x $(OPENCV) $(VLFEAT)
 
-artificialGenerationTest: artificialGenerationTest.cpp
-	@g++ -Wall GMRsaliency.o SLIC.o artificialGeneration.o descritores.o funcoesAux.o funcoesArquivo.o quantization.o classifier.o artificialGenerationTest.cpp -o artificialGenerationTest $(OPENCV) $(OPENCVCONF) $(VLFEAT)
+artificialGenerationTest: $(EXAMPLES)artificialGenerationTest.cpp
+	@g++ $(FLAGS) $(BIN) $(EXAMPLES)artificialGenerationTest.cpp -o artificialGenerationTest $(OPENCV) $(OPENCVCONF) $(VLFEAT)
 
-rebalanceTest: rebalanceTest.cpp
-	@g++ -std=c++11 -Wall GMRsaliency.o SLIC.o artificialGeneration.o descritores.o funcoesAux.o funcoesArquivo.o quantization.o classifier.o smote.o rebalanceTest.cpp -o rebalanceTest $(OPENCV) $(OPENCVCONF) $(VLFEAT)
+rebalanceTest: $(EXAMPLES)rebalanceTest.cpp
+	@g++ $(BIN) $(EXAMPLES)rebalanceTest.cpp -o rebalanceTest $(OPENCV) $(OPENCVCONF) $(VLFEAT)
 
-rebalanceTwoClasses: rebalanceTwoClasses.cpp
-	@g++ -std=c++11 -Wall GMRsaliency.o SLIC.o artificialGeneration.o descritores.o funcoesAux.o quantization.o funcoesArquivo.o classifier.o smote.o rebalanceTwoClasses.cpp -o rebalanceTwoClasses $(OPENCV) $(OPENCVCONF) $(VLFEAT)
+rebalanceTwoClasses: $(EXAMPLES)rebalanceTwoClasses.cpp
+	@g++ $(FLAGS) $(BIN) $(EXAMPLES)rebalanceTwoClasses.cpp -o rebalanceTwoClasses $(OPENCV) $(OPENCVCONF) $(VLFEAT)
 
-rebalanceMultiClasses: rebalanceMultiClasses.cpp
-	@g++ -std=c++11 -Wall GMRsaliency.o SLIC.o artificialGeneration.o descritores.o funcoesAux.o quantization.o funcoesArquivo.o classifier.o smote.o rebalanceMultiClasses.cpp -o rebalanceMultiClasses $(OPENCV) $(OPENCVCONF) $(VLFEAT)
+rebalanceMultiClasses: $(EXAMPLES)rebalanceMultiClasses.cpp
+	@g++ $(FLAGS) $(BIN) $(EXAMPLES)rebalanceMultiClasses.cpp -o rebalanceMultiClasses $(OPENCV) $(OPENCVCONF) $(VLFEAT)
 
-staticRebalance: staticRebalance.cpp
-	@g++ -Wall descritores.o funcoesAux.o funcoesArquivo.o quantization.o classifier.o smote.o staticRebalance.cpp -o staticRebalance $(OPENCV) $(OPENCVCONF) $(VLFEAT)
+staticRebalance: $(EXAMPLES)staticRebalance.cpp
+	@g++ $(FLAGS) $(BIN) $(EXAMPLES)staticRebalance.cpp -o staticRebalance $(OPENCV) $(OPENCVCONF) $(VLFEAT)
 
 clean:
 	$(FIND) "*~" | xargs $(RM)
 	$(FIND) "*.o" | xargs $(RM)
-	$(RM) teste staticRebalance mainDescritor dimensionReduction mergeDataSets smoteTest artificialGenerationTest rebalanceTest rebalanceMultiClasses rebalanceTwoClasses
+# $(RM) staticRebalance mainDescritor smoteTest artificialGenerationTest rebalanceTest rebalanceMultiClasses rebalanceTwoClasses
 
-run: run-desbalanced
-
-run-desbalanced:
-	./rebalanceTest Desbalanced/original/ features/ 0 # Replication
-	./rebalanceTest Desbalanced/original/ features/ 1 # All operations
-	./rebalanceTest Desbalanced/original/ features/ 2 # Blur
-	./rebalanceTest Desbalanced/original/ features/ 3 # Noise
-	./rebalanceTest Desbalanced/original/ features/ 4 # Blending
-	./rebalanceTest Desbalanced/original/ features/ 5 # Unsharp masking
-	./rebalanceTest Desbalanced/original/ features/ 6 # Composition wuth 4
-	./rebalanceTest Desbalanced/original/ features/ 7 # Composition with 16
-	./rebalanceTest Desbalanced/original/ features/ 8 # Threshold combination
-	./rebalanceTest Desbalanced/original/ features/ 9 # Saliency
-
-plot:
-	python plot.py
-	python statistics.py
-
-run-dimensionReduction:
-	./dimensionReduction
+# run: run-desbalanced
+#
+# run-desbalanced:
+# 	./rebalanceTest Desbalanced/original/ features/ 0 # Replication
+# 	./rebalanceTest Desbalanced/original/ features/ 1 # All operations
+# 	./rebalanceTest Desbalanced/original/ features/ 2 # Blur
+# 	./rebalanceTest Desbalanced/original/ features/ 3 # Noise
+# 	./rebalanceTest Desbalanced/original/ features/ 4 # Blending
+# 	./rebalanceTest Desbalanced/original/ features/ 5 # Unsharp masking
+# 	./rebalanceTest Desbalanced/original/ features/ 6 # Composition wuth 4
+# 	./rebalanceTest Desbalanced/original/ features/ 7 # Composition with 16
+# 	./rebalanceTest Desbalanced/original/ features/ 8 # Threshold combination
+# 	./rebalanceTest Desbalanced/original/ features/ 9 # Saliency
+#
+# plot:
+# 	python plot.py
+# 	python statistics.py
+#
+# run-dimensionReduction:
+# 	./dimensionReduction

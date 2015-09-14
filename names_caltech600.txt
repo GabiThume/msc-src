@@ -1,6 +1,0 @@
-airplanes = 1
-bonsai = 2
-chandelier = 3
-hawksbill = 4
-Motorbikes = 5
-watch = 6

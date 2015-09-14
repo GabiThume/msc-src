@@ -1,2 +1,0 @@
-
-../../caracteristicas_corel/64/all/corel_ALL_MSB_64c_4d_100r.csv
