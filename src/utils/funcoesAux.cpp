@@ -9,7 +9,7 @@
  *	Universidade de São Paulo / ICMC / 2012-2015
  **/
 
-#include "include/utils/funcoesAux.h"
+#include "utils/funcoesAux.h"
 
 /*******************************************************************************
     Gamma correction (power transformation)

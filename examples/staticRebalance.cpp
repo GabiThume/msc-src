@@ -5,24 +5,21 @@
  *
  **/
 
-#include "smote.h"
-#include "artificialGeneration.h"
-
-string descriptors[8] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"};
-string methods[4] = {"Intensity", "Luminance", "Gleam", "MSB"};
+#include "rebalanceTest.h"
 
 string desc(string dir, string features, int d, int m, string id){
 
-    int paramCCV[1] = {25};
-    int paramACC[4] = {1, 3, 5, 7};
+    vector<int> paramCCV = {25};
+    vector<int> paramACC = {1, 3, 5, 7};
+    vector<int> parameters;
     /* If descriptor ==  CCV, threshold is required */
     if (d == 3)
-        return descriptor(dir.c_str(), features.c_str(), d, 256, 1, 1, paramCCV, 1, 0, m, id.c_str());
+        return descriptor(dir, features, d, 256, 1, 1, paramCCV, 0, m, id);
     /* If descriptor ==  ACC, distances are required */
     else if (d == 5)
-        return descriptor(dir.c_str(), features.c_str(), d, 256, 1, 1, paramACC, 4, 0, m, id.c_str());
+        return descriptor(dir, features, d, 256, 1, 1, paramACC, 0, m, id);
     else
-        return descriptor(dir.c_str(), features.c_str(), d, 256, 1, 1, 0, 0, 0, m, id.c_str());
+        return descriptor(dir, features, d, 256, 1, 1, parameters, 0, m, id);
 }
 
 string intToString(int number){
@@ -169,9 +166,9 @@ int main(int argc, char const *argv[]){
         endMethod = 4;
 
         for (m = initialMethod; m <= endMethod; m++){
-            csvOriginal = path+"Analysis/original_"+descriptors[d-1]+"_"+methods[m-1]+"_";
-            csvSmote = path+"Analysis/smote_"+descriptors[d-1]+"_"+methods[m-1]+"_";
-            csvRebalance = path+"Analysis/"+id+"_"+descriptors[d-1]+"_"+methods[m-1]+"_";
+            csvOriginal = path+"Analysis/original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+            csvSmote = path+"Analysis/smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+            csvRebalance = path+"Analysis/"+id+"_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
             for (level = 0; level <= 2; level++){
                 /* Feature extraction from images */
                 string originalDescriptor = desc(path+baseDirOriginal[level], featuresDir, d, m, "original");
@@ -211,7 +208,7 @@ int main(int argc, char const *argv[]){
                     stringstream numberOfImages;
                     numberOfImages.str("");
                     numberOfImages << totalRebalanced;
-                    string name = featuresDir+descriptors[d-1]+"_"+methods[m-1]+"_256c_100r_"+numberOfImages.str()+"i_smote.csv";
+                    string name = featuresDir+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_256c_100r_"+numberOfImages.str()+"i_smote.csv";
 
                     FILE *arq = fopen(name.c_str(), "w+");
                     fprintf(arq,"%d %d\t%d\n", totalRebalanced, rebalancedData.size(), (int) rebalancedData[0].features.size().width);

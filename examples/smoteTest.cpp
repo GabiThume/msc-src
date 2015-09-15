@@ -5,7 +5,7 @@
  *
  **/
 
-#include "smote.h"
+#include "preprocessing/smote.h"
 
 /* Generate a imbalanced class and save it in imbalancedData and imbalancedClasses */
 void imbalance(Mat original, Mat classes, int factor, int numClasses, Mat *imbalancedData, Mat *imbalancedClasses, int start, int end){

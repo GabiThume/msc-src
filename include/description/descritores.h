@@ -39,7 +39,7 @@ Master's thesis in Computer Science
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
 #include <math.h>
-#include "funcoesAux.h"
+#include "utils/funcoesAux.h"
 #include <opencv2/nonfree/nonfree.hpp>
 
 // #include "vlfeat/vl/sift.h"

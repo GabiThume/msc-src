@@ -12,9 +12,9 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include "descritores.h"
-#include "funcoesAux.h"
-#include "quantization.h"
+#include "description/descritores.h"
+#include "utils/funcoesAux.h"
+#include "quantization/quantization.h"
 
 using namespace cv;
 using namespace std;

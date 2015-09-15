@@ -6,8 +6,8 @@
 #include <fstream>
 #include <dirent.h>
 
-#include "funcoesArquivo.h"
-#include "classifier.h"
+#include "utils/funcoesArquivo.h"
+#include "classification/classifier.h"
 
 using namespace cv;
 using namespace std;

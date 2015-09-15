@@ -6,7 +6,7 @@
  *  Based on paper's "SMOTE: Synthetic Minority Over-sampling Technique" pseudo-code
  **/
 
-#include "smote.h"
+#include "preprocessing/smote.h"
 
 /* Generate the synthetic samples to over-sample the minority class */
 void SMOTE::populate(Mat minority, Mat neighbors, Mat *synthetic, int *index, int amountSmote, int i, int nearestNeighbors){

@@ -7,10 +7,10 @@
 #include <fstream>
 #include <dirent.h>
 
-#include "funcoesArquivo.h"
-#include "classifier.h"
-#include "smote.h"
-#include "artificialGeneration.h"
+#include "utils/funcoesArquivo.h"
+#include "classification/classifier.h"
+#include "preprocessing/smote.h"
+#include "preprocessing/artificialGeneration.h"
 
 using namespace cv;
 using namespace std;

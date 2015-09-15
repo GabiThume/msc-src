@@ -44,7 +44,7 @@ Master's thesis in Computer Science
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
-#include "funcoesAux.h"
+#include "utils/funcoesAux.h"
 
 void QuantizationIntensity(Mat I, Mat *Q, int num_colors);
 void QuantizationGleam(Mat I, Mat *Q, int num_colors);

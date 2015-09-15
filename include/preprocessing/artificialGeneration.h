@@ -14,9 +14,9 @@
 #include <cstring>
 #include <cstdio>
 
-#include "Saliency/GMRsaliency.h"
-#include "funcoesArquivo.h"
-#include "classifier.h"
+#include "../lib/Saliency/GMRsaliency.h"
+#include "utils/funcoesArquivo.h"
+#include "classification/classifier.h"
 
 using namespace cv;
 using namespace std;

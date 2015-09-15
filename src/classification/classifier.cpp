@@ -5,7 +5,7 @@
 *
 **/
 
-#include "include/classification/classifier.h"
+#include "classification/classifier.h"
 
 /* Train and predict using the Normal Bayes classifier */
 void Classifier::bayesClassifier(Mat dataTraining, Mat labelsTraining, Mat dataTesting, Mat& result){
@@ -37,7 +37,7 @@ double Classifier::calculateMean(vector<double> accuracy){
 	}
 	mean = mean/accuracy.size();
 
-	if (isnan(mean))
+	if (std::isnan(mean))
 		mean = 0;
 
 	return mean;
@@ -56,7 +56,7 @@ double Classifier::calculateStandardDeviation(vector<double> accuracy){
 	variance = variance/accuracy.size();
 	std = sqrt(variance);
 
-	if (isnan(std))
+	if (std::isnan(std))
 		std = 0;
 
 	return std;

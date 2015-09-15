@@ -5,7 +5,7 @@
 *
 **/
 
-#include "include/preprocessing/artificialGeneration.h"
+#include "preprocessing/artificialGeneration.h"
 
 int classesNumber(string diretorio){
 

@@ -1,4 +1,4 @@
-#include "include/utils/funcoesArquivo.h"
+#include "utils/funcoesArquivo.h"
 
 int main(int argc, char *argv[]){
 

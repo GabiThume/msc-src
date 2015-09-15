@@ -34,7 +34,7 @@ Master's thesis in Computer Science
 */
 
 #include <vector>
-#include "include/quantization/quantization.h"
+#include "quantization/quantization.h"
 
 /*******************************************************************************
 Image quantization by Gamma corrected Intensity

@@ -36,7 +36,7 @@ Master's thesis in Computer Science
 #include <queue>
 #include <vector>
 
-#include "include/description/descritores.h"
+#include "description/descritores.h"
 
 /*******************************************************************************
 Verify a neighbor pixel. To do so, it checks if it is in the correlationect dimensions

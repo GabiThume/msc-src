@@ -7,7 +7,7 @@
  *
  **/
 
-#include "include/utils/funcoesArquivo.h"
+#include "utils/funcoesArquivo.h"
 
 /* Read the features and save them in Mat data */
 vector<Classes> readFeatures(string filename){

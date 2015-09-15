@@ -5,7 +5,7 @@
 *
 **/
 
-#include "artificialGeneration.h"
+#include "preprocessing/artificialGeneration.h"
 
 void classifica(string base, string features, string outfileName){
 
