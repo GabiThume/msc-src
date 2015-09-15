@@ -66,8 +66,8 @@ void CoocurrenceMatrix(Mat img, vector< vector<double> > *co_occurence,
 void Haralick6(vector< vector<double> > co_occurence, Mat *features);
 void HARALICK(Mat img, Mat *features, int colors, int normalization);
 void ACC(Mat I, Mat *features, int colors, int normalization, vector<int> distances);
-void LBP(Mat img, Mat *features, int colors);
-void HOG(Mat img, Mat *features, int numFeatures);
-void contourExtraction(Mat Img, Mat *features);
+void LBP(Mat img, Mat *features, int colors, int normalization);
+void HOG(Mat img, Mat *features, int colors, int normalization);
+void contourExtraction(Mat Img, Mat *features, int colors, int normalization);
 
 #endif
