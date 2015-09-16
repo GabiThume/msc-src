@@ -11,6 +11,34 @@
 
 #include "utils/funcoesAux.h"
 
+
+/*******************************************************************************
+    Gamma correction (power transformation)
+
+        Controls the overall brightness of an image:
+            gammaCorrectedImage = image ^ (1/crt_gamma)
+
+    Requires:
+    - img : image to be processed
+    - gamma : parameter for apply gamma correction
+*******************************************************************************/
+void PlotHistogram(Mat hist) {
+  int bins = hist.rows, j;
+  normalize(hist, hist, 0, bins, NORM_MINMAX, -1, Mat());
+
+  Mat hist_img(bins, bins, CV_8UC1, Scalar(0,0,0));
+  for (j = 1; j < bins; j++) {
+    line(hist_img,
+      Point((j-1), bins - cvRound(hist.at<float>(j-1))),
+      Point(j, bins - cvRound(hist.at<float>(j))),
+      Scalar(255, 255, 255), 1, 8, 0);
+  }
+
+  namedWindow("histogram", CV_WINDOW_AUTOSIZE );
+  imshow("histogram", hist_img);
+  waitKey(0);
+}
+
 /*******************************************************************************
     Gamma correction (power transformation)
 
@@ -49,17 +77,17 @@ void reduceImageColors(Mat *I, int nColors) {
 	double min, max, stretch;
 	Point maxLoc, minLoc;
 
-    nColors = (nColors >= 256) ? 255 : nColors;
+  nColors = (nColors > 256) ? 256 : nColors;
 
-    if ((*I).channels() == 1){
-        minMaxLoc(*I, &min, &max, &minLoc, &maxLoc);
-        stretch = ((double)((nColors)) / (max - min));
-        (*I) = (*I) - min;
-        (*I) = (*I) * stretch;
-    }
-    namedWindow( "Display window", WINDOW_AUTOSIZE );
-    imshow("ReducedColors", *I);
-    waitKey(0);
+  if ((*I).channels() == 1){
+    minMaxLoc(*I, &min, &max, &minLoc, &maxLoc);
+    stretch = ((double)((nColors -1)) / (max - min));
+    (*I) = (*I) - min;
+    (*I) = (*I) * stretch;
+  }
+  namedWindow( "Display window", WINDOW_AUTOSIZE );
+  imshow("ReducedColors", *I);
+  waitKey(0);
 }
 
 /* Remove null columns in feature space

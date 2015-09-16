@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
   double resize;
   string id = "", databaseDir = "", featuresDir = "";
 
-  if (argc < 10) {
+  if (argc < 9) {
     cout << "\nUsage: ./descriptor (0) (1) (2) (3) (4) (5) (6) (7) (8) (9)\n\n";
     cout << "\t(0) Images Directory\n" << endl;
     cout << "\t(1) Features Directory\n" << endl;
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
     cout << "\t\t1-Intensity  2-Luminance  3-Gleam  4-MSB\n" << endl;
     cout << "\t(7) Null columns:\n" << endl;
     cout << "\t\t1-Remove 0-Keep\n" << endl;
-    cout << "\t(8) Id to identify outfile" << endl;
+    cout << "\t(8) Id to identify outfile\n" << endl;
     cout << "\t(9) Distances for ACC or CCV threshold\n" << endl;
     exit(-1);
   }
@@ -101,7 +101,9 @@ int main(int argc, char *argv[]) {
       exit(-1);
     }
 
-    id = argv[9];
+    if (argc >= 9) {
+      id = argv[9];
+    }
 
     if (descMethod == 3 || descMethod == 5) {
       numParameters = (argc-10);

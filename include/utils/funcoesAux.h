@@ -11,6 +11,8 @@
 using namespace cv;
 using namespace std;
 
+void PlotHistogram(Mat hist);
+
 /*
   Gamma correction function
   Requires:

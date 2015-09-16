@@ -727,32 +727,20 @@ Mat features vector in which perform the operations
 int number of colors
 *******************************************************************************/
 void LBP(Mat img, Mat *features, int colors, int normalization) {
-  int bin, cellWidth, cellHeight, stride = 0, i, j, height, width;
-  int increaseX = 1, increaseY = 1, newWidth, newHeight, bitString;
-  vector<int> lookup = initUniform();
-  Size grid, cell;
-  float center;
-  height = img.rows;
-  width = img.cols;
-  Mat dst = Mat::zeros(img.rows, img.cols, CV_32FC1);
-  Size newSize(width + increaseY*2, height + increaseX*2);
-  Mat resizedImg(newSize, CV_8U, 1);
+  int bin, cellWidth, cellHeight, i, j, bitString, grid, bias;
   int histogram_size[] = {59};
   float ranges[] = {0, 59};
   const float* histogram_ranges[] = {ranges};
-  MatND histogram;
+  Mat histogram;
   bool uniform = true, accumulate = false;
+  vector<int> lookup = initUniform();
+  Size cell;
+  float center;
 
-  copyMakeBorder(img, resizedImg, increaseX, increaseX, increaseY, increaseY,
-    BORDER_REPLICATE);
-
-  Size imgSize = resizedImg.size();
-  newHeight = imgSize.height;
-  newWidth = imgSize.width;
-
+  Mat codes = Mat::zeros(img.rows, img.cols, CV_32FC1);
   // For each pixel in a cell, compare it to each of its 8 neighbors
-  for (i = increaseY; i < newHeight - increaseY; i++) {
-    for (j = increaseX; j < newWidth - increaseX; j++) {
+  for (i = 1; i < img.rows - 1; i++) {
+    for (j = 1; j < img.cols - 1; j++) {
       // Where the center pixel's value is greater than the neighbor's, write 1
       // Otherwise, remain 0.
       bitString = 0;
@@ -769,36 +757,34 @@ void LBP(Mat img, Mat *features, int colors, int normalization) {
       // This gives a 8-digit binary number corresponding to the binary code
       // Instead of using the resulting bitString [0-256], we use a lookup table
       bin = lookup[bitString];
-      dst.at<float>(i-increaseX, j-increaseY) = bin;
-      cout << " center " << center << " bitString " << bitString << " bin " << bin << endl;
+      codes.at<float>(i-1, j-1) = bin;
+      // cout << " center " << center << " bitString " << bitString << " bin " << bin << endl;
     }
   }
 
-  namedWindow("LBP Image", WINDOW_AUTOSIZE);
-  imshow("LBP Image", (dst/255.0)*4);
-  waitKey(0);
+  // namedWindow("LBP Image", WINDOW_AUTOSIZE);
+  // imshow("LBP Image", (codes/255.0)*4);
+  // waitKey(0);
 
-  Mat lbp = Mat::zeros(imgSize, CV_8U);
-  copyMakeBorder(dst, lbp, 1, 1, 1, 1, BORDER_REPLICATE);
+  Mat lbp = Mat::zeros(img.rows + 2, img.cols + 2, CV_8U);
+  copyMakeBorder(codes, lbp, 1, 1, 1, 1, BORDER_REPLICATE);
 
-  grid.width = 2;
-  grid.height = 2;
-  cellWidth = newWidth/grid.width;
-  cellHeight = newHeight/grid.height;
+  grid = 2;
+  cellWidth = lbp.cols/grid;
+  cellHeight = lbp.rows/grid;
 
-  int bias = 0;
-  if (cellWidth * grid.width < width - 1) {
+  bias = 0;
+  if (cellWidth * grid < lbp.cols - 1) { // original or resized?
     bias = 1;
   }
 
-  (*features).create(1, 59*grid.width*grid.height, CV_32F);
+  (*features).create(59 * pow(grid, 2), 1, CV_32F);
   (*features) = Scalar::all(0);
 
-  for (i = 0; i < grid.height; i++) {
-    for (j = 0; j < grid.width; j++) {
+  for (i = 0; i < grid; i++) {
+    for (j = 0; j < grid; j++) {
       Mat cell =
         lbp(Rect(i*cellWidth+bias, j*cellHeight+bias, cellWidth, cellHeight));
-
       // Calculate the histogram for this cell
       calcHist(&cell, 1, 0, Mat(), histogram, 1, histogram_size,
         histogram_ranges, uniform, accumulate);
@@ -806,9 +792,13 @@ void LBP(Mat img, Mat *features, int colors, int normalization) {
       if (normalization != 0) {
         normalize(histogram, histogram, 0, normalization, NORM_MINMAX, -1, Mat());
       }
+      // PlotHistogram(histogram);
       (*features).push_back(histogram);
     }
   }
+  cout << (*features).size() << endl;
+  PlotHistogram(*features);
+  exit(1);
 }
 
 /*******************************************************************************
