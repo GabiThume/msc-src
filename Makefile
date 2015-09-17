@@ -18,7 +18,7 @@ UTILS = $(SRC_DIR)/utils
 EXAMPLES = examples
 OBJS = funcoesArquivo.o description.o funcoesAux.o quantization.o classifier.o smote.o artificialGeneration.o
 
-all: cleanBin descriptorTest smoteTest artificialGenerationTest rebalanceTest rebalanceTwoClasses rebalanceMultiClasses staticRebalance cleanLink
+all: clean descriptorTest smoteTest artificialGenerationTest rebalanceTest rebalanceTwoClasses rebalanceMultiClasses staticRebalance cleanLink
 
 # run: run-desbalanced
 #
@@ -81,12 +81,9 @@ staticRebalance: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o bin/staticRebalance $(EXAMPLES)/staticRebalance.cpp $(INCLUDES)
 
 clean:
-	$(FIND) "*~" | xargs $(RM)
-	$(FIND) "*.o" | xargs $(RM)
-	$(RM) ./bin/*
-
-cleanBin:
+	$(RM) ./*.o
+	$(RM) ./*.o
 	$(RM) ./bin/*
 
 cleanLink:
-	$(FIND) "*.o" | xargs $(RM)
+	$(RM) ./*.o

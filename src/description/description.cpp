@@ -731,13 +731,13 @@ void LBP(Mat img, Mat *features, int colors, int normalization) {
   int histogram_size[] = {59};
   float ranges[] = {0, 59};
   const float* histogram_ranges[] = {ranges};
-  Mat histogram;
   bool uniform = true, accumulate = false;
   vector<int> lookup = initUniform();
   Size cell;
   float center;
-
+  MatND histogram, lbp_histograms;
   Mat codes = Mat::zeros(img.rows, img.cols, CV_32FC1);
+
   // For each pixel in a cell, compare it to each of its 8 neighbors
   for (i = 1; i < img.rows - 1; i++) {
     for (j = 1; j < img.cols - 1; j++) {
@@ -774,12 +774,9 @@ void LBP(Mat img, Mat *features, int colors, int normalization) {
   cellHeight = lbp.rows/grid;
 
   bias = 0;
-  if (cellWidth * grid < lbp.cols - 1) { // original or resized?
+  if (cellWidth * grid < lbp.cols - 1) {
     bias = 1;
   }
-
-  (*features).create(59 * pow(grid, 2), 1, CV_32F);
-  (*features) = Scalar::all(0);
 
   for (i = 0; i < grid; i++) {
     for (j = 0; j < grid; j++) {
@@ -792,13 +789,14 @@ void LBP(Mat img, Mat *features, int colors, int normalization) {
       if (normalization != 0) {
         normalize(histogram, histogram, 0, normalization, NORM_MINMAX, -1, Mat());
       }
-      // PlotHistogram(histogram);
-      (*features).push_back(histogram);
+      lbp_histograms.push_back(histogram);
+      histogram.release();
     }
   }
-  cout << (*features).size() << endl;
-  PlotHistogram(*features);
-  exit(1);
+  // PlotHistogram(lbp_histograms);
+  lbp_histograms = lbp_histograms.t(); // Transpose to make rowsx1 be 1xcols
+  (*features).push_back(lbp_histograms);
+  lbp_histograms.release();
 }
 
 /*******************************************************************************
