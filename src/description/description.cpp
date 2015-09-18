@@ -146,9 +146,9 @@ void CalculateCCV(Mat img, Mat *features, int number_colors, int normalization,
   int width = img.cols;
   vector< vector<bool> > visited_pixels;
   visited_pixels.resize(height, vector<bool>(width, false));
+  Mat ccv_histograms, blur_img;
 
   // 1 - Blur the image
-  Mat blur_img;
   blur(img, blur_img, Size(3, 3));
 
   // 2 - Discretize the colorspace to 1/4 of the colors
@@ -188,10 +188,6 @@ void CalculateCCV(Mat img, Mat *features, int number_colors, int normalization,
     }
   }
 
-  // The feature vector size is the new number of colors times two
-  (*features).create(1, coherent.size(), CV_32F);
-  (*features) = Scalar::all(0);
-
   Mat coherent_hist(coherent, true);
   Mat incoherent_hist(incoherent, true);
   // Normalize the vectors and concatenate them on Mat features
@@ -201,8 +197,12 @@ void CalculateCCV(Mat img, Mat *features, int number_colors, int normalization,
     normalize(incoherent_hist, incoherent_hist, 0, normalization, NORM_MINMAX,
               -1, Mat());
   }
-  (*features).push_back(coherent_hist);
-  (*features).push_back(incoherent_hist);
+
+  ccv_histograms.push_back(coherent_hist);
+  ccv_histograms.push_back(incoherent_hist);
+  ccv_histograms = ccv_histograms.t(); // Transpose to make rowsx1 be 1xcols
+  (*features).push_back(ccv_histograms);
+  ccv_histograms.release();
 }
 
 /*******************************************************************************
@@ -225,13 +225,19 @@ void CCV(Mat img, Mat *features, int number_colors, int normalization,
     Mat B_CCV((*features).size(), CV_8UC1);
     Mat G_CCV((*features).size(), CV_8UC1);
     Mat R_CCV((*features).size(), CV_8UC1);
+    Mat ccv_histograms;
 
     CalculateCCV(channel[0], &B_CCV, number_colors, normalization, threshold);
     CalculateCCV(channel[1], &G_CCV, number_colors, normalization, threshold);
     CalculateCCV(channel[2], &R_CCV, number_colors, normalization, threshold);
-    (*features).push_back(B_CCV);
-    (*features).push_back(G_CCV);
-    (*features).push_back(R_CCV);
+    B_CCV = B_CCV.t();
+    G_CCV = G_CCV.t();
+    R_CCV = R_CCV.t();
+    ccv_histograms.push_back(B_CCV);
+    ccv_histograms.push_back(G_CCV);
+    ccv_histograms.push_back(R_CCV);
+    ccv_histograms = ccv_histograms.t();
+    (*features).push_back(ccv_histograms);
   }
 }
 
@@ -265,7 +271,9 @@ void CalculateGCH(Mat img, Mat *features, int colors, int normalization) {
   if (normalization != 0) {
     normalize(histogram, histogram, 0, normalization, NORM_MINMAX, -1, Mat());
   }
+  histogram = histogram.t();
   (*features).push_back(histogram);
+  histogram.release();
 }
 
 /*******************************************************************************
@@ -286,13 +294,19 @@ void GCH(Mat img, Mat *features, int number_colors, int normalization) {
     Mat B_GCH((*features).size(), CV_8UC1);
     Mat G_GCH((*features).size(), CV_8UC1);
     Mat R_GCH((*features).size(), CV_8UC1);
+    Mat gch_histograms;
 
     CalculateGCH(channel[0], &B_GCH, number_colors, normalization);
     CalculateGCH(channel[1], &G_GCH, number_colors, normalization);
     CalculateGCH(channel[2], &R_GCH, number_colors, normalization);
-    (*features).push_back(B_GCH);
-    (*features).push_back(G_GCH);
-    (*features).push_back(R_GCH);
+    B_GCH = B_GCH.t();
+    G_GCH = G_GCH.t();
+    R_GCH = R_GCH.t();
+    gch_histograms.push_back(B_GCH);
+    gch_histograms.push_back(G_GCH);
+    gch_histograms.push_back(R_GCH);
+    gch_histograms = gch_histograms.t();
+    (*features).push_back(gch_histograms);
   }
 }
 
@@ -315,6 +329,7 @@ Requires:
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
 void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
+  cout << "Extracting features" << endl;
   int height = img.rows, width = img.cols;
   int y, x;
   int histogram_size[] = {colors};
@@ -323,14 +338,14 @@ void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
   bool uniform = true, accumulate = false;
   MatND histogram_border, histogram_interior;
   uchar pixel_color;
-  Mat border(img.size(), CV_8UC1, 0);
-  Mat interior(img.size(), CV_8UC1, 0);
+  Mat border(img.size(), CV_8UC1);
+  Mat interior(img.size(), CV_8UC1);
+  Mat bic_histograms;
 
   // 1- Classify pixels as border or interior
   for (y = 0; y < height; y++) {
     for (x = 0; x < width; x++) {
       pixel_color = img.at<uchar>(y, x);
-
       // If the pixel is not border
       if (y > 0 && x > 0 && x < width-1 && y < height-1) {
         // If all the 4-neighbors has the same color it is interior
@@ -363,8 +378,12 @@ void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
     normalize(histogram_interior, histogram_interior, 0, normalization,
               NORM_MINMAX, -1, Mat());
   }
-  (*features).push_back(histogram_border);
-  (*features).push_back(histogram_interior);
+
+  bic_histograms.push_back(histogram_border);
+  bic_histograms.push_back(histogram_interior);
+  bic_histograms = bic_histograms.t(); // Transpose to make rowsx1 be 1xcols
+  (*features).push_back(bic_histograms);
+  bic_histograms.release();
 }
 
 /*******************************************************************************
@@ -385,13 +404,19 @@ void BIC(Mat img, Mat *features, int number_colors, int normalization) {
     Mat B_BIC((*features).size(), CV_8UC1);
     Mat G_BIC((*features).size(), CV_8UC1);
     Mat R_BIC((*features).size(), CV_8UC1);
+    Mat bic_histograms;
 
     CalculateBIC(channel[0], &B_BIC, number_colors, normalization);
     CalculateBIC(channel[1], &G_BIC, number_colors, normalization);
     CalculateBIC(channel[2], &R_BIC, number_colors, normalization);
-    (*features).push_back(B_BIC);
-    (*features).push_back(G_BIC);
-    (*features).push_back(R_BIC);
+    B_BIC = B_BIC.t();
+    G_BIC = G_BIC.t();
+    R_BIC = R_BIC.t();
+    bic_histograms.push_back(B_BIC);
+    bic_histograms.push_back(G_BIC);
+    bic_histograms.push_back(R_BIC);
+    bic_histograms = bic_histograms.t();
+    (*features).push_back(bic_histograms);
   }
 }
 
@@ -641,16 +666,15 @@ void ACC(Mat I, Mat *features, int colors, int normalization,
   const float* histogram_ranges[] = {ranges};
   MatND histogram;
   bool uniform = true, accumulate = false;
-  (*features).create(1, colors*distances.size(), CV_32F);
-  (*features) = Scalar::all(0);
-  Mat autocorrelogram(1, colors, CV_32F, 0);
+  Mat acc_correlogram;
 
   // Build the histogram with 'colors'
-  calcHist(&I, 1, 0, Mat(), histogram, 1, histogram_size, histogram_ranges,
-          uniform, accumulate);
+  // calcHist(&I, 1, 0, Mat(), histogram, 1, histogram_size, histogram_ranges,
+  //         uniform, accumulate);
 
   // For each given distance in 'distances' set
   for (d = 0; d < static_cast<int>(distances.size()); ++d) {
+    Mat autocorrelogram(colors, 1, CV_32F);
     autocorrelogram = Scalar::all(0);
     current_distance = distances[d];
     // For each pixel
@@ -665,7 +689,7 @@ void ACC(Mat I, Mat *features, int colors, int normalization,
             I.at<uchar>(neighbors[chess][0], neighbors[chess][1]);
           // If both pixels have the same color, plus one in the correlogram
           if (current_pixel == neighbor_color) {
-            autocorrelogram.at<float>(0, current_pixel + (d*colors))++;
+            autocorrelogram.at<float>((int) current_pixel, 0)++;
           }
         }
       }
@@ -676,8 +700,11 @@ void ACC(Mat I, Mat *features, int colors, int normalization,
       normalize(autocorrelogram, autocorrelogram, 0, normalization, NORM_MINMAX,
                 -1, Mat());
     }
-    (*features).push_back(autocorrelogram);
+    acc_correlogram.push_back(autocorrelogram);
+    autocorrelogram.release();
   }
+  acc_correlogram = acc_correlogram.t();
+  (*features).push_back(acc_correlogram);
 }
 
 /*******************************************************************************
@@ -817,7 +844,7 @@ void HOG(Mat img, Mat *features, int colors, int normalization) {
   vector<Point> locs;
   int i, cellSize;
   Mat new_image;
-  Size new_size = Size(256, 256);
+  Size new_size = Size(128, 128);
 
   img.copyTo(new_image);
   cv::resize(new_image, new_image, new_size);
