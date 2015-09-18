@@ -172,6 +172,9 @@ void ConvertToGrayscale(int method, Mat img, Mat *gray, int colors) {
       cout << " does not exists." << endl;
       exit(1);
   }
+  namedWindow("Display window", WINDOW_AUTOSIZE );
+  imshow("Grayscale Image", *gray);
+  waitKey(0);
 }
 
 void GetFeatureVector(int method, Mat img, Mat *featureVector, int colors,

@@ -688,9 +688,9 @@ A binary code is binary if contains at most two 0-1 or 1-0 transitions
 *******************************************************************************/
 vector<int> initUniform() {
   int index = 0, i = 0, b = 0, count = 0, c = 0;
-  vector<int> lookup(255);
+  vector<int> lookup(256);
 
-  for (i = 0; i < 256; i++) {
+  for (i = 0; i <= 256; i++) {
     b = (i >> 1) | (i << 7 & 0xff);
     c = i ^ b;
     // Count the number of transitions
@@ -729,20 +729,20 @@ int number of colors
 void LBP(Mat img, Mat *features, int colors, int normalization) {
   int bin, cellWidth, cellHeight, i, j, bitString, grid, bias;
   int histogram_size[] = {59};
+  float center;
   float ranges[] = {0, 59};
   const float* histogram_ranges[] = {ranges};
   bool uniform = true, accumulate = false;
-  vector<int> lookup = initUniform();
   Size cell;
-  float center;
   MatND histogram, lbp_histograms;
   Mat codes = Mat::zeros(img.rows, img.cols, CV_32FC1);
+  vector<int> lookup = initUniform();
 
   // For each pixel in a cell, compare it to each of its 8 neighbors
   for (i = 1; i < img.rows - 1; i++) {
     for (j = 1; j < img.cols - 1; j++) {
       // Where the center pixel's value is greater than the neighbor's, write 1
-      // Otherwise, remain 0.
+      // Otherwise, it remains 0.
       bitString = 0;
       center = img.at<uchar>(i, j);
       // Start from the one to the right in anti-clockwise order

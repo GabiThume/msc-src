@@ -74,7 +74,7 @@ void correctGamma(Mat *I, double gamma) {
 *******************************************************************************/
 void reduceImageColors(Mat *I, int nColors) {
 
-	double min, max, stretch;
+	double min = 0, max = 0, stretch;
 	Point maxLoc, minLoc;
 
   nColors = (nColors > 256) ? 256 : nColors;
@@ -85,9 +85,6 @@ void reduceImageColors(Mat *I, int nColors) {
     (*I) = (*I) - min;
     (*I) = (*I) * stretch;
   }
-  namedWindow( "Display window", WINDOW_AUTOSIZE );
-  imshow("ReducedColors", *I);
-  waitKey(0);
 }
 
 /* Remove null columns in feature space

@@ -35,7 +35,7 @@ Master's thesis in Computer Science
 
 #include <vector>
 #include "quantization/quantization.h"
-
+#include <bitset>
 /*******************************************************************************
 Image quantization by Gamma corrected Intensity
 
@@ -54,7 +54,7 @@ void QuantizationIntensity(Mat I, Mat *Q, int num_colors) {
   split(I, imColors);
 
   // Compute grayscale image
-  (*Q) = (imColors[0] + imColors[1] + imColors[2])/3.0;
+  (*Q)  = (imColors[0]/3.0 + imColors[1]/3.0 + imColors[2]/3.0);
 
   // Gamma correction after quantization
   correctGamma(Q, 2.2);
@@ -62,8 +62,8 @@ void QuantizationIntensity(Mat I, Mat *Q, int num_colors) {
   // Reduce number of colors if necessary
   if (num_colors < 256) {
     reduceImageColors(Q, num_colors);
-  }
 }
+  }
 
 /*******************************************************************************
 Image quantization by Gleam
@@ -86,7 +86,7 @@ void QuantizationGleam(Mat I, Mat *Q, int num_colors) {
   correctGamma(&(imColors[2]), 2.2);
 
   // Sum 1/3 of each channel using gamma corrected pixels
-  (*Q) = (imColors[0] + imColors[1] + imColors[2])/3.0;
+  (*Q) = (imColors[0]/3.0 + imColors[1]/3.0 + imColors[2]/3.0);
 
   // Reduce number of colors if necessary
   if (num_colors < 256) {
@@ -178,7 +178,7 @@ void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
   // Compute amount of bits needed to obtain num_colors
   bitsc = log(num_colors)/log(2);
   // Compute amount of bits used from channel
-  int GRBbits[3] = {bitsc/3, bitsc/3, bitsc/3};
+  int GRBbits[3] = {bitsc/3.0, bitsc/3.0, bitsc/3.0};
 
   // Check if there are bits left after equal division
   k = 0;
@@ -192,34 +192,39 @@ void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
   itI = I.begin<Vec3b>();
   endI = I.end<Vec3b>();
   for (; itI != endI; ++itI, ++itQ) {
+    // Get pixels of individual channels in the input image
+    uchar B = (uchar) (*itI)[0];
+    uchar G = (uchar) (*itI)[1];
+    uchar R = (uchar) (*itI)[2];
+
     uchar dG = (8-GRBbits[0]);
     uchar dR = (8-GRBbits[1]);
     uchar dB = (8-GRBbits[2]);
-
     // obtain mask for each channel
     uchar Ga = (static_cast<int>(pow(2, GRBbits[0]))-1) << dG;
-    uchar Ra = (static_cast<int>(pow(2, GRBbits[1]))-1) << dR;
-    uchar Ba = (static_cast<int>(pow(2, GRBbits[2]))-1) << dB;
-
-    // Get pixels of individual channels in the input image
-    uchar B = (*itI)[0];
-    uchar G = (*itI)[1];
-    uchar R = (*itI)[2];
-
+    uchar Ra = (static_cast<int>(pow(2, GRBbits[1]))-1) << (dR - GRBbits[0]);
+    uchar Ba = (static_cast<int>(pow(2, GRBbits[2]))-1) << (dB - (GRBbits[0]+GRBbits[1]));
     // Extract most significant bits for each channel
-    uchar C1 = (B & Ba) >> dG;  // blue channel
-    uchar C2 = (R & Ra) >> (dG-GRBbits[1]);  // red channel
-    uchar C3 = (G & Ga) >> (dG-GRBbits[1]-GRBbits[2]);  // green channel
+    // The order of preference is G, R and then B.
+    uchar CG = (G & Ga);
+    uchar CR = (R & Ra);
+    uchar CB = (B & Ba);
 
     // Merge the bit codes
-    uchar newPixel = C1 | C2 | C3;
+    uchar newPixel = (CG | CR | CB);// >> (8-bitsc);
+
+    // std::bitset<8> b(B);
+    // std::bitset<8> g(G);
+    // std::bitset<8> r(R);
+    // cout << "Color: G " << g << " R " << r << " B " << b << endl;
+    // std::bitset<8> gm(Ga);
+    // std::bitset<8> rm(Ra);
+    // std::bitset<8> bm(Ba);
+    // cout << "Masks: G " << gm << " R " << rm << " B " << bm << endl;
+    // std::bitset<8> p(newPixel);
+    // cout << "New pixel: " << p << " : " << (int) newPixel << endl;
 
     // Store in the new image
     (*itQ) = (newPixel > 255) ? 255 : newPixel;
-  }
-
-  // Reduce number of colors if necessary
-  if (num_colors < 256) {
-    reduceImageColors(Q, num_colors);
   }
 }
