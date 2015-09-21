@@ -55,19 +55,20 @@ Requires:
 *******************************************************************************/
 void VerifyNeighborPixel(Mat img, int index_height, int index_width,
                         uchar pixel_color, vector< vector<bool> > *visited,
-                        queue<Pixel> *pixels, int64 *size_region) {
+                        queue<Pixel> *pixels, int *size_region) {
   int height = img.rows, width = img.cols;
   uchar img_color;
   Pixel pix;
 
   if (index_height >= 0 && index_height < height &&
-      index_width >= 0 && index_width < width) {
+      index_width  >= 0 && index_width < width) {
     img_color = img.at<uchar>(index_height, index_width);
-    if ((*visited)[index_height][index_width] == 0 &&
+    if (!(*visited)[index_height][index_width] &&
         img_color == pixel_color) {
-      (*visited)[index_height][index_width] = 1;
+      (*visited)[index_height][index_width] = true;
       pix.i = index_height;
       pix.j = index_width;
+      pix.color = pixel_color;
       (*size_region)++;
       (*pixels).push(pix);
     }
@@ -86,7 +87,7 @@ Requires:
 - int64* size of the region we are calculating
 *******************************************************************************/
 void FindNeighbor(Mat img, vector< vector<bool> > *visited,
-                  queue<Pixel> *pixels, int64 *size_region) {
+                  queue<Pixel> *pixels, int *size_region) {
   Pixel pix = (*pixels).front();
   (*pixels).pop();
 
@@ -119,10 +120,9 @@ Computes two histograms:
 - histogram of coherent pixels.
 - histogram of incoherent pixels.
 
-1 - Slightly blur the image by replacign pixels values with the average value
+1 - Slightly blur the image by replacing pixels values with the average value
     in a 8-neighborhood.
 2 - Discretize the colorspace, such that there are only n distinct colors.
-    if the difference between pixels is below a certain threshold.
 3 - Classify pixels as either coherent or incoherent depending on the size of
     its connected component given a threshold.
 
@@ -139,7 +139,7 @@ Requires:
 void CalculateCCV(Mat img, Mat *features, int number_colors, int normalization,
                   int threshold) {
   int x, y, new_number_colors;
-  int64 size_region;
+  int size_region;
   queue<Pixel> pixels;
   Pixel pix;
   int height = img.rows;
@@ -154,6 +154,10 @@ void CalculateCCV(Mat img, Mat *features, int number_colors, int normalization,
   // 2 - Discretize the colorspace to 1/4 of the colors
   new_number_colors = static_cast<int>(number_colors/4.0);
   reduceImageColors(&blur_img, new_number_colors);
+
+  namedWindow("Display window", WINDOW_AUTOSIZE );
+  imshow("Grayscale Image", blur_img);
+  waitKey(0);
 
   vector<int> coherent(new_number_colors, 0);
   vector<int> incoherent(new_number_colors, 0);
@@ -177,7 +181,6 @@ void CalculateCCV(Mat img, Mat *features, int number_colors, int normalization,
           // If a neighbor with the same color is found, call it for the new one
           FindNeighbor(blur_img, &visited_pixels, &pixels, &size_region);
         }
-
         // If the size of the region is higher than the threshold is coherent
         if (size_region >= threshold) {
           coherent[pix.color] += size_region;
@@ -265,9 +268,6 @@ void CalculateGCH(Mat img, Mat *features, int colors, int normalization) {
   calcHist(&img, 1, 0, Mat(), histogram, 1, histogram_size, histogram_ranges,
           uniform, accumulate);
 
-  (*features).create(1, histogram.rows, CV_32F);
-  (*features) = Scalar::all(0);
-
   if (normalization != 0) {
     normalize(histogram, histogram, 0, normalization, NORM_MINMAX, -1, Mat());
   }
@@ -329,7 +329,6 @@ Requires:
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
 void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
-  cout << "Extracting features" << endl;
   int height = img.rows, width = img.cols;
   int y, x;
   int histogram_size[] = {colors};
@@ -368,9 +367,6 @@ void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
           histogram_ranges, uniform, accumulate);
   calcHist(&interior, 1, 0, Mat(), histogram_interior, 1, histogram_size,
           histogram_ranges, uniform, accumulate);
-
-  (*features).create(1, histogram_border.rows+histogram_interior.rows, CV_32F);
-  (*features) = Scalar::all(0);
 
   if (normalization != 0) {
     normalize(histogram_border, histogram_border, 0, normalization,
@@ -661,20 +657,10 @@ void ACC(Mat I, Mat *features, int colors, int normalization,
   int i, j, d, current_distance, chess;
   vector < vector<int>> neighbors;
   uchar current_pixel, neighbor_color;
-  int histogram_size[] = {colors};
-  float ranges[] = {0, static_cast<float>(colors)};
-  const float* histogram_ranges[] = {ranges};
-  MatND histogram;
-  bool uniform = true, accumulate = false;
-  Mat acc_correlogram;
-
-  // Build the histogram with 'colors'
-  // calcHist(&I, 1, 0, Mat(), histogram, 1, histogram_size, histogram_ranges,
-  //         uniform, accumulate);
+  Mat acc_correlogram, autocorrelogram(colors, 1, CV_32F);
 
   // For each given distance in 'distances' set
   for (d = 0; d < static_cast<int>(distances.size()); ++d) {
-    Mat autocorrelogram(colors, 1, CV_32F);
     autocorrelogram = Scalar::all(0);
     current_distance = distances[d];
     // For each pixel
@@ -701,10 +687,10 @@ void ACC(Mat I, Mat *features, int colors, int normalization,
                 -1, Mat());
     }
     acc_correlogram.push_back(autocorrelogram);
-    autocorrelogram.release();
   }
   acc_correlogram = acc_correlogram.t();
   (*features).push_back(acc_correlogram);
+  acc_correlogram.release();
 }
 
 /*******************************************************************************
@@ -850,7 +836,7 @@ void HOG(Mat img, Mat *features, int colors, int normalization) {
   cv::resize(new_image, new_image, new_size);
 
   hog.winSize = new_size;
-  cellSize = 8;
+  cellSize = 16;
   hog.blockSize = Size(cellSize*2, cellSize*2);
   hog.blockStride = Size(cellSize, cellSize);
   hog.cellSize = Size(cellSize, cellSize);
