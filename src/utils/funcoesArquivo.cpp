@@ -223,6 +223,7 @@ Mat FindImgInClass(string database, int img_class, int img_number, int index,
 
   directory = dir_class + "/"+to_string(img_number);
   img = imread(directory+".png", CV_LOAD_IMAGE_COLOR);
+  cout << directory+".png" << endl;
   (*trainTest).at<uchar>(index, 0) = static_cast<uchar>(0);
 
   if (img.empty()) {
@@ -298,8 +299,8 @@ void ZIndexNormalization(Mat *features, int normalization) {
 
 string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
                     int colors, int normalization, int resizingFactor,
-                    int qtdClasses, vector<int>objperClass, Mat features, Mat labels,
-                    Mat trainTest, string id, bool writeDataFile) {
+                    int qtdClasses, vector<int>objperClass, Mat features,
+                    Mat labels, Mat trainTest, string id, bool writeDataFile) {
 
   FILE *arq;
   int i, j, bars;
@@ -417,14 +418,11 @@ string descriptor(string database, string featuresDir, int method, int colors,
         imgTotal++;
 
         resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
-
         ConvertToGrayscale(quantization, newimg, &newimg, colors);
         GetFeatureVector(method, newimg, &featureVector, colors, normalization, param);
         features.push_back(featureVector);
-        // exit(1);
         featureVector.release();
         img.release();
-        newimg.release();
       }
     }
     // Normalization of Haralick and contourExtraction features by z-index

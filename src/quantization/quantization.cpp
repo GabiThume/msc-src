@@ -162,81 +162,18 @@ Image quantization using the Most Significant Bits (MSB)
 Calculate the most significant bits of color channels, in order to
 emphasize the chromatic differences. Based on the range of stimulus of
 the rod cells for visible light wavelenghts. The order of preference is
-G, R and B.
+G, R and B: GGGRRRBB for 256 colors and GGRRBB00 for 64 colors.
 
 Require:
 - I: image to be converted
 - Q: image to store quantized version
 - num_colors: number of colors after quantization
 *******************************************************************************/
-// void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
-//   int bitsc, rest, k;
-//   MatIterator_<Vec3b> itI, endI;
-//   MatIterator_<uchar> itQ, endQ;
-//   uchar dG, dR, dB, green_mask, red_mask, blue_mask, B, G, R, green_msb, red_msb, blue_msb, new_color;
-//   (*Q).create(I.size(), CV_8UC1);
-//
-//   // Compute amount of bits needed to obtain num_colors
-//   bitsc = log(num_colors)/log(2);
-//   // Compute amount of bits used from channel
-//   int GRBbits[3] = {bitsc/3, bitsc/3, bitsc/3};
-//
-//   // Check if there are bits left after equal division
-//   k = 0;
-//   for (rest = bitsc % 3; rest > 0; rest--) {
-//     GRBbits[k]++;
-//     k = (k+1) % 3;
-//   }
-//
-//   dG = (8-GRBbits[0]);
-//   dR = (8-GRBbits[1]);
-//   dB = (8-GRBbits[2]);
-//   // obtain mask for each channel
-//   green_mask = (static_cast<int>(pow(2, GRBbits[0]))-1) << dG;
-//   red_mask   = (static_cast<int>(pow(2, GRBbits[1]))-1) << (dR - GRBbits[0]);
-//   blue_mask  = (static_cast<int>(pow(2, GRBbits[2]))-1) << (dB - (GRBbits[0]+GRBbits[1]));
-//
-//   itQ = (*Q).begin<uchar>();
-//   endQ = (*Q).end<uchar>();
-//   itI = I.begin<Vec3b>();
-//   endI = I.end<Vec3b>();
-//   for (; itI != endI; ++itI, ++itQ) {
-//     // Get pixels of individual channels in the input image
-//     B = (uchar) (*itI)[0];
-//     G = (uchar) (*itI)[1];
-//     R = (uchar) (*itI)[2];
-//
-//     // Extract most significant bits for each channel
-//     // The order of preference is G, R and then B.
-//     green_msb = (G & green_mask);
-//     red_msb   = (R & red_mask);
-//     blue_msb  = (B & blue_mask);
-//
-//     // Merge the bit codes
-//     new_color = (green_msb | red_msb | blue_msb);
-//
-//     // std::bitset<8> b(B), g(G), r(R);
-//     // cout << "Color: G " << g << " R " << r << " B " << b << endl;
-//     // std::bitset<8> gm(green_msb), rm(red_msb), bm(blue_msb);
-//     // cout << "Masks: G " << gm << " R " << rm << " B " << bm << endl;
-//     // std::bitset<8> p(new_color);
-//     // cout << "New pixel: " << p << " : " << (int) new_color << endl;
-//
-//     // Store in the new image
-//     (*itQ) = (new_color > 255) ? 255 : new_color;
-//   }
-  // // Reduce number of colors if necessary
-  // if (num_colors < 256) {
-  //   reduceImageColors(Q, num_colors);
-  // }
-// }
-
-
 void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
-  int bitsc, rest, k, color, b;
+  int bitsc, rest, k;
   MatIterator_<Vec3b> itI, endI;
   MatIterator_<uchar> itQ, endQ;
-  uchar green_mask, red_mask, blue_mask, B, G, R, green_msb, red_msb, blue_msb, new_color;
+  uchar dG, dR, dB, green_mask, red_mask, blue_mask, B, G, R, green_msb, red_msb, blue_msb, new_color;
   (*Q).create(I.size(), CV_8UC1);
 
   // Compute amount of bits needed to obtain num_colors
@@ -251,16 +188,13 @@ void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
     k = (k+1) % 3;
   }
 
-  uchar masks[3] = {0, 0, 0};
-  for (b = 7, color = 0; b >= (8-bitsc); color++){
-    if (color == 3) color = 0;
-    if (GRBbits[color] > 0) {
-      masks[color] = masks[color] | (1 << b);
-      b--;
-      GRBbits[color]--;
-    }
-  }
-  green_mask = masks[0], red_mask = masks[1], blue_mask = masks[2];
+  dG = (8-GRBbits[0]);
+  dR = (8-GRBbits[1]);
+  dB = (8-GRBbits[2]);
+  // obtain mask for each channel
+  green_mask = (static_cast<int>(pow(2, GRBbits[0]))-1) << dG;
+  red_mask   = (static_cast<int>(pow(2, GRBbits[1]))-1) << (dR - GRBbits[0]);
+  blue_mask  = (static_cast<int>(pow(2, GRBbits[2]))-1) << (dB - (GRBbits[0]+GRBbits[1]));
 
   itQ = (*Q).begin<uchar>();
   endQ = (*Q).end<uchar>();
@@ -283,11 +217,82 @@ void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
 
     // std::bitset<8> b(B), g(G), r(R);
     // cout << "Color: G " << g << " R " << r << " B " << b << endl;
-    // std::bitset<8> gm(green_mask), rm(red_mask), bm(blue_mask);
+    // std::bitset<8> gm(green_msb), rm(red_msb), bm(blue_msb);
     // cout << "Masks: G " << gm << " R " << rm << " B " << bm << endl;
     // std::bitset<8> p(new_color);
     // cout << "New pixel: " << p << " : " << (int) new_color << endl;
 
+    // Store in the new image
+    (*itQ) = (new_color > 255) ? 255 : new_color;
+  }
+  // Reduce number of colors if necessary
+  if (num_colors < 256) {
+    reduceImageColors(Q, num_colors);
+  }
+}
+
+/*******************************************************************************
+Image quantization using the Most Significant Bits (MSB) modified with Tiago
+Santana de Nazaré's idea.
+
+Calculate the most significant bits of color channels, in order to
+emphasize the chromatic differences. Based on the range of stimulus of
+the rod cells for visible light wavelenghts. The order of preference is
+G, R and B: GRBGRBGR for 256 colors and GRBGRB00 for 64 colors. -> Modification
+
+Require:
+- I: image to be converted
+- Q: image to store quantized version
+- num_colors: number of colors after quantization
+*******************************************************************************/
+void QuantizationMSBModified(Mat I, Mat *Q, int num_colors) {
+  int bitsc, rest, k, color, b;
+  MatIterator_<Vec3b> itI, endI;
+  MatIterator_<uchar> itQ, endQ;
+  uchar green_mask, red_mask, blue_mask, B, G, R, green_msb, red_msb, blue_msb;
+  uchar new_color;
+  (*Q).create(I.size(), CV_8UC1);
+
+  // Compute amount of bits needed to obtain num_colors
+  bitsc = log(num_colors)/log(2);
+  // Compute amount of bits used from channel
+  int GRBbits[3] = {bitsc/3, bitsc/3, bitsc/3};
+
+  // Check if there are bits left after equal division
+  k = 0;
+  for (rest = bitsc % 3; rest > 0; rest--) {
+    GRBbits[k]++;
+    k = (k+1) % 3;
+  }
+
+  // Calculates the mask in a different way: GRBGRBGR
+  uchar masks[3] = {0, 0, 0};
+  for (b = 7, color = 0; b >= (8-bitsc); color++){
+    if (color == 3) color = 0;
+    if (GRBbits[color] > 0) {
+      masks[color] = masks[color] | (1 << b);
+      b--;
+      GRBbits[color]--;
+    }
+  }
+  green_mask = masks[0], red_mask = masks[1], blue_mask = masks[2];
+
+  itQ = (*Q).begin<uchar>();
+  endQ = (*Q).end<uchar>();
+  itI = I.begin<Vec3b>();
+  endI = I.end<Vec3b>();
+  for (; itI != endI; ++itI, ++itQ) {
+    // Get pixels of individual channels in the input image
+    B = (uchar) (*itI)[0];
+    G = (uchar) (*itI)[1];
+    R = (uchar) (*itI)[2];
+    // Extract most significant bits for each channel
+    // The order of preference is G, R and then B.
+    green_msb = (G & green_mask);
+    red_msb   = (R & red_mask);
+    blue_msb  = (B & blue_mask);
+    // Merge the bit codes
+    new_color = (green_msb | red_msb | blue_msb);
     // Store in the new image
     (*itQ) = (new_color > 255) ? 255 : new_color;
   }

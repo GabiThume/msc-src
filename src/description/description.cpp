@@ -152,15 +152,12 @@ void CalculateCCV(Mat img, Mat *features, int number_colors, int normalization,
   blur(img, blur_img, Size(3, 3));
 
   // 2 - Discretize the colorspace to 1/4 of the colors
-  new_number_colors = static_cast<int>(number_colors/4.0);
-  reduceImageColors(&blur_img, new_number_colors);
+  // new_number_colors = static_cast<int>(number_colors/4.0);
+  // reduceImageColors(&blur_img, new_number_colors);
+  new_number_colors = number_colors;
 
-  namedWindow("Display window", WINDOW_AUTOSIZE );
-  imshow("Grayscale Image", blur_img);
-  waitKey(0);
-
-  vector<int> coherent(new_number_colors, 0);
-  vector<int> incoherent(new_number_colors, 0);
+  vector<float> coherent(new_number_colors, 0);
+  vector<float> incoherent(new_number_colors, 0);
 
   // 3 - For each pixel, classify it as either coherent or incoherent
   for (y = 0; y < height; y++) {
@@ -675,12 +672,12 @@ void ACC(Mat I, Mat *features, int colors, int normalization,
             I.at<uchar>(neighbors[chess][0], neighbors[chess][1]);
           // If both pixels have the same color, plus one in the correlogram
           if (current_pixel == neighbor_color) {
+            // cout << (int) current_pixel << endl;
             autocorrelogram.at<float>((int) current_pixel, 0)++;
           }
         }
       }
     }
-
     // Normalize for each distance, not when already concatenated
     if (normalization != 0) {
       normalize(autocorrelogram, autocorrelogram, 0, normalization, NORM_MINMAX,
@@ -691,6 +688,7 @@ void ACC(Mat I, Mat *features, int colors, int normalization,
   acc_correlogram = acc_correlogram.t();
   (*features).push_back(acc_correlogram);
   acc_correlogram.release();
+  autocorrelogram.release();
 }
 
 /*******************************************************************************

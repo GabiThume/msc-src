@@ -51,5 +51,6 @@ void QuantizationGleam(Mat I, Mat *Q, int num_colors);
 void QuantizationLuminance(Mat I, Mat *Q, int num_colors);
 void QuantizationLuma(Mat I, Mat *Q, int num_colors);
 void QuantizationMSB(Mat I, Mat *Q, int num_colors);
+void QuantizationMSBModified(Mat I, Mat *Q, int num_colors);
 
 #endif  // QUANTIZATION_H_
