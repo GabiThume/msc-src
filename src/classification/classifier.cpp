@@ -16,8 +16,12 @@ void Classifier::bayesClassifier(Mat dataTraining, Mat labelsTraining, Mat dataT
 }
 
 void Classifier::knn(Mat dataTraining, Mat labelsTraining, Mat dataTesting, Mat& result){
+	dataTraining.convertTo(dataTraining, CV_32F);
+	labelsTraining.convertTo(labelsTraining, CV_32F);
+	dataTesting.convertTo(dataTesting, CV_32F);
+
 	int k = 1;
-	Mat responses, dist, nearests(1, k, CV_32FC1);
+	Mat responses, dist, nearests(1, k, CV_32F);
 	CvKNearest knn(dataTraining, labelsTraining, responses, false, k);
 	knn.find_nearest(dataTesting, k, result, nearests, dist);
 	knn.clear();
@@ -233,11 +237,11 @@ Mat confusionMatrix(int numClasses, Mat labelsTesting, Mat result){
 	Mat confusionMat;
 	int i, rightClass, guessedClass;
 
-	confusionMat = Mat::zeros(numClasses, numClasses, CV_32S);
+	confusionMat = Mat::zeros(numClasses, numClasses, CV_64FC1);
 
 	for (i = 0; i < result.size().height; i++){
-		rightClass = labelsTesting.at<float>(i,0);
-		guessedClass = result.at<float>(i,0);
+		rightClass = labelsTesting.at<double>(i,0);
+		guessedClass = result.at<double>(i,0);
 		confusionMat.at<int>(rightClass, guessedClass)++;
 	}
 
@@ -266,8 +270,8 @@ Mat confusionMatrix(int numClasses, Mat labelsTesting, Mat result){
 	// ofstream labels(fileName.str().c_str());
 	// ofstream labelsResult(resultFile.str().c_str());
 	// for (i = 0; i < result.size().height; i++) {
-	//     labels << labelsTesting.at<float>(i, 0) << endl;
-	//     labelsResult << result.at<float>(i, 0) << endl;
+	//     labels << labelsTesting.at<double>(i, 0) << endl;
+	//     labelsResult << result.at<double>(i, 0) << endl;
 	// }
 	// labels.close();
 	// labelsResult.close();
@@ -293,11 +297,11 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 		width = it->features.size().width;
 		for(i = 0; i < it->trainOrTest.size().height; i++){
 			fixedSet[it->classNumber] = 0;
-			if (it->trainOrTest.at<float>(i,0) == 1){
+			if (it->trainOrTest.at<double>(i,0) == 1){
 				trainingNumber[it->classNumber]++;
 				fixedSet[it->classNumber] = 1;
 			}
-			if (it->trainOrTest.at<float>(i,0) == 2){
+			if (it->trainOrTest.at<double>(i,0) == 2){
 				testingNumber[it->classNumber]++;
 				fixedSet[it->classNumber] = 1;
 			}
@@ -321,14 +325,14 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 		// cout << "In class " << actualClass << " testing: " << testingNumber[actualClass] << " training: " << trainingNumber[actualClass] << endl;
 	}
 
-	cout << "Total of imagens in training " << totalTraining << " and in testing " << totalTesting << endl;
+	cout << "Images at training: " << totalTraining << ". Images at testing: " << totalTesting << endl;
 
 	/* Repeated random sub-sampling validation */
 	for(repetition = 0; repetition < numRepetition; repetition++) {
-		Mat dataTraining(totalTraining, width, CV_32FC1);
-		Mat labelsTraining(totalTraining, 1, CV_32FC1);
-		Mat dataTesting(totalTesting, width, CV_32FC1);
-		Mat labelsTesting(totalTesting, 1, CV_32FC1);
+		Mat dataTraining(totalTraining, width, CV_64FC1);
+		Mat labelsTraining(totalTraining, 1, CV_64FC1);
+		Mat dataTesting(totalTesting, width, CV_64FC1);
+		Mat labelsTesting(totalTesting, 1, CV_64FC1);
 		numTraining = 0;
 		num_testing = 0;
 
@@ -338,10 +342,10 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 
 			if (fixedSet[it->classNumber]) {
 				for (x = 0; x < it->trainOrTest.size().height; x++){
-					if (it->trainOrTest.at<float>(x,0) == 1){
+					if (it->trainOrTest.at<double>(x,0) == 1){
 						Mat tmp = dataTraining.row(numTraining);
 						it->features.row(x).copyTo(tmp);
-						labelsTraining.at<float>(numTraining, 0) = it->classNumber;
+						labelsTraining.at<double>(numTraining, 0) = it->classNumber;
 						trained++;
 						numTraining++;
 						vectorRand.push_back(x);
@@ -356,7 +360,7 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 					if (!count(vectorRand.begin(), vectorRand.end(), pos)){
 						Mat tmp = dataTraining.row(numTraining);
 						it->features.row(pos).copyTo(tmp);
-						labelsTraining.at<float>(numTraining, 0) = it->classNumber;
+						labelsTraining.at<double>(numTraining, 0) = it->classNumber;
 						trained++;
 						numTraining++;
 						vectorRand.push_back(pos);
@@ -368,7 +372,7 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 				if (!count(vectorRand.begin(), vectorRand.end(), i)){
 					Mat tmp = dataTesting.row(num_testing);
 					it->features.row(i).copyTo(tmp);
-					labelsTesting.at<float>(num_testing, 0) = it->classNumber;
+					labelsTesting.at<double>(num_testing, 0) = it->classNumber;
 					num_testing++;
 				}
 			}
@@ -384,7 +388,7 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 		/* Counts how many samples were classified as expected */
 		hits = 0;
 		for (i = 0; i < result.size().height; i++) {
-			if (labelsTesting.at<float>(i, 0) == result.at<float>(i, 0)){
+			if (labelsTesting.at<double>(i, 0) == result.at<double>(i, 0)){
 				hits++;
 			}
 		}

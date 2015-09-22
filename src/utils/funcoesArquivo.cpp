@@ -40,7 +40,7 @@ Master's thesis in Computer Science
 /* Read the features and save them in Mat data */
 vector<Classes> readFeatures(string filename) {
   int j, newSize = 0;
-  float features;
+  double features;
   size_t d;
   string line, infos, numImage, classe, trainTest, numFeatures, numClasses;
   string objetos;
@@ -73,8 +73,8 @@ vector<Classes> readFeatures(string filename) {
         data.push_back(imgClass);
       }
       previousClass = actualClass;
-      imgClass.features.create(0, d, CV_32FC1);
-      imgClass.trainOrTest.create(0, 1, CV_32FC1);
+      imgClass.features.create(0, d, CV_64FC1);
+      imgClass.trainOrTest.create(0, 1, CV_64FC1);
       imgClass.fixedTrainOrTest = false;
     }
 
@@ -84,10 +84,10 @@ vector<Classes> readFeatures(string filename) {
 
     j = 0;
     while (vector_features >> features) {
-      imgClass.features.at<float>(newSize-1, j) = static_cast<float>(features);
+      imgClass.features.at<double>(newSize-1, j) = static_cast<double>(features);
       j++;
     }
-    imgClass.trainOrTest.at<float>(newSize-1, 0) = atoi(trainTest.c_str());
+    imgClass.trainOrTest.at<double>(newSize-1, 0) = atoi(trainTest.c_str());
     imgClass.classNumber = actualClass;
     if (atoi(trainTest.c_str()) != 0) {
       imgClass.fixedTrainOrTest = true;
@@ -223,7 +223,8 @@ Mat FindImgInClass(string database, int img_class, int img_number, int index,
 
   directory = dir_class + "/"+to_string(img_number);
   img = imread(directory+".png", CV_LOAD_IMAGE_COLOR);
-  cout << directory+".png" << endl;
+
+  // cout << directory+".png" << endl;
   (*trainTest).at<uchar>(index, 0) = static_cast<uchar>(0);
 
   if (img.empty()) {
@@ -271,17 +272,17 @@ void NumberImgInClass(string database, int img_class, int *num_imgs,
 }
 
 void ZIndexNormalization(Mat *features, int normalization) {
-  float normFactor, min, max, value;
+  double normFactor, min, max, value;
   int i, j;
 
   normFactor = (normalization == 1) ? 1.0 : 255.0;
 
   for (j = 0; j < (*features).cols; ++j) {
-    min = (*features).at<float>(0, j);
-    max = (*features).at<float>(0, j);
+    min = (*features).at<double>(0, j);
+    max = (*features).at<double>(0, j);
 
     for (i = 1; i < (*features).rows; ++i) {
-      value = (*features).at<float>(i, j);
+      value = (*features).at<double>(i, j);
       if (value > max) {
         max = value;
       }
@@ -291,8 +292,8 @@ void ZIndexNormalization(Mat *features, int normalization) {
     }
 
     for (i = 0; i < (*features).rows; ++i) {
-      (*features).at<float>(i, j) = normFactor *
-        (((*features).at<float>(i, j) - min) / (max - min));
+      (*features).at<double>(i, j) = normFactor *
+        (((*features).at<double>(i, j) - min) / (max - min));
     }
   }
 }
@@ -302,28 +303,27 @@ string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
                     int qtdClasses, vector<int>objperClass, Mat features,
                     Mat labels, Mat trainTest, string id, bool writeDataFile) {
 
-  FILE *arq;
+  ofstream arq;
   int i, j, bars;
-  float porc;
+  double porc;
   string nome;
 
   nome = featuresDir + descriptorMethod[method-1] + "_";
   nome += quantizationMethod[quantization-1] + "_" + to_string(colors);
   nome += "c_" + to_string(resizingFactor) + "r_";
   nome += to_string(features.rows) + "i_" + id + ".csv";
-  arq = fopen(nome.c_str(), "w+");
-  if (arq == 0) {
+  arq.open(nome.c_str(), ios::out);
+  if (!arq.is_open()) {
     cout << "It is not possible to open the feature's file: " << nome << endl;
     exit(-1);
   }
 
-  fprintf(arq, "%d\t%d\t%d\n", features.rows, qtdClasses, features.cols);
   cout << "File: " << nome << endl;
   cout << "Number of images: " << features.rows << " - Classes: " << qtdClasses;
   cout << " - Features: " << features.cols << endl;
 
   for (i = 0; i < qtdClasses; i++) {
-    bars = (static_cast<float> (objperClass[i]) /
+    bars = (static_cast<double> (objperClass[i]) /
       static_cast<double> (features.rows)) * 50.0;
     cout << i << " ";
     for (j = 0; j < bars; j++) {
@@ -334,44 +334,41 @@ string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
     cout << " " << porc * 100 << "%" << " (" << objperClass[i] << ")" <<endl;
   }
 
+  arq << features.rows << '\t' << qtdClasses << '\t' << features.cols << '\n';
   for (i = 0; i < features.rows; i++) {
     // Write the image number and the referenced class
     if (labels.rows > 0) {
-      fprintf(arq, "%d\t%d\t%d\t", i, labels.at<uchar>(i, 0),
-        trainTest.at<uchar>(i, 0));
+      arq << i << '\t' << (int) labels.at<uchar>(i, 0) << '\t';
+      arq << (int) trainTest.at<uchar>(i, 0);
     }
 
     for (j = 0; j < features.cols; j++) {
-      if (normalization == 2)  {
-        fprintf(arq, "%.f ", features.at<float>(i, j));
-      } else {
-        fprintf(arq, "%.5f ", features.at<float>(i, j));
-      }
+      arq << " " << features.at<double>(i, j);
     }
-    fprintf(arq, "\n");
+    arq << '\n';
   }
-  fclose(arq);
+  arq.close();
 
   // Write a DATA file if requested
   if (writeDataFile) {
     cout << "Wrote on data file named " << nome << endl;
-    FILE *arqVis = fopen((nome+"data").c_str(), "w+");
-    fprintf(arqVis, "%s\n", "DY");
-    fprintf(arqVis, "%d\n", labels.size().height);
-    fprintf(arqVis, "%d\n", features.size().width);
+    ofstream arqVis;
+    arqVis.open((nome+"data").c_str(), ios::in);
+    arqVis << "DY\n" << labels.size().height << '\n';
+    arqVis << features.size().width << '\n';
     for (i = 0; i < features.size().width-1; i++) {
-      fprintf(arqVis, "%s%d;", "attr", i);
+      arqVis << "attr" << i << ";";
     }
-    fprintf(arqVis, "%s%d\n", "attr", i);
+    arqVis << "attr" << i << "\n";
     for (i = 0; i < labels.size().height; i++) {
-      fprintf(arqVis, "%d%s;", i, ".png");
+      arqVis << i << ".png";
       for (j = 0; j < features.size().width; j++) {
-        fprintf(arqVis, "%.5f;", features.at<float>(i, j));
+        arqVis << features.at<double>(i, j) << ";";
       }
-      float numeroimg = labels.at<uchar>(i, 0);
-      fprintf(arqVis, "%1.1f\n", numeroimg);
+      double numeroimg = labels.at<uchar>(i, 0);
+      arqVis << numeroimg << "\n";
     }
-    fclose(arqVis);
+    arqVis.close();
   }
   return nome;
 }
@@ -420,6 +417,7 @@ string descriptor(string database, string featuresDir, int method, int colors,
         resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
         ConvertToGrayscale(quantization, newimg, &newimg, colors);
         GetFeatureVector(method, newimg, &featureVector, colors, normalization, param);
+
         features.push_back(featureVector);
         featureVector.release();
         img.release();

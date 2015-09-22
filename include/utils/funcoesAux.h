@@ -1,3 +1,38 @@
+/*
+Copyright (c) 2015, All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Gabriela Thumé nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Authors:  Gabriela Thumé (gabithume@gmail.com)
+          Moacir Antonelli Ponti (moacirponti@gmail.com)
+Universidade de São Paulo / ICMC
+Master's thesis in Computer Science
+*/
+
 #ifndef _FUNCOESAUX_H
 #define _FUNCOESAUX_H
 
@@ -12,76 +47,8 @@ using namespace cv;
 using namespace std;
 
 void PlotHistogram(Mat hist);
-
-/*
-  Gamma correction function
-  Requires:
-	- img : image to be processed
-	- gamma : parameter for apply gamma correction
-  Returns:
-	- gamma-corrected image
-*/
 void correctGamma(Mat *I, double gamma);
-
-/*
-  Function to reduce the number of colors in a single channel image
-  Requires:
-	- I: input image to be modified
-	- nColors: final number of colors
-*/
 void reduceImageColors(Mat *I, int nColors);
-
-
-/*
-  Remove null columns in feature space
-  (under construction)
-
-*/
 void RemoveNullColumns(Mat *Feat);
-
-
-/*
-   Histogram Normalization
-   Requires:
-	- hist: histogram to be normalized
-	- histnorm: allocated histogram to store the result
-	- vector size
-	- normalization factor (1 for unity sum, > 1 for maximum*factor)
-*/
-void NormalizeHist(vector<int> *hist, float *histnorm, int size, int factor);
-
-
-/*
-  Distance Function Manhattan (l1-norm)
-  Require:
- 	- two histograms 'p' and 'q' to be compared
- 	- size: histogram size
-  Retorns:
- 	- distance between 'p' and 'q'
-*/
-double distManhattan(double *p, double *q, int size);
-
-
-/*
-  Distance Function Euclidian (l2-norm)
-  Require:
- 	- two histograms 'p' and 'q' to be compared
- 	- size: histogram size
-  Retorns:
- 	- distance between 'p' and 'q'
-*/
-double distEuclid(double *q, double *p, int size);
-
-
-/*
-  Distance Function Chessboard (l_\infty-norm)
-  Require:
- 	- two histograms 'p' and 'q' to be compared
- 	- size: histogram size
-  Retorns:
- 	- distance between 'p' and 'q'
-*/
-double distChessboard(double *p, double *q, int size);
-
 
 #endif

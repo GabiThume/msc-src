@@ -1,26 +1,45 @@
-/**
- * Auxiliar Functions for Feature Extraction:
- *	Image enhancement
- *	Image quantization
- *	Normalization
- * 	Distance Functions
- *
- *	Authors: Gabriela Thumé, Moacir Ponti, Luciana Escobar
- *	Universidade de São Paulo / ICMC / 2012-2015
- **/
+/*
+Copyright (c) 2015, All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Gabriela Thumé nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Authors:  Gabriela Thumé (gabithume@gmail.com)
+          Moacir Antonelli Ponti (moacirponti@gmail.com)
+Universidade de São Paulo / ICMC
+Master's thesis in Computer Science
+*/
 
 #include "utils/funcoesAux.h"
 
-
 /*******************************************************************************
-    Gamma correction (power transformation)
-
-        Controls the overall brightness of an image:
-            gammaCorrectedImage = image ^ (1/crt_gamma)
+    Plot in a window the input histogram
 
     Requires:
-    - img : image to be processed
-    - gamma : parameter for apply gamma correction
+    - Mat histogram :
 *******************************************************************************/
 void PlotHistogram(Mat hist) {
   int bins = hist.rows, j;
@@ -46,8 +65,8 @@ void PlotHistogram(Mat hist) {
             gammaCorrectedImage = image ^ (1/crt_gamma)
 
     Requires:
-    - img : image to be processed
-    - gamma : parameter for apply gamma correction
+    - Mat image to be processed
+    - double gamma correction parameter
 *******************************************************************************/
 void correctGamma(Mat *I, double gamma) {
 
@@ -72,24 +91,33 @@ void correctGamma(Mat *I, double gamma) {
     - I: input image to be modified
     - nColors: final number of colors
 *******************************************************************************/
-void reduceImageColors(Mat *I, int nColors) {
+void reduceImageColors(Mat *img, int nColors) {
 
 	double min = 0, max = 0, stretch;
 	Point maxLoc, minLoc;
+  int i, img_channels = (*img).channels();
+  vector<Mat> channel(img_channels);
+  split((*img), channel);
 
   nColors = (nColors > 256) ? 256 : nColors;
 
-  if ((*I).channels() == 1){
-    minMaxLoc(*I, &min, &max, &minLoc, &maxLoc);
+  for (i = 0; i < img_channels; i++) {
+    minMaxLoc(channel[i], &min, &max, &minLoc, &maxLoc);
     stretch = ((double)((nColors -1)) / (max - min));
-    (*I) = (*I) - min;
-    (*I) = (*I) * stretch;
+    channel[i] = channel[i] - min;
+    channel[i] = channel[i] * stretch;
   }
+
+  merge(channel, (*img));
 }
 
-/* Remove null columns in feature space
-  (under construction)
-*/
+
+/*******************************************************************************
+    Remove null columns in feature space (Under construction)
+
+    Requires:
+    - Mat features
+*******************************************************************************/
 void RemoveNullColumns(Mat *Feat) {
 
     int width = (*Feat).size().width;
@@ -102,96 +130,4 @@ void RemoveNullColumns(Mat *Feat) {
             marktoremove[i] = 1;
         cout << "Sum " << i << " : " << sumi << endl;
     }
-}
-
-/* Histogram Normalization
-   Requires:
-	- hist: histogram to be normalized
-	- histnorm: allocated histogram to store the result
-	- vector size
-	- normalization factor (1 for unity sum, > 1 for maximum*factor)
-*/
-void NormalizeHist(vector<int> *hist, float *histnorm, int size, int factor){
-
-	int i;
-	long int sum = 0, max = (*hist)[0];
-	float e = 0.01;
-
-	for (i = 0; i < size ; i++){
-		sum += (*hist)[i];
-		max = ((*hist)[i] > max) ? (*hist)[i] : max;
-	}
-
-	// if factor == 1 then vector with unity sum
-	if (factor == 1){
-		for (i = 0; i < size ; i++){
-			histnorm[i] = (*hist)[i]/((float)sum+e);
-		}
-	}
-	// if factor > 1 then vector with maximum value == factor
-	else if (factor > 1){
-		for (i = 0; i < size ; i++){
-			histnorm[i] = ((*hist)[i]/(float)max)*(float)factor;
-		}
-	}
-}
-
-/* Distance Function Manhattan (l1-norm)
-  Require:
- 	- two histograms 'p' and 'q' to be compared
- 	- size: histogram size
-  Retorns:
- 	- distance between 'p' and 'q'
-*/
-double distManhattan(double *p, double *q, int size){
-
-	int i;
-	double dist = 0;
-
-	for (i = 0; i < size; i++){
-		dist += fabs(p[i]-q[i]);
-	}
-
-	return dist;
-}
-
-/* Distance Function Euclidian (l2-norm)
-  Require:
- 	- two histograms 'p' and 'q' to be compared
- 	- size: histogram size
-  Retorns:
- 	- distance between 'p' and 'q'
-*/
-double distEuclid(double *q, double *p, int size){
-
-	int i;
-	double dist = 0;
-
-	for(i = 0; i < size; i ++){
-		dist = dist + pow((q[i]-p[i]), 2);
-	}
-
-	dist = sqrt(dist);
-	return dist;
-}
-
-/* Distance Function Chessboard (l_\infty-norm)
-  Require:
- 	- two histograms 'p' and 'q' to be compared
- 	- size: histogram size
-  Retorns:
- 	- distance between 'p' and 'q'
-*/
-double distChessboard(double *p, double *q, int size){
-
-	int i;
-	double dist = 0;
-	double maxVal = -1;
-
-	for (i = 0; i < size; i++){
-		dist = fabs(p[i]-q[i]);
-		if (maxVal < dist)
-		    maxVal = dist;
-	}
-	return maxVal;
 }

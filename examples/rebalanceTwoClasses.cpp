@@ -18,12 +18,12 @@ string desc(string dir, string features, int d, int m, string id){
     vector<int> parameters;
     /* If descriptor ==  CCV, threshold is required */
     if (d == 3)
-        return descriptor(dir, features, d, 256, 1, 1, paramCCV, 0, m, id);
+        return descriptor(dir, features, d, 256, 1, 0, paramCCV, 0, m, id);
     /* If descriptor ==  ACC, distances are required */
     else if (d == 5)
-        return descriptor(dir, features, d, 256, 1, 1, paramACC, 0, m, id);
+        return descriptor(dir, features, d, 256, 1, 0, paramACC, 0, m, id);
     else
-        return descriptor(dir, features, d, 256, 1, 1, parameters, 0, m, id);
+        return descriptor(dir, features, d, 256, 1, 0, parameters, 0, m, id);
 }
 
 /* Generate a imbalanced class */
@@ -103,7 +103,7 @@ string imbalance(string database, string newDir, double prob, double id){
                 //cout << " Executa " << str.c_str() << endl;
             }
 
-            str = "bash rename.sh "+dir+classNumber.str()+"/";
+            str = "bash scripts/rename.sh "+dir+classNumber.str()+"/";
             system(str.c_str());
 
             vectorRand.clear();
@@ -126,7 +126,7 @@ string performSmote(vector<Classes> imbalancedData, int operation, string csvSmo
     for (it = imbalancedData.begin(); it != imbalancedData.end(); ++it){
         if (it->fixedTrainOrTest){
             for(i = 0; i < it->trainOrTest.size().height; ++i){
-                if (it->trainOrTest.at<float>(i,0) == 1)
+                if (it->trainOrTest.at<double>(i,0) == 1)
                     trainingNumber[it->classNumber]++;
             }
         }
@@ -158,13 +158,13 @@ string performSmote(vector<Classes> imbalancedData, int operation, string csvSmo
             //cout << " neighbors " << neighbors << endl;
 
             for (x = 0; x < imbalancedData[eachClass].trainOrTest.size().height; ++x){
-                if (imbalancedData[eachClass].trainOrTest.at<float>(x,0) == 1){
+                if (imbalancedData[eachClass].trainOrTest.at<double>(x,0) == 1){
                     dataTraining.resize(numTraining+1);
                     Mat tmp = dataTraining.row(numTraining);
                     imbalancedData[eachClass].features.row(x).copyTo(tmp);
                     numTraining++;
                 }
-                if (imbalancedData[eachClass].trainOrTest.at<float>(x,0) == 2){
+                if (imbalancedData[eachClass].trainOrTest.at<double>(x,0) == 2){
                     dataTesting.resize(numTesting+1);
                     Mat tmp = dataTesting.row(numTesting);
                     imbalancedData[eachClass].features.row(x).copyTo(tmp);
@@ -222,9 +222,9 @@ string performSmote(vector<Classes> imbalancedData, int operation, string csvSmo
     for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
         cout << ">>>>>>>>>> " << it->features.size().height << it->features.size().width << endl;
         for (h = 0; h < it->features.size().height; h++){
-            fprintf(arq,"%d\t%d\t%d\t", countImg, it->classNumber, (int) it->trainOrTest.at<float>(h,0));
+            fprintf(arq,"%d\t%d\t%d\t", countImg, it->classNumber, (int) it->trainOrTest.at<double>(h,0));
             for (w = 0; w < it->features.size().width; w++){
-                fprintf(arq,"%.5f ", it->features.at<float>(h, w));
+                fprintf(arq,"%.5f ", it->features.at<double>(h, w));
             }
             countImg++;
             fprintf(arq,"\n");
@@ -244,9 +244,9 @@ string performSmote(vector<Classes> imbalancedData, int operation, string csvSmo
     // for (w = 0; w < newClasses.size().height; w++) {
     //     fprintf(arq,"%d%s;", w,".jpg");
     //     for(z = 0; z < total.size().width; z++) {
-    //         fprintf(arq,"%.5f;", total.at<float>(w, z));
+    //         fprintf(arq,"%.5f;", total.at<double>(w, z));
     //     }
-    //     fprintf(arq,"%1.1f\n", newClasses.at<float>(w,0));
+    //     fprintf(arq,"%1.1f\n", newClasses.at<double>(w,0));
     // }
     return name;
 }

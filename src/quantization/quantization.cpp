@@ -34,8 +34,8 @@ Master's thesis in Computer Science
 */
 
 #include <vector>
-#include "quantization/quantization.h"
 #include <bitset>
+#include "quantization/quantization.h"
 /*******************************************************************************
 Image quantization by Gamma corrected Intensity
 
@@ -62,8 +62,8 @@ void QuantizationIntensity(Mat I, Mat *Q, int num_colors) {
   // Reduce number of colors if necessary
   if (num_colors < 256) {
     reduceImageColors(Q, num_colors);
-}
   }
+}
 
 /*******************************************************************************
 Image quantization by Gleam
@@ -173,7 +173,8 @@ void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
   int bitsc, rest, k;
   MatIterator_<Vec3b> itI, endI;
   MatIterator_<uchar> itQ, endQ;
-  uchar dG, dR, dB, green_mask, red_mask, blue_mask, B, G, R, green_msb, red_msb, blue_msb, new_color;
+  uchar dG, dR, dB, green_mask, red_mask, blue_mask, B, G, R, green_msb;
+  uchar red_msb, blue_msb, new_color;
   (*Q).create(I.size(), CV_8UC1);
 
   // Compute amount of bits needed to obtain num_colors
@@ -194,7 +195,8 @@ void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
   // obtain mask for each channel
   green_mask = (static_cast<int>(pow(2, GRBbits[0]))-1) << dG;
   red_mask   = (static_cast<int>(pow(2, GRBbits[1]))-1) << (dR - GRBbits[0]);
-  blue_mask  = (static_cast<int>(pow(2, GRBbits[2]))-1) << (dB - (GRBbits[0]+GRBbits[1]));
+  blue_mask  = (static_cast<int>(pow(2, GRBbits[2]))-1)
+    << (dB - (GRBbits[0]+GRBbits[1]));
 
   itQ = (*Q).begin<uchar>();
   endQ = (*Q).end<uchar>();
@@ -267,7 +269,7 @@ void QuantizationMSBModified(Mat I, Mat *Q, int num_colors) {
 
   // Calculates the mask in a different way: GRBGRBGR
   uchar masks[3] = {0, 0, 0};
-  for (b = 7, color = 0; b >= (8-bitsc); color++){
+  for (b = 7, color = 0; b >= (8-bitsc); color++) {
     if (color == 3) color = 0;
     if (GRBbits[color] > 0) {
       masks[color] = masks[color] | (1 << b);

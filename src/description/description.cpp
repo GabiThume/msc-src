@@ -197,10 +197,9 @@ void CalculateCCV(Mat img, Mat *features, int number_colors, int normalization,
     normalize(incoherent_hist, incoherent_hist, 0, normalization, NORM_MINMAX,
               -1, Mat());
   }
-
   ccv_histograms.push_back(coherent_hist);
   ccv_histograms.push_back(incoherent_hist);
-  ccv_histograms = ccv_histograms.t(); // Transpose to make rowsx1 be 1xcols
+  ccv_histograms = ccv_histograms.t();  // Transpose to make rowsx1 be 1xcols
   (*features).push_back(ccv_histograms);
   ccv_histograms.release();
 }
@@ -215,30 +214,22 @@ Requires:
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 - int threshold to indicate the size of the region that is coherent
 *******************************************************************************/
-void CCV(Mat img, Mat *features, int number_colors, int normalization,
+void CCV(Mat img, Mat *features, int colors, int normalization,
         int threshold) {
-  if (img.channels() == 1) {
-    CalculateCCV(img, features, number_colors, normalization, threshold);
-  } else {
-    vector<Mat> channel(3);
-    split(img, channel);
-    Mat B_CCV((*features).size(), CV_8UC1);
-    Mat G_CCV((*features).size(), CV_8UC1);
-    Mat R_CCV((*features).size(), CV_8UC1);
-    Mat ccv_histograms;
-
-    CalculateCCV(channel[0], &B_CCV, number_colors, normalization, threshold);
-    CalculateCCV(channel[1], &G_CCV, number_colors, normalization, threshold);
-    CalculateCCV(channel[2], &R_CCV, number_colors, normalization, threshold);
-    B_CCV = B_CCV.t();
-    G_CCV = G_CCV.t();
-    R_CCV = R_CCV.t();
-    ccv_histograms.push_back(B_CCV);
-    ccv_histograms.push_back(G_CCV);
-    ccv_histograms.push_back(R_CCV);
-    ccv_histograms = ccv_histograms.t();
-    (*features).push_back(ccv_histograms);
+  reduceImageColors(&img, colors);
+  int i, img_channels = img.channels();
+  vector<Mat> color_ccv(img_channels);
+  Mat ccv_histograms;
+  vector<Mat> channel(img_channels);
+  split(img, channel);
+  for (i = 0; i < img_channels; i++) {
+    CalculateCCV(channel[i], &(color_ccv[i]), colors, normalization, threshold);
+    color_ccv[i] = color_ccv[i].t();
+    ccv_histograms.push_back(color_ccv[i]);
   }
+
+  ccv_histograms = ccv_histograms.t();
+  (*features).push_back(ccv_histograms);
 }
 
 /*******************************************************************************
@@ -282,29 +273,22 @@ Requires:
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void GCH(Mat img, Mat *features, int number_colors, int normalization) {
-  if (img.channels() == 1) {
-    CalculateGCH(img, features, number_colors, normalization);
-  } else {
-    vector<Mat> channel(3);
-    split(img, channel);
-    Mat B_GCH((*features).size(), CV_8UC1);
-    Mat G_GCH((*features).size(), CV_8UC1);
-    Mat R_GCH((*features).size(), CV_8UC1);
-    Mat gch_histograms;
+void GCH(Mat img, Mat *features, int colors, int normalization) {
+  reduceImageColors(&img, colors);
+  int i, img_channels = img.channels();
+  vector<Mat> color_gch(img_channels);
+  Mat gch_histograms;
+  vector<Mat> channel(img_channels);
+  split(img, channel);
 
-    CalculateGCH(channel[0], &B_GCH, number_colors, normalization);
-    CalculateGCH(channel[1], &G_GCH, number_colors, normalization);
-    CalculateGCH(channel[2], &R_GCH, number_colors, normalization);
-    B_GCH = B_GCH.t();
-    G_GCH = G_GCH.t();
-    R_GCH = R_GCH.t();
-    gch_histograms.push_back(B_GCH);
-    gch_histograms.push_back(G_GCH);
-    gch_histograms.push_back(R_GCH);
-    gch_histograms = gch_histograms.t();
-    (*features).push_back(gch_histograms);
+  for (i = 0; i < img_channels; i++) {
+    CalculateGCH(channel[i], &(color_gch[i]), colors, normalization);
+    color_gch[i] = color_gch[i].t();
+    gch_histograms.push_back(color_gch[i]);
   }
+
+  gch_histograms = gch_histograms.t();
+  (*features).push_back(gch_histograms);
 }
 
 /*******************************************************************************
@@ -326,35 +310,34 @@ Requires:
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
 void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
-  int height = img.rows, width = img.cols;
-  int y, x;
+  int height = img.rows, width = img.cols, row, col;
   int histogram_size[] = {colors};
   float ranges[] = {0, 256};
   const float* histogram_ranges[] = {ranges};
   bool uniform = true, accumulate = false;
   MatND histogram_border, histogram_interior;
   uchar pixel_color;
-  Mat border(img.size(), CV_8UC1);
-  Mat interior(img.size(), CV_8UC1);
+  Mat border(img.size(), CV_32FC1);
+  Mat interior(img.size(), CV_32FC1);
   Mat bic_histograms;
 
   // 1- Classify pixels as border or interior
-  for (y = 0; y < height; y++) {
-    for (x = 0; x < width; x++) {
-      pixel_color = img.at<uchar>(y, x);
+  for (row = 0; row < height; row++) {
+    for (col = 0; col < width; col++) {
+      pixel_color = img.at<uchar>(row, col);
       // If the pixel is not border
-      if (y > 0 && x > 0 && x < width-1 && y < height-1) {
+      if (row > 0 && col > 0 && col < width-1 && row < height-1) {
         // If all the 4-neighbors has the same color it is interior
-        if ((img.at<uchar>(y, x+1) == pixel_color) &&
-            (img.at<uchar>(y-1, x) == pixel_color) &&
-            (img.at<uchar>(y, x-1) == pixel_color) &&
-            (img.at<uchar>(y+1, x) == pixel_color)) {
-              interior.at<uchar>(y, x) = pixel_color;
+        if ((img.at<uchar>(row, col+1) == pixel_color) &&
+            (img.at<uchar>(row-1, col) == pixel_color) &&
+            (img.at<uchar>(row, col-1) == pixel_color) &&
+            (img.at<uchar>(row+1, col) == pixel_color)) {
+              interior.at<uchar>(row, col) = pixel_color;
         } else {  // If some neighbor has a different color, is border
-          border.at<uchar>(y, x) = pixel_color;
+          border.at<float>(row, col) = (float) pixel_color;
         }
       } else {  // If the current pixel is in the image border
-        border.at<uchar>(y, x) = pixel_color;
+        border.at<float>(row, col) = (float) pixel_color;
       }
     }
   }
@@ -374,7 +357,7 @@ void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
 
   bic_histograms.push_back(histogram_border);
   bic_histograms.push_back(histogram_interior);
-  bic_histograms = bic_histograms.t(); // Transpose to make rowsx1 be 1xcols
+  bic_histograms = bic_histograms.t();  // Transpose to make rowsx1 be 1xcols
   (*features).push_back(bic_histograms);
   bic_histograms.release();
 }
@@ -388,59 +371,52 @@ Requires:
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void BIC(Mat img, Mat *features, int number_colors, int normalization) {
-  if (img.channels() == 1) {
-    CalculateBIC(img, features, number_colors, normalization);
-  } else {
-    vector<Mat> channel(3);
-    split(img, channel);
-    Mat B_BIC((*features).size(), CV_8UC1);
-    Mat G_BIC((*features).size(), CV_8UC1);
-    Mat R_BIC((*features).size(), CV_8UC1);
-    Mat bic_histograms;
+void BIC(Mat img, Mat *features, int colors, int normalization) {
+  reduceImageColors(&img, colors);
+  int i, img_channels = img.channels();
+  vector<Mat> color_bic(img_channels);
+  Mat bic_histograms;
+  vector<Mat> channel(img_channels);
+  split(img, channel);
 
-    CalculateBIC(channel[0], &B_BIC, number_colors, normalization);
-    CalculateBIC(channel[1], &G_BIC, number_colors, normalization);
-    CalculateBIC(channel[2], &R_BIC, number_colors, normalization);
-    B_BIC = B_BIC.t();
-    G_BIC = G_BIC.t();
-    R_BIC = R_BIC.t();
-    bic_histograms.push_back(B_BIC);
-    bic_histograms.push_back(G_BIC);
-    bic_histograms.push_back(R_BIC);
-    bic_histograms = bic_histograms.t();
-    (*features).push_back(bic_histograms);
+  for (i = 0; i < img_channels; i++) {
+    CalculateBIC(channel[i], &(color_bic[i]), colors, normalization);
+    color_bic[i] = color_bic[i].t();
+    bic_histograms.push_back(color_bic[i]);
   }
+
+  bic_histograms = bic_histograms.t();
+  (*features).push_back(bic_histograms);
 }
 
 /*******************************************************************************
 Four directions of adjacency as defined for calculation of the Haralick texture
 features
 *******************************************************************************/
-vector<int> NearestNeighborAngle(int x, int y, int distance, int angle) {
+vector<int> NearestNeighborAngle(int row, int col, int distance, int angle) {
   vector<int> neighbor(2, 0);
   neighbor[0] = 0;
   neighbor[1] = 0;
 
   // Right pixel
   if (angle == 0) {
-    neighbor[0] = x + distance;
-    neighbor[1] = y;
+    neighbor[0] = row;
+    neighbor[1] = col + distance;
   }
   // Up-Right pixel
   if (angle == 45) {
-    neighbor[0] = x + distance;
-    neighbor[1] = y - distance;
+    neighbor[0] = row - distance;
+    neighbor[1] = col + distance;
   }
   // Up pixel
   if (angle == 90) {
-    neighbor[0] = x;
-    neighbor[1] = y - distance;
+    neighbor[0] = row - distance;
+    neighbor[1] = col;
   }
   // Up-Left pixel
   if (angle == 135) {
-    neighbor[0] = x - distance;
-    neighbor[1] = y - distance;
+    neighbor[0] = row - distance;
+    neighbor[1] = col - distance;
   }
   return neighbor;
 }
@@ -469,15 +445,14 @@ void CoocurrenceMatrix(Mat img, vector< vector<double> > *co_occurence,
   vector<int> neighbor;
 
   (*co_occurence).resize(colors, vector<double>(colors, 0));
-
   for (row = distance; row < height-distance; ++row) {
     for (col = distance; col < width-distance; ++col) {
       neighbor = NearestNeighborAngle(row, col, distance, angle);
       color_reference = img.at<uchar>(row, col);
       color_neighbor = img.at<uchar>(neighbor[0], neighbor[1]);
+      // Symmetry will be achieved if each pixel pair is counted twice
       (*co_occurence)[color_reference][color_neighbor]++;
       number_occurences++;
-      // Symmetry will be achieved if each pixel pair is counted twice
       (*co_occurence)[color_neighbor][color_reference]++;
       number_occurences++;
     }
@@ -496,21 +471,16 @@ void CoocurrenceMatrix(Mat img, vector< vector<double> > *co_occurence,
 Image texture refers to local differences in intensity levels. That is why it
 needs a GLCM matrix to calculate the statistics.
 
-# Max_probability: stronger response at the co-occurence matrix
-- Range: [0,1]
-# Correlation: describes the correlations between the rows and columns of the
-co-occurrence matrix
-- Range: [-1,1]
-# Contrast: measures the local variations in the gray-level co-occurrence matrix
-- Range: [0, (colors-1)^2]
-# Uniformity: Sum of squared elements. Also known as energy or the angular
-second moment
-- Range: [0,1]
-# Homogeneity: measures the closeness of the distribution of elements to the
-diagonal
-- Range: [0,1]
-# Entropy: descriptor of randomness
-- Range:  [0, 2 * log_2 colors]
+* Max_probability: stronger response at the co-occurence matrix. Range: [0,1]
+* Correlation: describes the correlations between the rows and columns of the
+co-occurrence matrix. Range: [-1,1]
+* Contrast: measures the local variations in the gray-level co-occurrence
+matrix. Range: [0, (colors-1)^2]
+* Uniformity: Sum of squared elements. Also known as energy or the angular
+second moment. Range: [0,1]
+* Homogeneity: measures the closeness of the distribution of elements to the
+diagonal. Range: [0,1]
+* Entropy: descriptor of randomness. Range:  [0, 2 * log_2 colors]
 
 Requires:
 - vector< vector<double> >* GLCM matrix
@@ -570,16 +540,16 @@ void Haralick6(vector< vector<double> > co_occurence, Mat *features) {
     }
   }
 
-  (*features).create(1, 6, CV_32F);
+  (*features).create(1, 6, CV_32FC1);
   (*features) = Scalar::all(0);
 
   entropy = -entropy;
-  (*features).at<float>(0, 0) = max_probability;
-  (*features).at<float>(0, 1) = correlation;
-  (*features).at<float>(0, 2) = contrast;
-  (*features).at<float>(0, 3) = uniform;
-  (*features).at<float>(0, 4) = homogeneity;
-  (*features).at<float>(0, 5) = entropy;
+  (*features).at<double>(0, 0) = max_probability;
+  (*features).at<double>(0, 1) = correlation;
+  (*features).at<double>(0, 2) = contrast;
+  (*features).at<double>(0, 3) = uniform;
+  (*features).at<double>(0, 4) = homogeneity;
+  (*features).at<double>(0, 5) = entropy;
 }
 
 /*******************************************************************************
@@ -594,7 +564,7 @@ Requires:
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void HARALICK(Mat img, Mat *features, int colors, int normalization) {
+void CalculateHARALICK(Mat img, Mat *features, int colors, int normalization) {
   vector< vector<double> > GLCM_0, GLCM_45, GLCM_90, GLCM_135, GLCM;
   int distance, i, j;
 
@@ -616,20 +586,57 @@ void HARALICK(Mat img, Mat *features, int colors, int normalization) {
   Haralick6(GLCM, features);
 }
 
-vector < vector<int> > ChessboardNeighbors(int x, int y, int distance) {
-  int up = y - distance;
-  int down = y + distance;
-  int left = x - distance;
-  int right = x + distance;
+/*******************************************************************************
+Texture descriptor: Haralick feature extraction
+
+Requires:
+- Mat original image
+- Mat* feature vector where to write the features
+- int number of colors wanted in the image
+- int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
+*******************************************************************************/
+void HARALICK(Mat img, Mat *features, int colors, int normalization) {
+  reduceImageColors(&img, colors);
+  int i, img_channels = img.channels();
+  vector<Mat> color_haralick(img_channels);
+  Mat haralick_histograms;
+  vector<Mat> channel(img_channels);
+  split(img, channel);
+
+  for (i = 0; i < img_channels; i++) {
+    CalculateHARALICK(channel[i], &(color_haralick[i]), colors, normalization);
+    color_haralick[i] = color_haralick[i].t();
+    haralick_histograms.push_back(color_haralick[i]);
+  }
+
+  haralick_histograms = haralick_histograms.t();
+  (*features).push_back(haralick_histograms);
+}
+
+/*******************************************************************************
+Used in Auto-correlogram of colors Descritor
+
+Returns the neighbors in a 8-neighborhood.
+
+Requires:
+- int y position [0..height/rows]
+- int x position [0..width/cols]
+- int number of colors wanted in the image
+*******************************************************************************/
+vector < vector<int> > ChessboardNeighbors(int row, int col, int distance) {
+  int up = row - distance;
+  int down = row + distance;
+  int left = col - distance;
+  int right = col + distance;
 
   vector < vector<int> > neighbors;
-  neighbors.push_back({up, x});
+  neighbors.push_back({up, col});
   neighbors.push_back({up, right});
-  neighbors.push_back({y, right});
+  neighbors.push_back({row, right});
   neighbors.push_back({down, right});
-  neighbors.push_back({down, x});
+  neighbors.push_back({down, col});
   neighbors.push_back({down, left});
-  neighbors.push_back({y, left});
+  neighbors.push_back({row, left});
   neighbors.push_back({up, left});
 
   return neighbors;
@@ -649,12 +656,12 @@ Requires:
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 - vector<int> set of distances
 *******************************************************************************/
-void ACC(Mat I, Mat *features, int colors, int normalization,
+void CalculateACC(Mat I, Mat *features, int colors, int normalization,
         vector<int> distances) {
   int i, j, d, current_distance, chess;
   vector < vector<int>> neighbors;
   uchar current_pixel, neighbor_color;
-  Mat acc_correlogram, autocorrelogram(colors, 1, CV_32F);
+  Mat acc_correlogram, autocorrelogram(colors, 1, CV_32FC1);
 
   // For each given distance in 'distances' set
   for (d = 0; d < static_cast<int>(distances.size()); ++d) {
@@ -672,8 +679,7 @@ void ACC(Mat I, Mat *features, int colors, int normalization,
             I.at<uchar>(neighbors[chess][0], neighbors[chess][1]);
           // If both pixels have the same color, plus one in the correlogram
           if (current_pixel == neighbor_color) {
-            // cout << (int) current_pixel << endl;
-            autocorrelogram.at<float>((int) current_pixel, 0)++;
+            autocorrelogram.at<double>(static_cast<int>(current_pixel), 0)++;
           }
         }
       }
@@ -689,6 +695,35 @@ void ACC(Mat I, Mat *features, int colors, int normalization,
   (*features).push_back(acc_correlogram);
   acc_correlogram.release();
   autocorrelogram.release();
+}
+
+/*******************************************************************************
+Auto-correlogram of colors Descritor
+
+Requires:
+- Mat original image
+- Mat* feature vector where to write the colors*distances_number features
+- int number of colors wanted in the image
+- int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
+- vector<int> set of distances
+*******************************************************************************/
+void ACC(Mat img, Mat *features, int colors, int normalization,
+        vector<int> distances) {
+  reduceImageColors(&img, colors);
+  int i, img_channels = img.channels();
+  vector<Mat> color_acc(img_channels);
+  Mat acc_histograms;
+  vector<Mat> channel(img_channels);
+  split(img, channel);
+  for (i = 0; i < img_channels; i++) {
+    CalculateACC(channel[i], &(color_acc[i]), colors, normalization,
+      distances);
+    color_acc[i] = color_acc[i].t();
+    acc_histograms.push_back(color_acc[i]);
+  }
+
+  acc_histograms = acc_histograms.t();
+  (*features).push_back(acc_histograms);
 }
 
 /*******************************************************************************
@@ -720,7 +755,7 @@ vector<int> initUniform() {
 }
 
 /*******************************************************************************
-LBP Descriptor using uniform pattern
+LBP Descriptor using uniform patterns
 
 It is a histogram of quantized LBPs pooled in a local image neighborhood.
 This version is an extension of the original LBP by using the proposed..
@@ -733,12 +768,13 @@ This version is an extension of the original LBP by using the proposed..
 5- Concatenated the histograms of all cells
 
 Input
-Mat original image
-Mat features vector in which perform the operations
-int number of colors
+- Mat original image
+- Mat features vector in which perform the operations
+- int number of colors
+- int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void LBP(Mat img, Mat *features, int colors, int normalization) {
-  int bin, cellWidth, cellHeight, i, j, bitString, grid, bias;
+void CalculateLBP(Mat img, Mat *features, int colors, int normalization) {
+  int bin, cellWidth, cellHeight, i, j, bitString, grid, bias, row, col;
   int histogram_size[] = {59};
   float center;
   float ranges[] = {0, 59};
@@ -750,26 +786,25 @@ void LBP(Mat img, Mat *features, int colors, int normalization) {
   vector<int> lookup = initUniform();
 
   // For each pixel in a cell, compare it to each of its 8 neighbors
-  for (i = 1; i < img.rows - 1; i++) {
-    for (j = 1; j < img.cols - 1; j++) {
+  for (row = 1; row < img.rows - 1; row++) {
+    for (col = 1; col < img.cols - 1; col++) {
       // Where the center pixel's value is greater than the neighbor's, write 1
       // Otherwise, it remains 0.
       bitString = 0;
-      center = img.at<uchar>(i, j);
+      center = img.at<uchar>(row, col);
       // Start from the one to the right in anti-clockwise order
-      if (img.at<uchar>(i, j+1)   >= center) bitString |= 0x1 << 0;
-      if (img.at<uchar>(i-1, j+1) >= center) bitString |= 0x1 << 1;
-      if (img.at<uchar>(i-1, j)   >= center) bitString |= 0x1 << 2;
-      if (img.at<uchar>(i-1, j-1) >= center) bitString |= 0x1 << 3;
-      if (img.at<uchar>(i, j-1)   >= center) bitString |= 0x1 << 4;
-      if (img.at<uchar>(i+1, j-1) >= center) bitString |= 0x1 << 5;
-      if (img.at<uchar>(i+1, j)   >= center) bitString |= 0x1 << 6;
-      if (img.at<uchar>(i+1, j+1) >= center) bitString |= 0x1 << 7;
+      if (img.at<uchar>(row, col+1)   >= center) bitString |= 0x1 << 0;
+      if (img.at<uchar>(row-1, col+1) >= center) bitString |= 0x1 << 1;
+      if (img.at<uchar>(row-1, col)   >= center) bitString |= 0x1 << 2;
+      if (img.at<uchar>(row-1, col-1) >= center) bitString |= 0x1 << 3;
+      if (img.at<uchar>(row, col-1)   >= center) bitString |= 0x1 << 4;
+      if (img.at<uchar>(row+1, col-1) >= center) bitString |= 0x1 << 5;
+      if (img.at<uchar>(row+1, col)   >= center) bitString |= 0x1 << 6;
+      if (img.at<uchar>(row+1, col+1) >= center) bitString |= 0x1 << 7;
       // This gives a 8-digit binary number corresponding to the binary code
       // Instead of using the resulting bitString [0-256], we use a lookup table
       bin = lookup[bitString];
-      codes.at<float>(i-1, j-1) = bin;
-      // cout << " center " << center << " bitString " << bitString << " bin " << bin << endl;
+      codes.at<float>(row-1, col-1) = bin;
     }
   }
 
@@ -798,16 +833,44 @@ void LBP(Mat img, Mat *features, int colors, int normalization) {
         histogram_ranges, uniform, accumulate);
 
       if (normalization != 0) {
-        normalize(histogram, histogram, 0, normalization, NORM_MINMAX, -1, Mat());
+        normalize(histogram, histogram, 0, normalization, NORM_MINMAX, -1,
+          Mat());
       }
       lbp_histograms.push_back(histogram);
       histogram.release();
     }
   }
   // PlotHistogram(lbp_histograms);
-  lbp_histograms = lbp_histograms.t(); // Transpose to make rowsx1 be 1xcols
+  lbp_histograms = lbp_histograms.t();  // Transpose to make rowsx1 be 1xcols
   (*features).push_back(lbp_histograms);
   lbp_histograms.release();
+}
+
+/*******************************************************************************
+LBP Descriptor using uniform patterns
+
+Input
+- Mat original image
+- Mat features vector in which perform the operations
+- int number of colors
+- int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
+*******************************************************************************/
+void LBP(Mat img, Mat *features, int colors, int normalization) {
+  reduceImageColors(&img, colors);
+  int i, img_channels = img.channels();
+  vector<Mat> color_lbp(img_channels);
+  Mat lbp_histograms;
+  vector<Mat> channel(img_channels);
+  split(img, channel);
+
+  for (i = 0; i < img_channels; i++) {
+    CalculateLBP(channel[i], &(color_lbp[i]), colors, normalization);
+    color_lbp[i] = color_lbp[i].t();
+    lbp_histograms.push_back(color_lbp[i]);
+  }
+
+  lbp_histograms = lbp_histograms.t();
+  (*features).push_back(lbp_histograms);
 }
 
 /*******************************************************************************
@@ -819,10 +882,12 @@ numFeatures = hog.nbins * (blockSize.width/cellSize.width)
   ((winSize.height - blockSize.height)/ blockStride.height + 1);
 
 Input
-Mat original image
-Mat features vector in which perform the operations
+- Mat original image
+- Mat features vector in which perform the operations
+- int number of colors
+- int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void HOG(Mat img, Mat *features, int colors, int normalization) {
+void CalculateHOG(Mat img, Mat *features, int colors, int normalization) {
   HOGDescriptor hog;
   vector<float> hogFeatures;
   vector<Point> locs;
@@ -841,21 +906,53 @@ void HOG(Mat img, Mat *features, int colors, int normalization) {
 
   hog.compute(new_image, hogFeatures);
 
-  (*features).create(1, hogFeatures.size(), CV_32F);
+  (*features).create(1, hogFeatures.size(), CV_32FC1);
   (*features) = Scalar::all(0);
   for (i = 0; i < static_cast<int>(hogFeatures.size()); i++) {
-      (*features).at<float>(0, i) = hogFeatures.at(i);
+      (*features).at<double>(0, i) = hogFeatures.at(i);
   }
+}
+
+/*******************************************************************************
+Orientation Descriptor - Histogram of Oriented Gradients
+
+Input
+- Mat original image
+- Mat features vector in which perform the operations
+- int number of colors
+- int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
+*******************************************************************************/
+void HOG(Mat img, Mat *features, int colors, int normalization) {
+  reduceImageColors(&img, colors);
+  int i, img_channels = img.channels();
+  vector<Mat> color_hog(img_channels);
+  Mat hog_histograms;
+  vector<Mat> channel(img_channels);
+  split(img, channel);
+
+  for (i = 0; i < img_channels; i++) {
+    CalculateHOG(channel[i], &(color_hog[i]), colors, normalization);
+    color_hog[i] = color_hog[i].t();
+    hog_histograms.push_back(color_hog[i]);
+  }
+
+  hog_histograms = hog_histograms.t();
+  (*features).push_back(hog_histograms);
 }
 
 /*******************************************************************************
 Shape Descriptors - Contour Extraction
 
+Calculate the biggest contour and extract the mass centers, number of pixels
+inside the contour, perimeter and approximated area.
+
 Input
-Mat original image
-Mat features vector in which perform the operations
+- Mat original image
+- Mat features vector in which perform the operations
+- int number of colors
+- int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void contourExtraction(Mat img, Mat *features, int colors, int normalization) {
+void CalculateContour(Mat img, Mat *features, int colors, int normalization) {
   vector<vector<Point> > contours;
   vector<Point> approx;
   vector<Vec4i> hierarchy;
@@ -883,33 +980,62 @@ void contourExtraction(Mat img, Mat *features, int colors, int normalization) {
   // imshow("All", contourImage);
   // waitKey(0);
 
-  Scalar color(255, 255, 255);
-  drawContours(contourImage, contours, biggestAreaIndex, color, 1, 8, hierarchy);
+  // Mat biggestAreaImg(bin.size(), CV_8UC3, Scalar(0, 0, 0));
+  // Scalar color(255, 0, 0);
+  // drawContours(biggestAreaImg, contours, biggestAreaIndex, color, 1, 8,
+  //   hierarchy);
   // namedWindow("Biggest Contour", 1);
-  // imshow("Biggest Contour", contourImage);
+  // imshow("Biggest Contour", biggestAreaImg);
   // waitKey(0);
 
-  (*features).create(1, 6, CV_32F);
+  (*features).create(1, 5, CV_32FC1);
   (*features) = Scalar::all(0);
 
   // Get the moments
   mu = moments(contours[biggestAreaIndex], false);
   //  Get the mass centers:
   mc = Point2f(mu.m10/mu.m00, mu.m01/mu.m00);
-  (*features).at<float>(0, 0) = mc.x;
-  (*features).at<float>(0, 1) = mc.y;
+  (*features).at<double>(0, 0) = mc.x;
+  (*features).at<double>(0, 1) = mc.y;
 
   // Number of pixels inside the contour
-  (*features).at<float>(0, 2) = biggestArea;
+  (*features).at<double>(0, 2) = biggestArea;
 
   // Contour perimeter
   perimeter = arcLength(contours[biggestAreaIndex], true);
-  (*features).at<float>(0, 3) = perimeter;
+  (*features).at<double>(0, 3) = perimeter;
 
   // Remove small curves by approximating the contour more to a straight line
   approxPolyDP(contours[biggestAreaIndex], approx, 0.1*perimeter, true);
   areaApprox = contourArea(approx);
-  (*features).at<float>(0, 4) = areaApprox;
+  (*features).at<double>(0, 4) = areaApprox;
+}
+
+/*******************************************************************************
+Shape Descriptors - Contour Extraction
+
+Input
+- Mat original image
+- Mat features vector in which perform the operations
+- int number of colors
+- int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
+*******************************************************************************/
+void contourExtraction(Mat img, Mat *features, int colors, int normalization) {
+  reduceImageColors(&img, colors);
+  int i, img_channels = img.channels();
+  vector<Mat> color_contour(img_channels);
+  Mat contour_histograms;
+  vector<Mat> channel(img_channels);
+  split(img, channel);
+
+  for (i = 0; i < img_channels; i++) {
+    CalculateContour(channel[i], &(color_contour[i]), colors, normalization);
+    color_contour[i] = color_contour[i].t();
+    contour_histograms.push_back(color_contour[i]);
+  }
+
+  contour_histograms = contour_histograms.t();
+  (*features).push_back(contour_histograms);
 }
 
 // /****************************************************************************
@@ -918,7 +1044,7 @@ void contourExtraction(Mat img, Mat *features, int colors, int normalization) {
 //      Input
 //          Mat original image
 //          Mat features vector in which perform the operations
-//  ****************************************************************************/
+// ***************************************************************************/
 // void surf(Mat img, Mat *features){
 //
 //     cv::initModule_nonfree();
@@ -931,18 +1057,19 @@ void contourExtraction(Mat img, Mat *features, int colors, int normalization) {
 //     detector.detect(img, keypoints);
 //
 //     Mat imgKey;
-//     drawKeypoints(img, keypoints, imgKey, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
+//     drawKeypoints(img, keypoints, imgKey, Scalar::all(-1),
+//      DrawMatchesFlags::DEFAULT);
 //     // imshow("Keypoints", imgKey);
 //     // waitKey(0);
 //     Mat descriptors;
 //     extractor.compute(img, keypoints, descriptors);
 //
 //     cout << descriptors.size();
-//     (*features).create(descriptors.rows, 1, CV_32F);
+//     (*features).create(descriptors.rows, 1, CV_32FC1);
 //     (*features) = Scalar::all(0);
 //
 //     for(i = 0; i < descriptors.rows; i++){
-//         (*features).at<float>(0,i) = descriptors.at<float>(i,0);
+//         (*features).at<double>(0,i) = descriptors.at<double>(i,0);
 //     }
 // }
 
@@ -984,10 +1111,10 @@ Mat features vector in which perform the operations
 //       VL_FISHER_FLAG_IMPROVED
 //   );
 //
-//       (*features).create(enc.size(), 1, CV_32F);
+//       (*features).create(enc.size(), 1, CV_32FC1);
 //       (*features) = Scalar::all(0);
 //
 //       for(i = 0; i < enc.size(); i++){
-//           (*features).at<float>(0,i) = enc.at(i);
+//           (*features).at<double>(0,i) = enc.at(i);
 //       }
 // }

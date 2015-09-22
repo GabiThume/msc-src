@@ -42,7 +42,7 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int *total){
     for (it = imbalancedData.begin(); it != imbalancedData.end(); ++it){
         if (it->fixedTrainOrTest){
             for(i = 0; i < it->trainOrTest.size().height; ++i){
-                if (it->trainOrTest.at<float>(i,0) == 1)
+                if (it->trainOrTest.at<double>(i,0) == 1)
                     trainingNumber[it->classNumber]++;
             }
         }
@@ -58,8 +58,8 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int *total){
     (*total) = 0;
     for (eachClass = 0; eachClass < (int) imbalancedData.size(); ++eachClass){
 
-        Mat dataTraining(0, imbalancedData[eachClass].features.size().width, CV_32FC1);
-        Mat dataTesting(0, imbalancedData[eachClass].features.size().width, CV_32FC1);
+        Mat dataTraining(0, imbalancedData[eachClass].features.size().width, CV_64FC1);
+        Mat dataTesting(0, imbalancedData[eachClass].features.size().width, CV_64FC1);
 
         numTraining = 0;
         numTesting = 0;
@@ -74,13 +74,13 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int *total){
             //cout << " neighbors " << neighbors << endl;
 
             for (x = 0; x < imbalancedData[eachClass].trainOrTest.size().height; ++x){
-                if (imbalancedData[eachClass].trainOrTest.at<float>(x,0) == 1){
+                if (imbalancedData[eachClass].trainOrTest.at<double>(x,0) == 1){
                     dataTraining.resize(numTraining+1);
                     Mat tmp = dataTraining.row(numTraining);
                     imbalancedData[eachClass].features.row(x).copyTo(tmp);
                     numTraining++;
                 }
-                if (imbalancedData[eachClass].trainOrTest.at<float>(x,0) == 2){
+                if (imbalancedData[eachClass].trainOrTest.at<double>(x,0) == 2){
                     dataTesting.resize(numTesting+1);
                     Mat tmp = dataTesting.row(numTesting);
                     imbalancedData[eachClass].features.row(x).copyTo(tmp);
@@ -98,7 +98,7 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int *total){
             vconcat(dataTraining, synthetic, dataRebalanced);
             vconcat(dataRebalanced, dataTesting, imgClass.features);
             imgClass.classNumber = eachClass;
-            imgClass.trainOrTest.create(dataRebalanced.size().height, 1, CV_32FC1); // Training
+            imgClass.trainOrTest.create(dataRebalanced.size().height, 1, CV_64FC1); // Training
             imgClass.trainOrTest = Scalar(1);
             imgClass.trainOrTest.resize(imgClass.features.size().height, 2); // Testing
 
@@ -127,9 +127,9 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int *total){
     // for (w = 0; w < newClasses.size().height; w++) {
     //     fprintf(arq,"%d%s;", w,".jpg");
     //     for(z = 0; z < total.size().width; z++) {
-    //         fprintf(arq,"%.5f;", total.at<float>(w, z));
+    //         fprintf(arq,"%.5f;", total.at<double>(w, z));
     //     }
-    //     fprintf(arq,"%1.1f\n", newClasses.at<float>(w,0));
+    //     fprintf(arq,"%1.1f\n", newClasses.at<double>(w,0));
     // }
     return rebalancedData;
 }
@@ -140,7 +140,7 @@ int main(int argc, char const *argv[]){
     Size size;
     int m, d, h, w, totalRebalanced;
     int initialMethod, endMethod, level;
-    float prob = 0.5;
+    double prob = 0.5;
     ofstream csvFile;
     string nameFile, name, featuresDir, analysis, descriptorName, method;
     string csvOriginal, csvSmote, csvRebalance;
@@ -215,9 +215,9 @@ int main(int argc, char const *argv[]){
                     int imgNumber = 0;
                     for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
                         for (h = 0; h < it->features.size().height; h++, imgNumber++){
-                            fprintf(arq,"%d\t%d\t%d\t", imgNumber, it->classNumber, (int) it->trainOrTest.at<float>(h,0));
+                            fprintf(arq,"%d\t%d\t%d\t", imgNumber, it->classNumber, (int) it->trainOrTest.at<double>(h,0));
                             for (w = 0; w < it->features.size().width; w++){
-                                fprintf(arq,"%.5f ", it->features.at<float>(h, w));
+                                fprintf(arq,"%.5f ", it->features.at<double>(h, w));
                             }
                             fprintf(arq,"\n");
                         }

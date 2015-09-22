@@ -69,7 +69,7 @@ int poissNoise(int lambda){
 	k = 0;
 	do {
 		k++;
-		p = p * (rand()/(float)RAND_MAX);
+		p = p * (rand()/(double)RAND_MAX);
 	} while (p > L);
 
 	value = k-1;
@@ -131,7 +131,7 @@ Mat Artificial::generateBlur(Mat originalImage){
 }
 
 Mat Artificial::generateBlending(Mat originalImage, vector<Mat> images, int total){
-	float alpha, beta;
+	double alpha, beta;
 	int randomSecondImg;
 	Mat generated;
 

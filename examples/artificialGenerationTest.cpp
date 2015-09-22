@@ -11,7 +11,7 @@ void classifica(string base, string features, string outfileName){
 
     Classifier c;
     int smallerClass, minoritySize;
-    float prob = 0.5;
+    double prob = 0.5;
     DIR *directory;
     struct dirent *arq;
     ifstream myFile;

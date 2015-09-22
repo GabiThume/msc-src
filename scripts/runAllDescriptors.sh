@@ -16,28 +16,27 @@ cor[3]=32
 cor[4]=16
 cor[5]=8
 
-for cores in {0..5}
+for cores in {0..2}
 do
-	for descriptor in {1..5}
+	for descriptor in {1..8}
 	do
 		for quantization in {1..4}
 		do
 		# Se o descritor for CCV, passa o parâmetro de threshold
 		if [ $descriptor == 3 ] ; then
-		  ./mainDescritor BaseCorel caracteristicas_corel/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization 25
-		  ./mainDescritor BaseCaltech caracteristicas_caltech600/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization 25
-		  ./mainDescritor BaseTropical caracteristicas_tropical_fruits1400/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization 25
+		  ./bin/descriptor data/Corel test/features/ $descriptor ${cor[cores]} 1 1 $quantization 0 Corel 25
+		  ./bin/descriptor data/Caltech test/features/ $descriptor ${cor[cores]} 1 1 $quantization 0 Caltech 25
+		  ./bin/descriptor data/Tropical test/features/ $descriptor ${cor[cores]} 1 1 $quantization 0 Tropical 25
 		# Se o descritor for ACC, passa como parâmetros as distâncias
 		elif [ $descriptor == 5 ] ; then
-		  ./mainDescritor BaseCorel caracteristicas_corel/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization 1 3 5 7
-		  ./mainDescritor BaseCaltech caracteristicas_caltech600/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization 1 3 5 7
-		  ./mainDescritor BaseTropical caracteristicas_tropical_fruits1400/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization 1 3 5 7
+		  ./bin/descriptor data/Corel test/features/ $descriptor ${cor[cores]} 1 1 $quantization 0 Corel 1 3 5 7
+		  ./bin/descriptor data/Caltech test/features/ $descriptor ${cor[cores]} 1 1 $quantization 0 Caltech 1 3 5 7
+		  ./bin/descriptor data/Tropical test/features/ $descriptor ${cor[cores]} 1 1 $quantization 0 Tropical 1 3 5 7
 		else
-		  ./mainDescritor BaseCorel caracteristicas_corel/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization
-		  ./mainDescritor BaseCaltech caracteristicas_caltech600/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization
-		  ./mainDescritor BaseTropical caracteristicas_tropical_fruits1400/${cor[cores]} $descriptor ${cor[cores]} 1 1 $quantization
+		  ./bin/descriptor data/Corel test/features/ $descriptor ${cor[cores]} 1 1 $quantization 0 Corel
+		  ./bin/descriptor data/Caltech test/features/ $descriptor ${cor[cores]} 1 1 $quantization 0 Caltech
+		  ./bin/descriptor data/Tropical test/features/ $descriptor ${cor[cores]} 1 1 $quantization 0 Tropical
 		fi
 		done
 		done
 done
-
