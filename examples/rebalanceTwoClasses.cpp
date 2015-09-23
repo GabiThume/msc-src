@@ -18,12 +18,12 @@ string desc(string dir, string features, int d, int m, string id){
     vector<int> parameters;
     /* If descriptor ==  CCV, threshold is required */
     if (d == 3)
-        return descriptor(dir, features, d, 256, 1, 1, paramCCV, 0, m, id);
+        return descriptor(dir, features, d, 64, 1, 1, paramCCV, 0, m, id);
     /* If descriptor ==  ACC, distances are required */
     else if (d == 5)
-        return descriptor(dir, features, d, 256, 1, 1, paramACC, 0, m, id);
+        return descriptor(dir, features, d, 64, 1, 1, paramACC, 0, m, id);
     else
-        return descriptor(dir, features, d, 256, 1, 1, parameters, 0, m, id);
+        return descriptor(dir, features, d, 64, 1, 1, parameters, 0, m, id);
 }
 
 /* Generate a imbalanced class */
@@ -103,7 +103,7 @@ string imbalance(string database, string newDir, double prob, double id){
                 //cout << " Executa " << str.c_str() << endl;
             }
 
-            str = "bash rename.sh "+dir+classNumber.str()+"/";
+            str = "bash scripts/rename.sh "+dir+classNumber.str()+"/";
             system(str.c_str());
 
             vectorRand.clear();
@@ -120,18 +120,20 @@ string performSmote(vector<Classes> imbalancedData, int operation, string csvSmo
     vector<int> trainingNumber(imbalancedData.size(), 0);
     std::vector<Classes>::iterator it;
     vector<Classes> rebalancedData;
+    stringstream numberOfImages;
+    ofstream arq;
     Mat synthetic;
     SMOTE s;
 
     for (it = imbalancedData.begin(); it != imbalancedData.end(); ++it){
         if (it->fixedTrainOrTest){
             for(i = 0; i < it->trainOrTest.size().height; ++i){
-                if (it->trainOrTest.at<float>(i,0) == 1)
+                if (it->trainOrTest.at<int>(i,0) == 1)
                     trainingNumber[it->classNumber]++;
             }
         }
         else{
-            trainingNumber[it->classNumber] = it->trainOrTest.size().height/2;
+            trainingNumber[it->classNumber] = it->trainOrTest.size().height/2.0;
         }
         if (trainingNumber[it->classNumber] > majority){
             majorityClass = it->classNumber;
@@ -158,13 +160,13 @@ string performSmote(vector<Classes> imbalancedData, int operation, string csvSmo
             //cout << " neighbors " << neighbors << endl;
 
             for (x = 0; x < imbalancedData[eachClass].trainOrTest.size().height; ++x){
-                if (imbalancedData[eachClass].trainOrTest.at<float>(x,0) == 1){
+                if (imbalancedData[eachClass].trainOrTest.at<int>(x,0) == 1){
                     dataTraining.resize(numTraining+1);
                     Mat tmp = dataTraining.row(numTraining);
                     imbalancedData[eachClass].features.row(x).copyTo(tmp);
                     numTraining++;
                 }
-                if (imbalancedData[eachClass].trainOrTest.at<float>(x,0) == 2){
+                if (imbalancedData[eachClass].trainOrTest.at<int>(x,0) == 2){
                     dataTesting.resize(numTesting+1);
                     Mat tmp = dataTesting.row(numTesting);
                     imbalancedData[eachClass].features.row(x).copyTo(tmp);
@@ -192,9 +194,9 @@ string performSmote(vector<Classes> imbalancedData, int operation, string csvSmo
             vconcat(dataTraining, synthetic, dataRebalanced);
             vconcat(dataRebalanced, dataTesting, imgClass.features);
             imgClass.classNumber = eachClass;
-            imgClass.trainOrTest.create(dataRebalanced.size().height, 1, CV_32FC1); // Training
-            imgClass.trainOrTest = Scalar(1);
-            imgClass.trainOrTest.resize(imgClass.features.size().height, 2); // Testing
+            imgClass.trainOrTest.create(dataRebalanced.size().height, 1, CV_32S); // Training
+            imgClass.trainOrTest = Scalar::all(1);
+            imgClass.trainOrTest.resize(imgClass.features.size().height, Scalar::all(2)); // Testing
 
             rebalancedData.push_back(imgClass);
             total += imgClass.features.size().height;
@@ -209,45 +211,31 @@ string performSmote(vector<Classes> imbalancedData, int operation, string csvSmo
         }
     }
 
-    stringstream numberOfImages;
     numberOfImages.str("");
     numberOfImages << total;
 
     string name = csvSmote + "256c_100r_"+numberOfImages.str()+"i_smote.csv";
+    arq.open(name.c_str(), ios::out);
+    if (!arq.is_open()) {
+      cout << "It is not possible to open the feature's file: " << name << endl;
+      exit(-1);
+    }
     cout << "---------------------------------------------------------------------------------------" << endl;
     cout << "Wrote on data file named " << name << endl;
     cout << "---------------------------------------------------------------------------------------" << endl;
-    FILE *arq = fopen(name.c_str(), "w+");
-    fprintf(arq,"%d\t%d\t%d\n", total, rebalancedData.size(), (int) rebalancedData[0].features.size().width);
+    arq << total << '\t' << rebalancedData.size() << '\t' << rebalancedData[0].features.size().width << endl;
     for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
-        cout << ">>>>>>>>>> " << it->features.size().height << it->features.size().width << endl;
+        cout << "SMOTE >>>>>>>>>> " << it->features.size() << endl;
         for (h = 0; h < it->features.size().height; h++){
-            fprintf(arq,"%d\t%d\t%d\t", countImg, it->classNumber, (int) it->trainOrTest.at<float>(h,0));
+            arq << countImg << '\t' << it->classNumber << '\t' << it->trainOrTest.at<int>(h,0) << '\t';
             for (w = 0; w < it->features.size().width; w++){
-                fprintf(arq,"%.5f ", it->features.at<float>(h, w));
+              arq << it->features.at<float>(h, w) << " ";
             }
+            arq << endl;
             countImg++;
-            fprintf(arq,"\n");
         }
     }
-    fclose(arq);
-
-    // FILE *arq = fopen("smote.data", "w+");
-    // int w, z;
-    // fprintf(arq,"%s\n", "DY");
-    // fprintf(arq,"%d\n", newClasses.size().height);
-    // fprintf(arq,"%d\n", total.size().width);
-    // for(z = 0; z < total.size().width-1; z++) {
-    //     fprintf(arq,"%s%d;", "attr",z);
-    // }
-    // fprintf(arq,"%s%d\n", "attr",z);
-    // for (w = 0; w < newClasses.size().height; w++) {
-    //     fprintf(arq,"%d%s;", w,".jpg");
-    //     for(z = 0; z < total.size().width; z++) {
-    //         fprintf(arq,"%.5f;", total.at<float>(w, z));
-    //     }
-    //     fprintf(arq,"%1.1f\n", newClasses.at<float>(w,0));
-    // }
+    arq.close();
     return name;
 }
 
@@ -296,8 +284,8 @@ int main(int argc, char const *argv[]){
             Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
     */
     double factor = 1.6;
-    vector <int> descriptors {1, 6, 7};
-    // vector <int> descriptors {1, 2, 3, 4, 5, 6, 7, 8};
+    // vector <int> descriptors {1, 6, 7};
+    vector <int> descriptors {1, 2, 3, 4, 5, 6, 7, 8};
 
     /* Desbalancing Data */
     cout << "\n\n------------------------------------------------------------------------------------" << endl;
@@ -339,7 +327,7 @@ int main(int argc, char const *argv[]){
                     cout << "Features vectors file: " << originalDescriptor.c_str() << endl;
                     cout << "---------------------------------------------------------------------------------------" << endl;
                     c.findSmallerClass(originalData, &minoritySize);
-                    c.classify(prob, 10, originalData, csvOriginal.c_str(), minoritySize);
+                    c.classify(prob, 1, originalData, csvOriginal.c_str(), minoritySize);
                     originalData.clear();
                 }
 

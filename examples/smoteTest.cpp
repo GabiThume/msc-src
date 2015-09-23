@@ -20,8 +20,8 @@ void imbalance(Mat original, Mat classes, int factor, int numClasses, Mat *imbal
     num = size.height - samples + ceil(samples/factor);
     samples = ceil(samples/factor);
 
-    (*imbalancedData).create(num, size.width, CV_32FC1);
-    (*imbalancedClasses).create(num, 1, CV_32FC1);
+    (*imbalancedData).create(num, size.width, CV_64FC1);
+    (*imbalancedClasses).create(num, 1, CV_64FC1);
 
     while (total < samples) {
         /* Generate a random position to select samples to crete the minority class */
@@ -30,7 +30,7 @@ void imbalance(Mat original, Mat classes, int factor, int numClasses, Mat *imbal
             vectorRand.push_back(pos);
             Mat tmp = (*imbalancedData).row(total);
             original.row(pos).copyTo(tmp);
-            (*imbalancedClasses).at<float>(total, 0) = classes.at<float>(start,0);
+            (*imbalancedClasses).at<double>(total, 0) = classes.at<double>(start,0);
             total++;
        }
     }
@@ -39,7 +39,7 @@ void imbalance(Mat original, Mat classes, int factor, int numClasses, Mat *imbal
         if (!count(vectorRand.begin(), vectorRand.end(), i)){
             Mat tmp = (*imbalancedData).row(total);
             original.row(i).copyTo(tmp);
-            (*imbalancedClasses).at<float>(total, 0) = classes.at<float>(i,0);
+            (*imbalancedClasses).at<double>(total, 0) = classes.at<double>(i,0);
             total++;
         }
     }
@@ -52,7 +52,7 @@ int main(int argc, char const *argv[]){
     Classifier c;
     Size size;
     int i, smallerClass, amountSmote, neighbors;
-    float prob = 0.5;
+    double prob = 0.5;
     DIR *directory;
     struct dirent *arq;
     ifstream myFile;
@@ -123,7 +123,7 @@ int main(int argc, char const *argv[]){
 
                     //  Concatenate the minority class with the synthetic
                     // vconcat(minorityClass, synthetic, minorityOverSampled);
-                    //Mat minorityClasses(minorityOverSampled.size().height, 1, CV_32FC1, smallerClass+1);
+                    //Mat minorityClasses(minorityOverSampled.size().height, 1, CV_64FC1, smallerClass+1);
 
                     // /* Select the majority classes */
                     // imbalancedData.rowRange(end, size.height).copyTo(majority);

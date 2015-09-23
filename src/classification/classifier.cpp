@@ -31,14 +31,14 @@ double Classifier::calculateMean(vector<double> accuracy){
 	int i;
 	double mean;
 	/* Calculate accuracy's mean */
-	mean = 0;
+	mean = 0.0;
 	for (i = 0; i < (int) accuracy.size(); i++){
 		mean += accuracy[i];
 	}
 	mean = mean/accuracy.size();
 
 	if (std::isnan(mean))
-		mean = 0;
+		mean = 0.0;
 
 	return mean;
 }
@@ -49,7 +49,7 @@ double Classifier::calculateStandardDeviation(vector<double> accuracy){
 	double mean, variance, std;
 	mean = calculateMean(accuracy);
 	/* Calculate accuracy's variance and std */
-	variance = 0;
+	variance = 0.0;
 	for (i = 0; i < (int) accuracy.size(); i++){
 		variance += pow(accuracy[i]-mean, 2);
 	}
@@ -57,7 +57,7 @@ double Classifier::calculateStandardDeviation(vector<double> accuracy){
 	std = sqrt(variance);
 
 	if (std::isnan(std))
-		std = 0;
+		std = 0.0;
 
 	return std;
 }
@@ -74,7 +74,7 @@ void Classifier::printAccuracy(double id, vector<vector<double> > fScore){
 	balancedStd = calculateStandardDeviation(balancedAccuracy);
 
 	for (i = 0; i < (int) fScore.size(); i++){
-		cout << "Classe " << i << " FSCORE: " << calculateMean(fScore[i]) << endl;
+		// cout << "Classe " << i << " FSCORE: " << calculateMean(fScore[i]) << endl;
 		fscores.push_back(calculateMean(fScore[i]));
 	}
 	fscoreMean = calculateMean(fscores);
@@ -94,13 +94,10 @@ void Classifier::printAccuracy(double id, vector<vector<double> > fScore){
 	cout << "\tTraining samples: " << totalTrain << endl;
 	cout <<  "Cross validation with "<< accuracy.size() <<" k-fold:" << endl;
 	cout << "\tMean Accuracy: " << mean << endl;
-	if (std > 0)
 	cout << "\t\tStandard Deviation: " << std << endl;
 	cout << "\tMean Balanced Accuracy: " << balancedMean << endl;
-	if (balancedStd > 0)
 	cout << "\t\tStandard Deviation: " << balancedStd << endl;
 	cout << "\tMean F1Score: " << fscoreMean << endl;
-	if (fscoreStd > 0)
 	cout << "\t\tStandard Deviation: " << fscoreStd << endl;
 	cout << "---------------------------------------------------------------------------------------" << endl;
 
@@ -147,20 +144,23 @@ double calculateBalancedAccuracy(Mat confusionMat){
 	double trueNegative, specificity, sensitivity, positive, negative;
 	int classeId, i, j;
 
-	balancedAccuracyMean = 0;
+	balancedAccuracyMean = 0.0;
 	for (classeId = 0; classeId < confusionMat.rows; classeId++){
 
 		truePositive = falseNegative = falsePositive = trueNegative = 0;
 		truePositive = confusionMat.at<int>(classeId, classeId);
 
-		for(i = 0; i < confusionMat.rows; i++){
-			for(j = 0; j < confusionMat.cols; j++){
-				if(i == classeId && j != classeId)
-				falseNegative += confusionMat.at<int>(i, j);
-				if(i != classeId && j == classeId)
-				falsePositive += confusionMat.at<int>(i, j);
-				if(i != classeId && j == i)
-				trueNegative += confusionMat.at<int>(i, j);
+		for (i = 0; i < confusionMat.rows; i++) {
+			for (j = 0; j < confusionMat.cols; j++) {
+				if (i == classeId && j != classeId) {
+					falseNegative += (double) confusionMat.at<int>(i, j);
+				}
+				if (i != classeId && j == classeId) {
+					falsePositive += (double) confusionMat.at<int>(i, j);
+				}
+				if (i != classeId && j == i) {
+					trueNegative += (double) confusionMat.at<int>(i, j);
+				}
 			}
 		}
 
@@ -210,10 +210,8 @@ vector<double> calculateFscore(Mat confusionMat){
 		recallRate = truePositive/positive;
 
 		fscore = (2.0) * (precisionRate*recallRate)/(precisionRate+recallRate);
-		if (truePositive == 0)
-			fScore.push_back(0);
-		else
-			fScore.push_back(fscore*100.0);
+		if (truePositive == 0) fScore.push_back(0.0);
+		else fScore.push_back(fscore*100.0);
 	}
 
 	// falsePositiveRate = falsePositive/negative; // ROC: plotted on X axis
@@ -228,12 +226,12 @@ Predicted
 actual class   truePositive   | falseNegative
 falsePositive  | trueNegative
 */
-Mat confusionMatrix(int numClasses, Mat labelsTesting, Mat result){
+Mat confusionMatrix(int numClasses, Mat labelsTesting, Mat result, int print){
 
 	Mat confusionMat;
 	int i, rightClass, guessedClass;
 
-	confusionMat = Mat::zeros(numClasses, numClasses, CV_32S);
+	confusionMat = Mat::zeros(numClasses, numClasses, CV_64FC1);
 
 	for (i = 0; i < result.size().height; i++){
 		rightClass = labelsTesting.at<float>(i,0);
@@ -241,23 +239,23 @@ Mat confusionMatrix(int numClasses, Mat labelsTesting, Mat result){
 		confusionMat.at<int>(rightClass, guessedClass)++;
 	}
 
-	// if (print){
-	    // cout << "---------------------------------------------------------------------------------------" << endl;
-	    // cout << "\t\t\t\tConfusion Matrix" << endl;
-	    // cout << "\t\tPredicted" << endl << "\t";
-	    // for(i = 0; i < confusionMat.cols; i++){
-	    //     cout << "\t" << i;
-	    // }
-	    // cout << endl;
-	    // for(i = 0; i < confusionMat.rows; i++){
-	    //     if (i == 0) cout << "Real";
-	    //     cout << "\t"<< i;
-	    //     for(int j = 0; j < confusionMat.cols; j++){
-	    //         cout << "\t" << confusionMat.at<int>(i, j);
-	    //     }
-	    //     cout << endl;
-	    // }
-	// }
+	if (print){
+	    cout << "---------------------------------------------------------------------------------------" << endl;
+	    cout << "\t\t\t\tConfusion Matrix" << endl;
+	    cout << "\t\tPredicted" << endl << "\t";
+	    for(i = 0; i < confusionMat.cols; i++){
+	        cout << "\t" << i;
+	    }
+	    cout << endl;
+	    for(i = 0; i < confusionMat.rows; i++){
+	        if (i == 0) cout << "Real";
+	        cout << "\t"<< i;
+	        for(int j = 0; j < confusionMat.cols; j++){
+	            cout << "\t" << confusionMat.at<int>(i, j);
+	        }
+	        cout << endl;
+	    }
+	}
 
 	// /* Output file to use the confusion matrix plot with python*/
 	// stringstream fileName, resultFile;
@@ -293,22 +291,16 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 		width = it->features.size().width;
 		for(i = 0; i < it->trainOrTest.size().height; i++){
 			fixedSet[it->classNumber] = 0;
-			if (it->trainOrTest.at<float>(i,0) == 1){
+			if (it->trainOrTest.at<int>(i,0) == 1){
 				trainingNumber[it->classNumber]++;
 				fixedSet[it->classNumber] = 1;
 			}
-			if (it->trainOrTest.at<float>(i,0) == 2){
+			if (it->trainOrTest.at<int>(i,0) == 2){
 				testingNumber[it->classNumber]++;
 				fixedSet[it->classNumber] = 1;
 			}
 		}
 	}
-
-	// for(i = 0; i < numClasses; i++){
-	//     cout << "Number of images in class " << i << ": " << dataClasse[i] << endl;
-	//     cout << "training images in class " << i << ": " << trainingNumber[i] << endl;
-	//     cout << "testing images in class " << i << ": " << testingNumber[i] << endl;
-	// }
 
 	/* For each class we need to calculate the size of both training and testing sets, given a ratio */
 	for (actualClass = 0; actualClass < numClasses; actualClass++) {
@@ -318,10 +310,13 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 		}
 		totalTesting += testingNumber[actualClass];
 		totalTraining += trainingNumber[actualClass];
-		// cout << "In class " << actualClass << " testing: " << testingNumber[actualClass] << " training: " << trainingNumber[actualClass] << endl;
 	}
 
-	cout << "Total of imagens in training " << totalTraining << " and in testing " << totalTesting << endl;
+	for(i = 0; i < numClasses; i++){
+	    cout << "Number of images in class " << i << ": " << dataClasse[i] << endl;
+	    cout << "\tTraining: " << trainingNumber[i] << endl;
+	    cout << "\tTesting: " << testingNumber[i] << endl;
+	}
 
 	/* Repeated random sub-sampling validation */
 	for(repetition = 0; repetition < numRepetition; repetition++) {
@@ -338,7 +333,7 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 
 			if (fixedSet[it->classNumber]) {
 				for (x = 0; x < it->trainOrTest.size().height; x++){
-					if (it->trainOrTest.at<float>(x,0) == 1){
+					if (it->trainOrTest.at<int>(x,0) == 1){
 						Mat tmp = dataTraining.row(numTraining);
 						it->features.row(x).copyTo(tmp);
 						labelsTraining.at<float>(numTraining, 0) = it->classNumber;
@@ -390,9 +385,9 @@ vector<vector<double> > Classifier::classify(double trainingRatio, int numRepeti
 		}
 		totalTest = result.size().height;
 		totalTrain = labelsTraining.size().height;
-		accuracy.push_back(hits*100.0/totalTest);
+		accuracy.push_back((double)hits*100.0/(double)totalTest);
 
-		confusionMat = confusionMatrix(numClasses, labelsTesting, result);
+		confusionMat = confusionMatrix(numClasses, labelsTesting, result, 1);
 		if (confusionMat.rows == 2){
 			minorNumber = dataClasse[0];
 			minorityClass = 0;

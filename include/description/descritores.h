@@ -48,7 +48,7 @@ Master's thesis in Computer Science
 using namespace cv;
 using namespace std;
 
-const string quantizationMethod[4] = {"Intensity", "Luminance", "Gleam", "MSB"};
+const string quantizationMethod[5] = {"Intensity", "Luminance", "Gleam", "MSB", "MSBModified"};
 const string descriptorMethod[9] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"};
 
 typedef struct {
@@ -64,6 +64,7 @@ void BIC(Mat I, Mat *features, int nColor, int oNorm);
 void CoocurrenceMatrix(Mat img, vector< vector<double> > *co_occurence,
                       int colors, int distance, int angle);
 void Haralick6(vector< vector<double> > co_occurence, Mat *features);
+void CalculateHARALICK(Mat img, Mat *features, int colors, int normalization);
 void HARALICK(Mat img, Mat *features, int colors, int normalization);
 void ACC(Mat I, Mat *features, int colors, int normalization, vector<int> distances);
 void LBP(Mat img, Mat *features, int colors, int normalization);

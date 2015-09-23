@@ -1,14 +1,14 @@
 #!/bin/bash
 # new=0
 # ext=
-# 
+#
 # for i in *
 # do
 #         ext="${i#*.}"
 # 	echo ext
 #         #mv "$i" "$new.$ext"
 #         ((new++))
-#     
+#
 # done
 
 # zero filling
