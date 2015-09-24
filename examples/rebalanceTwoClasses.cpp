@@ -18,12 +18,21 @@ string desc(string dir, string features, int d, int m, string id){
     vector<int> parameters;
     /* If descriptor ==  CCV, threshold is required */
     if (d == 3)
+<<<<<<< HEAD
         return descriptor(dir, features, d, 64, 1, 1, paramCCV, 0, m, id);
     /* If descriptor ==  ACC, distances are required */
     else if (d == 5)
         return descriptor(dir, features, d, 64, 1, 1, paramACC, 0, m, id);
     else
         return descriptor(dir, features, d, 64, 1, 1, parameters, 0, m, id);
+=======
+        return descriptor(dir, features, d, 256, 1, 0, paramCCV, 0, m, id);
+    /* If descriptor ==  ACC, distances are required */
+    else if (d == 5)
+        return descriptor(dir, features, d, 256, 1, 0, paramACC, 0, m, id);
+    else
+        return descriptor(dir, features, d, 256, 1, 0, parameters, 0, m, id);
+>>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
 }
 
 /* Generate a imbalanced class */
@@ -128,7 +137,11 @@ string performSmote(vector<Classes> imbalancedData, int operation, string csvSmo
     for (it = imbalancedData.begin(); it != imbalancedData.end(); ++it){
         if (it->fixedTrainOrTest){
             for(i = 0; i < it->trainOrTest.size().height; ++i){
+<<<<<<< HEAD
                 if (it->trainOrTest.at<int>(i,0) == 1)
+=======
+                if (it->trainOrTest.at<double>(i,0) == 1)
+>>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
                     trainingNumber[it->classNumber]++;
             }
         }
@@ -160,13 +173,21 @@ string performSmote(vector<Classes> imbalancedData, int operation, string csvSmo
             //cout << " neighbors " << neighbors << endl;
 
             for (x = 0; x < imbalancedData[eachClass].trainOrTest.size().height; ++x){
+<<<<<<< HEAD
                 if (imbalancedData[eachClass].trainOrTest.at<int>(x,0) == 1){
+=======
+                if (imbalancedData[eachClass].trainOrTest.at<double>(x,0) == 1){
+>>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
                     dataTraining.resize(numTraining+1);
                     Mat tmp = dataTraining.row(numTraining);
                     imbalancedData[eachClass].features.row(x).copyTo(tmp);
                     numTraining++;
                 }
+<<<<<<< HEAD
                 if (imbalancedData[eachClass].trainOrTest.at<int>(x,0) == 2){
+=======
+                if (imbalancedData[eachClass].trainOrTest.at<double>(x,0) == 2){
+>>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
                     dataTesting.resize(numTesting+1);
                     Mat tmp = dataTesting.row(numTesting);
                     imbalancedData[eachClass].features.row(x).copyTo(tmp);
@@ -227,15 +248,42 @@ string performSmote(vector<Classes> imbalancedData, int operation, string csvSmo
     for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
         cout << "SMOTE >>>>>>>>>> " << it->features.size() << endl;
         for (h = 0; h < it->features.size().height; h++){
+<<<<<<< HEAD
             arq << countImg << '\t' << it->classNumber << '\t' << it->trainOrTest.at<int>(h,0) << '\t';
             for (w = 0; w < it->features.size().width; w++){
               arq << it->features.at<float>(h, w) << " ";
+=======
+            fprintf(arq,"%d\t%d\t%d\t", countImg, it->classNumber, (int) it->trainOrTest.at<double>(h,0));
+            for (w = 0; w < it->features.size().width; w++){
+                fprintf(arq,"%.5f ", it->features.at<double>(h, w));
+>>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
             }
             arq << endl;
             countImg++;
         }
     }
+<<<<<<< HEAD
     arq.close();
+=======
+    fclose(arq);
+
+    // FILE *arq = fopen("smote.data", "w+");
+    // int w, z;
+    // fprintf(arq,"%s\n", "DY");
+    // fprintf(arq,"%d\n", newClasses.size().height);
+    // fprintf(arq,"%d\n", total.size().width);
+    // for(z = 0; z < total.size().width-1; z++) {
+    //     fprintf(arq,"%s%d;", "attr",z);
+    // }
+    // fprintf(arq,"%s%d\n", "attr",z);
+    // for (w = 0; w < newClasses.size().height; w++) {
+    //     fprintf(arq,"%d%s;", w,".jpg");
+    //     for(z = 0; z < total.size().width; z++) {
+    //         fprintf(arq,"%.5f;", total.at<double>(w, z));
+    //     }
+    //     fprintf(arq,"%1.1f\n", newClasses.at<double>(w,0));
+    // }
+>>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
     return name;
 }
 
