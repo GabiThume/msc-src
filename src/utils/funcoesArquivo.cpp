@@ -5,13 +5,13 @@ Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
 
-* Redistributions of source code must retain the above copyright
+    * Redistributions of source code must retain the above copyright
 notice, this list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above
+    * Redistributions in binary form must reproduce the above
 copyright notice, this list of conditions and the following disclaimer
 in the documentation and/or other materials provided with the
 distribution.
-* Neither the name of Gabriela Thumé nor the names of its
+    * Neither the name of Gabriela Thumé nor the names of its
 contributors may be used to endorse or promote products derived from
 this software without specific prior written permission.
 
@@ -28,7 +28,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Authors:  Gabriela Thumé (gabithume@gmail.com)
-Moacir Antonelli Ponti (moacirponti@gmail.com)
+          Moacir Antonelli Ponti (moacirponti@gmail.com)
 Universidade de São Paulo / ICMC
 Master's thesis in Computer Science
 */
@@ -305,39 +305,60 @@ string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
   return name;
 }
 
-// vector<float> features_col_summed;
-// cv::reduce(features, features_col_summed, 0, CV_REDUCE_SUM, CV_32FC1);
-// for (i = 0; i < features.cols; i++) {
-//   if (features_col_summed[i] == 0) {
-//     Mat start = features.colRange(0, i);
-//     Mat end = features.colRange(i+1, features.cols);
-//     vconcat(start, end, features);
-//   }
-// }
+/*******************************************************************************
+    Remove null columns in feature space (Under construction)
+
+    Requires:
+    - Mat features
+*******************************************************************************/
+void RemoveNullColumns(Mat *features) {
+  vector<float> features_col_summed;
+  int i;
+
+  cv::reduce(*features, features_col_summed, 0, CV_REDUCE_SUM);
+  for (i = 0; i < (*features).cols; i++) {
+    if (features_col_summed[i] == 0) {
+      // cout << " column " << i << " (*features).cols " << (*features).cols << endl;
+      if (i == 0) {
+        (*features).colRange(i+1, (*features).cols).copyTo(*features);
+      } else if (i+1 == (*features).cols) {
+        (*features).colRange(0, i).copyTo(*features);
+      } else {
+        Mat start = (*features).colRange(0, i);
+        Mat end = (*features).colRange(i+1, (*features).cols);
+        hconcat(start, end, *features);
+      }
+      i--;
+    }
+  }
+}
 
 /*******************************************************************************
-*******************************************************************************/
-// void ZIndexNormalization(Mat *features, int normalization) {
-//   float normFactor, min, max, value;
-//   int row, column;
-//
-//   normFactor = (normalization == 1) ? 1.0 : 255.0;
-//
-//   for (column = 0; column < (*features).cols; ++column) {
-//     Scalar mean, std;
-//     Mat mat_col = (*features).col(column);
-//     cv::meanStdDev(mat_col, mean, std);
-//
-//     for (row = 0; row < (*features).rows; ++row) {
-//       (*features).at<float>(row, column) = ((*features).at<float>(row, column)
-//         - (float) mean.val[row]) / (float) std.val[row];
-//     }
-//   }
-// }
+Normalization by Z-score of each column
 
-/*******************************************************************************
+1 - Calculate the column mean
+2 - Calculate the column std
+3 - Calculate new values using:
+      new_value = (value - mean) / standart_deviation
+
 *******************************************************************************/
-void ZIndexNormalization(Mat *features, int normalization) {
+void ZScoreNormalization(Mat *features) {
+  int row, column;
+  Scalar mean, std;
+
+  for (column = 0; column < (*features).cols; ++column) {
+    Mat stats = (*features).col(column);
+    cv::meanStdDev(stats, mean, std);
+
+    for (row = 0; row < (*features).rows; ++row) {
+      (*features).at<float>(row, column) =
+        ((*features).at<float>(row, column) - (float) mean.val[0])
+        / (float) std.val[0];
+    }
+  }
+}
+
+void MaxMinNormalization(Mat *features, int normalization) {
   float normFactor, min, max, value;
   int row, column;
 
@@ -443,7 +464,8 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
     int colors, double resizeFactor, int normalization, vector<int> param,
     int deleteNull, int quantization, string id){
   int numImages = 0, qtdClasses = 0, qtdImgTotal = 0, imgTotal = 0, treino = 0;
-  int i, j, bars, porc, current_class;
+  int i, j, bars, current_class;
+  double porc;
   int resizingFactor = static_cast<int>(resizeFactor*100);
   string name, directory;
   Mat img, featureVector, features, labels, trainTest, newimg;
@@ -467,7 +489,6 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
     // Call the description method
     GetFeatureVector(method, newimg, &features, colors, normalization, param);
 
-    featureVector.release();
     img.release();
     newimg.release();
   } else {
@@ -506,13 +527,16 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
     }
     // Normalization of Haralick and contourExtraction features by z-index
     if ((method == 4 || method == 8) && normalization != 0) {
-      ZIndexNormalization(&features, normalization);
+      ZScoreNormalization(&features);
     }
+
+    // Remove null columns in Mat of features
+    RemoveNullColumns(&features);
   }
 
   // Show the number of images per class
   cout << "File: " << name << endl;
-  cout << "Number of images: " << features.rows << " - Classes: " << qtdClasses;
+  cout << "Images: " << features.rows << " - Classes: " << qtdClasses;
   cout << " - Features: " << features.cols << endl;
 
   for (current_class = 0; current_class < qtdClasses; current_class++) {

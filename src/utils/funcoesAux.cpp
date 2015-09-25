@@ -117,24 +117,3 @@ void reduceImageColors(Mat *img, int nColors) {
 
   merge(channel, (*img));
 }
-
-
-/*******************************************************************************
-    Remove null columns in feature space (Under construction)
-
-    Requires:
-    - Mat features
-*******************************************************************************/
-void RemoveNullColumns(Mat *Feat) {
-
-    int width = (*Feat).size().width;
-    vector<int> marktoremove(width);
-
-    for (int i = 0; i < width; i++) {
-        Mat columni = (*Feat).col(i);
-        double sumi = sum(columni)[0];
-        if (sumi == 0)
-            marktoremove[i] = 1;
-        cout << "Sum " << i << " : " << sumi << endl;
-    }
-}

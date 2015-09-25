@@ -473,7 +473,8 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 	DIR *dir = NULL, *minDir = NULL;
 	vector<int> totalImage, vectorRand;
 	vector<Mat> images;
-	srand(time(0));
+	// srand(time(0));
+	srand(1);
 
 	dir = opendir(base.c_str());
 	if(dir == NULL) {
@@ -542,10 +543,10 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 				Mat original;
 				images[randomImg].copyTo(original);
 				/* Choose an operation
-				Case 1: All operation */
+				Case 1: All operations */
 				generationType = (whichOperation == 1) ? 2+(rand()%7) : whichOperation;
 
-				nameGeneratedImage = minorityClass += to_string(totalImage[eachClass]+i) + ".png";
+				nameGeneratedImage = minorityClass + to_string(totalImage[eachClass]+i) + ".png";
 				GenerateImage(images, generationType, nameGeneratedImage, original,
 					totalImage[eachClass]);
 			}
