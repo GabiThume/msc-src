@@ -44,13 +44,8 @@ Requires
 - string name of input file
 *******************************************************************************/
 vector<Classes> readFeatures(string filename) {
-<<<<<<< HEAD
   int j, newSize = 0, previousClass = -1, actualClass;
   float features;
-=======
-  int j, newSize = 0;
-  double features;
->>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
   size_t d;
   string line, infos, numImage, classe, trainTest, numFeatures, numClasses;
   string objetos;
@@ -86,13 +81,8 @@ vector<Classes> readFeatures(string filename) {
         data.push_back(imgClass);
       }
       previousClass = actualClass;
-<<<<<<< HEAD
       imgClass.features.create(0, d, CV_32FC1);
       imgClass.trainOrTest.create(0, 1, CV_32S);
-=======
-      imgClass.features.create(0, d, CV_64FC1);
-      imgClass.trainOrTest.create(0, 1, CV_64FC1);
->>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
       imgClass.fixedTrainOrTest = false;
     }
 
@@ -102,14 +92,10 @@ vector<Classes> readFeatures(string filename) {
 
     j = 0;
     while (vector_features >> features) {
-      imgClass.features.at<double>(newSize-1, j) = static_cast<double>(features);
+      imgClass.features.at<float>(newSize-1, j) = static_cast<float>(features);
       j++;
     }
-<<<<<<< HEAD
     imgClass.trainOrTest.at<int>(newSize-1, 0) = atoi(trainTest.c_str());
-=======
-    imgClass.trainOrTest.at<double>(newSize-1, 0) = atoi(trainTest.c_str());
->>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
     imgClass.classNumber = actualClass;
     if (atoi(trainTest.c_str()) != 0) {
       imgClass.fixedTrainOrTest = true;
@@ -189,11 +175,7 @@ Mat FindImgInClass(string database, int img_class, int img_number, int index,
   img = imread(directory+".png", CV_LOAD_IMAGE_COLOR);
 
   // cout << directory+".png" << endl;
-<<<<<<< HEAD
   (*trainTest).at<int>(index, 0) = 0;
-=======
-  (*trainTest).at<uchar>(index, 0) = static_cast<uchar>(0);
->>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
 
   if (img.empty()) {
     directory = dir_class + "/treino/" + to_string(img_number);
@@ -240,38 +222,8 @@ void NumberImgInClass(string database, int img_class, int *num_imgs,
   cout << " has " << (*num_imgs) << " images" << endl;
 }
 
-<<<<<<< HEAD
 /*******************************************************************************
 *******************************************************************************/
-=======
-void ZIndexNormalization(Mat *features, int normalization) {
-  double normFactor, min, max, value;
-  int i, j;
-
-  normFactor = (normalization == 1) ? 1.0 : 255.0;
-
-  for (j = 0; j < (*features).cols; ++j) {
-    min = (*features).at<double>(0, j);
-    max = (*features).at<double>(0, j);
-
-    for (i = 1; i < (*features).rows; ++i) {
-      value = (*features).at<double>(i, j);
-      if (value > max) {
-        max = value;
-      }
-      if (value < min) {
-        min = value;
-      }
-    }
-
-    for (i = 0; i < (*features).rows; ++i) {
-      (*features).at<double>(i, j) = normFactor *
-        (((*features).at<double>(i, j) - min) / (max - min));
-    }
-  }
-}
-
->>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
 string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
                     int colors, int normalization, int resizingFactor,
                     int qtdClasses, vector<int>objperClass, Mat features,
@@ -308,34 +260,21 @@ string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
     cout << " " << porc * 100.0 << "%" << " (" << objperClass[i] << ")" <<endl;
   }
 
-<<<<<<< HEAD
   arq << features.rows << '\t' << qtdClasses << '\t' << features.cols << endl;
   for (i = 0; i < features.rows; i++) {
     // Write the image number and the referenced class
     if (labels.rows > 0) {
       arq << i << '\t' << labels.at<int>(i, 0) << '\t';
       arq << trainTest.at<int>(i, 0) << '\t';
-=======
-  arq << features.rows << '\t' << qtdClasses << '\t' << features.cols << '\n';
-  for (i = 0; i < features.rows; i++) {
-    // Write the image number and the referenced class
-    if (labels.rows > 0) {
-      arq << i << '\t' << (int) labels.at<uchar>(i, 0) << '\t';
-      arq << (int) trainTest.at<uchar>(i, 0);
->>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
     }
     for (j = 0; j < features.cols; j++) {
-<<<<<<< HEAD
       arq << features.at<float>(i, j) << " ";
     }
     arq << endl;
   }
   arq.close();
 
-  //Write a DATA file if requested
-  // if (writeDataFile) {
-  //   cout << "Wrote on data file named " << nome << endl;
-  //   ofstream arqVis;
+  //   Write a DATA file if requested
   //   arqVis.open((nome+"data").c_str(), ios::in);
   //   arqVis << "DY\n" << labels.size().height << '\n';
   //   arqVis << features.size().width << '\n';
@@ -485,34 +424,6 @@ void GetFeatureVector(int method, Mat img, Mat *featureVector, int colors,
   if ((*featureVector).cols == 0) {
     cout << "Error: the feature vector is null" << endl;
     exit(-1);
-=======
-      arq << " " << features.at<double>(i, j);
-    }
-    arq << '\n';
-  }
-  arq.close();
-
-  // Write a DATA file if requested
-  if (writeDataFile) {
-    cout << "Wrote on data file named " << nome << endl;
-    ofstream arqVis;
-    arqVis.open((nome+"data").c_str(), ios::in);
-    arqVis << "DY\n" << labels.size().height << '\n';
-    arqVis << features.size().width << '\n';
-    for (i = 0; i < features.size().width-1; i++) {
-      arqVis << "attr" << i << ";";
-    }
-    arqVis << "attr" << i << "\n";
-    for (i = 0; i < labels.size().height; i++) {
-      arqVis << i << ".png";
-      for (j = 0; j < features.size().width; j++) {
-        arqVis << features.at<double>(i, j) << ";";
-      }
-      double numeroimg = labels.at<uchar>(i, 0);
-      arqVis << numeroimg << "\n";
-    }
-    arqVis.close();
->>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
   }
 }
 
@@ -562,13 +473,9 @@ string descriptor(string database, string featuresDir, int method, int colors,
         imgTotal++;
 
         resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
-<<<<<<< HEAD
         if (newimg.channels() > 1) {
           ConvertToGrayscale(quantization, newimg, &newimg, colors);
         }
-=======
-        ConvertToGrayscale(quantization, newimg, &newimg, colors);
->>>>>>> 13655ef61b0bbd9cef821a2987b1940a0deb60c8
         GetFeatureVector(method, newimg, &featureVector, colors, normalization, param);
 
         features.push_back(featureVector);

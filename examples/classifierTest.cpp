@@ -8,7 +8,6 @@
 #include "rebalanceTest.h"
 
 string desc(string dir, string features, int d, int m, string id){
-    // testar normalizado e 64!
     vector<int> paramCCV = {25};
     vector<int> paramACC = {1, 3, 5, 7};
     vector<int> parameters;
