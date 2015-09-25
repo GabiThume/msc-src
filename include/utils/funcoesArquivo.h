@@ -26,12 +26,14 @@ struct Classes {
 	Mat trainOrTest;
 };
 
-vector<Classes> readFeatures(string filename);
+vector<Classes> ReadFeaturesFromFile(string filename);
 
 int qtdArquivos(string diretorio);
 
-int qtdImagensTotal(string base, int qtdClasses, vector<int> *objClass, int *maxs);
+int NumberImagesInDataset(string base, int qtdClasses, vector<int> *objClass);
 
-string descriptor(string baseImagem, string diretorioDescritores, int method, int nColor, double nRes, int oNorm, vector<int> param, int oZero, int quantMethod, string id);
+string PerformFeatureExtraction(string database, string featuresDir, int method,
+    int colors, double resizeFactor, int normalization, vector<int> param,
+    int deleteNull, int quantization, string id = "");
 
 #endif

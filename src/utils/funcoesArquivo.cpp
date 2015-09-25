@@ -43,7 +43,7 @@ Read the features from the input file and save them in a vector of classes
 Requires
 - string name of input file
 *******************************************************************************/
-vector<Classes> readFeatures(string filename) {
+vector<Classes> ReadFeaturesFromFile(string filename) {
   int j, newSize = 0, previousClass = -1, actualClass;
   float features;
   size_t d;
@@ -136,11 +136,9 @@ int qtdArquivos(string directory) {
 
 /*******************************************************************************
 *******************************************************************************/
-int qtdImagensTotal(string base, int qtdClasses, vector<int> *objClass,
-                    int *maxs) {
+int NumberImagesInDataset(string base, int qtdClasses, vector<int> *objClass) {
   int i, count = 0, currentSize;
   string directory;
-  *maxs = 0;
 
   for (i = 0; i < qtdClasses; i++) {
     directory = base + "/" + to_string(i) + "/treino/";
@@ -157,9 +155,6 @@ int qtdImagensTotal(string base, int qtdClasses, vector<int> *objClass,
     }
     (*objClass).push_back(currentSize);
     count += currentSize;
-    if (currentSize > *maxs || *maxs == 0) {
-      *maxs = currentSize;
-    }
   }
   return count;
 }
@@ -197,6 +192,13 @@ Mat FindImgInClass(string database, int img_class, int img_number, int index,
 }
 
 /*******************************************************************************
+Counts how many images are in a class, and how many of those are for training
+
+Requires
+- string database name
+- int class number
+- int* output the total number of images
+- int* output the number of images in training
 *******************************************************************************/
 void NumberImgInClass(string database, int img_class, int *num_imgs,
                       int *num_train) {
@@ -223,50 +225,56 @@ void NumberImgInClass(string database, int img_class, int *num_imgs,
 }
 
 /*******************************************************************************
+Write the features of Mat features in a csv file
+
+Requires
+- string directory where to write the csv file
+- int quantization method
+- int description method
+- int number of colors wanted in the image
+- int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
+- int factor for resizing
+- int number of classes
+- Mat of features, one row for each image
+- Mat of labels, one row for each image
+- Mat indicating if the image in each row is fixed for training or testing
+- string id to add in the end of file (requested for static rebalance)
+- bool indicates if it is necessary to write a data file
 *******************************************************************************/
 string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
                     int colors, int normalization, int resizingFactor,
-                    int qtdClasses, vector<int>objperClass, Mat features,
-                    Mat labels, Mat trainTest, string id, bool writeDataFile) {
+                    int qtdClasses, Mat features, Mat labels, Mat trainTest,
+                    string id, bool writeDataFile) {
 
-  ofstream arq;
-  int i, j, bars;
-  double porc;
-  string nome;
+  ofstream arq, arqVis;
+  int i, j;
+  string name;
 
-  nome = featuresDir + descriptorMethod[method-1] + "_";
-  nome += quantizationMethod[quantization-1] + "_" + to_string(colors);
-  nome += "c_" + to_string(resizingFactor) + "r_";
-  nome += to_string(features.rows) + "i_" + id + ".csv";
-  arq.open(nome.c_str(), ios::out);
+  // Decide the features file's name
+  name = featuresDir + descriptorMethod[method-1] + "_";
+  name += quantizationMethod[quantization-1] + "_" + to_string(colors);
+  name += "c_" + to_string(resizingFactor) + "r_";
+  name += to_string(features.rows) + "i_" + id + ".csv";
+
+  // Open file to write features
+  arq.open(name.c_str(), ios::out);
   if (!arq.is_open()) {
-    cout << "It is not possible to open the feature's file: " << nome << endl;
+    cout << "It is not possible to open the feature's file: " << name << endl;
     exit(-1);
   }
 
-  cout << "File: " << nome << endl;
-  cout << "Number of images: " << features.rows << " - Classes: " << qtdClasses;
-  cout << " - Features: " << features.cols << endl;
-
-  for (i = 0; i < qtdClasses; i++) {
-    bars = (static_cast<double> (objperClass[i]) /
-      static_cast<double> (features.rows)) * 50.0;
-    cout << i << " ";
-    for (j = 0; j < bars; j++) {
-      cout << "|";
-    }
-    porc = static_cast<double> (objperClass[i]) /
-      static_cast<double> (features.rows);
-    cout << " " << porc * 100.0 << "%" << " (" << objperClass[i] << ")" <<endl;
-  }
-
+  // Write the calculated features on a file to load in classification
+  // Number of images \t number of classes \t number of features per image
   arq << features.rows << '\t' << qtdClasses << '\t' << features.cols << endl;
+  // For each image
   for (i = 0; i < features.rows; i++) {
-    // Write the image number and the referenced class
     if (labels.rows > 0) {
+      // Write the image number \t the referenced class \t
       arq << i << '\t' << labels.at<int>(i, 0) << '\t';
+      // and if it is fixed as training or testing image
       arq << trainTest.at<int>(i, 0) << '\t';
     }
+    // Write the feature vector related to the current image
     for (j = 0; j < features.cols; j++) {
       arq << features.at<float>(i, j) << " ";
     }
@@ -274,25 +282,27 @@ string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
   }
   arq.close();
 
-  //   Write a DATA file if requested
-  //   arqVis.open((nome+"data").c_str(), ios::in);
-  //   arqVis << "DY\n" << labels.size().height << '\n';
-  //   arqVis << features.size().width << '\n';
-  //   for (i = 0; i < features.size().width-1; i++) {
-  //     arqVis << "attr" << i << ";";
-  //   }
-  //   arqVis << "attr" << i << "\n";
-  //   for (i = 0; i < labels.size().height; i++) {
-  //     arqVis << i << ".png";
-  //     for (j = 0; j < features.size().width; j++) {
-  //       arqVis << features.at<float>(i, j) << ";";
-  //     }
-  //     int numeroimg = labels.at<int>(i, 0);
-  //     arqVis << numeroimg << endl;
-  //   }
-  //   arqVis.close();
-  // }
-  return nome;
+  // Write a DATA file if requested (expected in some visualizations tools)
+  if (writeDataFile) {
+    arqVis.open((name+"data").c_str(), ios::in);
+    arqVis << "DY\n" << labels.size().height << '\n';
+    arqVis << features.size().width << '\n';
+    for (i = 0; i < features.size().width-1; i++) {
+      arqVis << "attr" << i << ";";
+    }
+    arqVis << "attr" << i << "\n";
+    for (i = 0; i < labels.size().height; i++) {
+      arqVis << i << ".png";
+      for (j = 0; j < features.size().width; j++) {
+        arqVis << features.at<float>(i, j) << ";";
+      }
+      int numeroimg = labels.at<int>(i, 0);
+      arqVis << numeroimg << endl;
+    }
+    arqVis.close();
+  }
+
+  return name;
 }
 
 // vector<float> features_col_summed;
@@ -429,15 +439,15 @@ void GetFeatureVector(int method, Mat img, Mat *featureVector, int colors,
 
 /*******************************************************************************
 *******************************************************************************/
-string descriptor(string database, string featuresDir, int method, int colors,
-                  double resizeFactor, int normalization, vector<int> param,
-                  int deleteNull, int quantization, string id = "") {
+string PerformFeatureExtraction(string database, string featuresDir, int method,
+    int colors, double resizeFactor, int normalization, vector<int> param,
+    int deleteNull, int quantization, string id){
   int numImages = 0, qtdClasses = 0, qtdImgTotal = 0, imgTotal = 0, treino = 0;
-  int maxc = 0, i, j;
+  int i, j, bars, porc, current_class;
   int resizingFactor = static_cast<int>(resizeFactor*100);
-  string nome, directory;
+  string name, directory;
   Mat img, featureVector, features, labels, trainTest, newimg;
-  vector<int> objperClass;
+  vector<int> num_images_class;
 
   cout << "\n---------------------------------------------------------" << endl;
   cout << "Image feature extraction using " << descriptorMethod[method-1];
@@ -448,10 +458,13 @@ string descriptor(string database, string featuresDir, int method, int colors,
 
   img = imread(database, CV_LOAD_IMAGE_COLOR);
   if (!img.empty()) {
+    // Resize the image given the input factor
     resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
-    if (newimg.channels() > 1) {
-      ConvertToGrayscale(quantization, newimg, &newimg, colors);
-    }
+
+    // Convert the image to grayscale
+    ConvertToGrayscale(quantization, newimg, &newimg, colors);
+
+    // Call the description method
     GetFeatureVector(method, newimg, &features, colors, normalization, param);
 
     featureVector.release();
@@ -460,7 +473,7 @@ string descriptor(string database, string featuresDir, int method, int colors,
   } else {
     // Check how many classes and images there are
     qtdClasses = qtdArquivos(database+"/");
-    qtdImgTotal = qtdImagensTotal(database, qtdClasses, &objperClass, &maxc);
+    qtdImgTotal = NumberImagesInDataset(database, qtdClasses, &num_images_class);
     labels = Mat::zeros(qtdImgTotal, 1, CV_32S);
     trainTest = Mat::zeros(qtdImgTotal, 1, CV_32S);
 
@@ -468,19 +481,27 @@ string descriptor(string database, string featuresDir, int method, int colors,
       NumberImgInClass(database, i, &numImages, &treino);
 
       for (j = 0; j < numImages; j++)    {
+        // The image label is the i index
         labels.at<int>(imgTotal, 0) = i;
+        // Find this image in the class and open it
         img = FindImgInClass(database, i, j, imgTotal, treino, &trainTest);
         imgTotal++;
 
+        // Resize the image given the input factor
         resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
-        if (newimg.channels() > 1) {
-          ConvertToGrayscale(quantization, newimg, &newimg, colors);
-        }
-        GetFeatureVector(method, newimg, &featureVector, colors, normalization, param);
 
+        // Convert the image to grayscale
+        ConvertToGrayscale(quantization, newimg, &newimg, colors);
+
+        // Call the description method
+        GetFeatureVector(method, newimg, &featureVector, colors, normalization,
+          param);
+
+        // Push the feature vector for the current image in the features vector
         features.push_back(featureVector);
         featureVector.release();
         img.release();
+        newimg.release();
       }
     }
     // Normalization of Haralick and contourExtraction features by z-index
@@ -489,9 +510,27 @@ string descriptor(string database, string featuresDir, int method, int colors,
     }
   }
 
-  nome = WriteFeaturesOnFile(featuresDir, quantization, method, colors,
-    normalization, resizingFactor, qtdClasses, objperClass, features, labels,
-    trainTest, id, false);
+  // Show the number of images per class
+  cout << "File: " << name << endl;
+  cout << "Number of images: " << features.rows << " - Classes: " << qtdClasses;
+  cout << " - Features: " << features.cols << endl;
 
-  return nome;
+  for (current_class = 0; current_class < qtdClasses; current_class++) {
+    bars = (static_cast<double> (num_images_class[current_class]) /
+      static_cast<double> (features.rows)) * 50.0;
+    cout << current_class << " ";
+    for (j = 0; j < bars; j++) {
+      cout << "|";
+    }
+    porc = static_cast<double> (num_images_class[current_class]) /
+      static_cast<double> (features.rows);
+    cout << " " << porc * 100.0 << "%" << " (";
+    cout << num_images_class[current_class] << ")" <<endl;
+  }
+
+  name = WriteFeaturesOnFile(featuresDir, quantization, method, colors,
+    normalization, resizingFactor, qtdClasses, features, labels, trainTest,
+    id, false);
+
+  return name;
 }

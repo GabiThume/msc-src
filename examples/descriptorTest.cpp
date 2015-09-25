@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    descriptor(databaseDir, featuresDir, descMethod, colors, resize,
-              normalization, params, deleteNull, quantMethod, id);
+    PerformFeatureExtraction(databaseDir, featuresDir, descMethod, colors,
+      resize, normalization, params, deleteNull, quantMethod, id);
     return 0;
   }

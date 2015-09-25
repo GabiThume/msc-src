@@ -166,7 +166,8 @@ Mat Artificial::generateUnsharp(Mat originalImage){
 	return generated;
 }
 
-Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int total, int fator, bool option){
+Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images,
+		int total, int fator, bool option){
 
 	vector<int> vectorRand;
 	Mat subImg, generated, img, roi;
@@ -176,43 +177,40 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
 
 	startWidth = startHeight = 0;
 	for (subImage = 1; subImage <= fator; subImage++){
-		// if (option == 2){
-		// 	originalImage.copyTo(img);
-		// }
-		// else {
-		do{
+		do {
 			newImage = rand() % total;
-		} while(count(vectorRand.begin(), vectorRand.end(), newImage) && vectorRand.size() < total);
+		} while(count(vectorRand.begin(), vectorRand.end(), newImage) &&
+						(int)vectorRand.size() < total);
 		vectorRand.push_back(newImage);
 		images[newImage].copyTo(img);
-		// }
 
 		operation = 1 + (rand() % 6);
 		switch(operation){
 			case 1:
-			generated = generateBlur(img);
-			break;
+				generated = generateBlur(img);
+				break;
 			case 2:
-			generated = generateBlending(img, images, total);
-			break;
+				generated = generateBlending(img, images, total);
+				break;
 			case 3:
-			generated = generateUnsharp(img);
-			break;
+				generated = generateUnsharp(img);
+				break;
 			case 4:
-			generated = generateThreshold(img, images, total);
-			break;
+				generated = generateThreshold(img, images, total);
+				break;
 			case 5:
-			generated = generateSaliency(img, images, total);
-			break;
+				generated = generateSaliency(img, images, total);
+				break;
 			case 6:
-			generated = generateSmoteImg(img, images, total, 1);
-			default:
+				generated = generateSmoteImg(img, images, total, 1);
+				default:
 			break;
 		}
 		roiHeight = subImg.size().height/sqrt(fator);
 		roiWidth = subImg.size().width/sqrt(fator);
 
-		if (generated.size().width < roiWidth || generated.size().height < roiHeight){
+		if (generated.size().width < roiWidth ||
+				generated.size().height < roiHeight){
 			subImage--;
 			continue;
 		}
@@ -222,7 +220,7 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
 			generated(Rect(randW, randH, roiWidth, roiHeight)).copyTo(roi);
 		}
 		else{
-			if (generated.size() == subImg.size()){
+			if (generated.size() == subImg.size()) {
 				generated(Rect(startWidth, startHeight, roiWidth, roiHeight)).copyTo(roi);
 			}
 			else {
@@ -247,7 +245,8 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images, int t
 	return subImg;
 }
 
-Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images, int total){
+Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images,
+		int total){
 
 	Mat generated, bin, foreground, background, saliency_map;
 	int randomSecondImg;
@@ -258,8 +257,10 @@ Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images, int tot
 
 	// MORPH_RECT
 	int erosion_size = 1;
-	morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(2*erosion_size+1, 2*erosion_size+1), Point(erosion_size,erosion_size)), Point(-1,-1));
-	// originalImage.copyTo(foreground, bin&1);
+	morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE,
+		Size(2*erosion_size+1, 2*erosion_size+1),
+		Point(erosion_size,erosion_size)), Point(-1,-1));
+
 	originalImage.copyTo(foreground, bin);
 
 	// Select another image with the same size
@@ -389,12 +390,85 @@ Mat Artificial::generateSmoteImg(Mat originalImage, vector<Mat> images, int tota
 	return generated;
 }
 
+void Artificial::GenerateImage(vector<Mat> images, int generationType,
+		string name, Mat original, int total) {
+	Mat generated;
+
+	cout << "Generate " << name << " with operation " << generationType << endl;
+
+	switch (generationType) {
+		case 0: /* Replication */
+			imwrite(name, original);
+			break;
+		case 2:
+			generated = generateBlur(original);
+			imwrite(name, generated);
+			break;
+		case 3:
+			generated = generateBlending(original, images, total);
+			imwrite(name, generated);
+			break;
+		case 4:
+			generated = generateUnsharp(original);
+			imwrite(name, generated);
+			break;
+		case 5:
+			generated = generateComposition(original, images, total, 16, 1);
+			imwrite(name, generated);
+			break;
+		case 6:
+			generated = generateThreshold(original, images, total);
+			imwrite(name, generated);
+			break;
+		case 7:
+			generated = generateSaliency(original, images, total);
+			imwrite(name, generated);
+			break;
+		case 8:
+			generated = generateSmoteImg(original, images, total, 1);
+			imwrite(name, generated);
+			break;
+		// Those below this line are not used in our tests anymore
+		case 9:
+		    generated = generateSmoteImg(original, images, total, 0);
+		    imwrite(name, generated);
+		    break;
+		case 10:
+		    generated = generateNoise(original);
+		    imwrite(name, generated);
+		    break;
+		case 11:
+		    generated = generateComposition(original, images, total, 4, 0);
+		    imwrite(name, generated);
+		    break;
+		case 12:
+		    generated = generateComposition(original, images, total, 16, 1);
+		    imwrite(name, generated);
+		    break;
+		case 13:
+		    generated = generateComposition(original, images, total, 4, 1);
+		    imwrite(name, generated);
+		    break;
+		case 14:
+		    generated = generateComposition(original, images, total, 4, 2);
+		    imwrite(name, generated);
+		    break;
+		case 15:
+		    generated = generateComposition(original, images, total, 16, 2);
+		    imwrite(name, generated);
+		    break;
+		default:
+			break;
+	}
+	generated.release();
+}
+
 string Artificial::generate(string base, string newDirectory, int whichOperation = 0){
 
 	int i, qtdClasses = 0, generationType, rebalanceTotal = 0;
-	int maior = -1, maiorClasse, rebalance, qtdImg, eachClass;
+	int maiorClasse, rebalance, eachClass, qtdImg, maior;
 	Mat img, noise;
-	string imgName, classe, minorityClass, str;
+	string imgName, classe, minorityClass, str, nameGeneratedImage;
 	struct dirent *sDir = NULL;
 	DIR *dir = NULL, *minDir = NULL;
 	vector<int> totalImage, vectorRand;
@@ -423,13 +497,14 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 		exit(1);
 	}
 
-	cout << "\n---------------------------------------------------------------------------------------" << endl;
+	cout << "\n---------------------------------------------------------" << endl;
 	cout << "Artifical generation of images to rebalance classes" << endl;
-	cout << "---------------------------------------------------------------------------------------" << endl;
+	cout << "-----------------------------------------------------------" << endl;
 
 	qtdClasses = classesNumber(newDirectory);
 	cout << "Number of classes: " << qtdClasses << endl;
 	/* Count how many files there are in classes and which is the majority */
+	maior = -1;
 	for(i = 0; i < qtdClasses; i++) {
 		classe = newDirectory + "/" + to_string(i) + "/";
 		qtdImg = classesNumber(classe+"/treino/");
@@ -446,14 +521,14 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 	for(eachClass = 0; eachClass < qtdClasses; ++eachClass) {
 		/* Find out how many samples are needed to rebalance */
 		rebalance = totalImage[maiorClasse] - totalImage[eachClass];
-		if (rebalance > 0){
+		if (rebalance > 0) {
 
 			minorityClass = newDirectory + "/" + to_string(eachClass) + "/treino/";
 			cout << "Class: " << minorityClass << " contain " << totalImage[eachClass] << " images" << endl;
 			minDir = opendir(minorityClass.c_str());
 
 			/* Add all minority images in vector<Mat>images */
-			while((sDir = readdir(minDir))) {
+			while ((sDir = readdir(minDir))) {
 				imgName = sDir->d_name;
 				img = imread(minorityClass + imgName, CV_LOAD_IMAGE_COLOR);
 				if (!img.data) continue;
@@ -464,86 +539,19 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 			for (i = 0; i < rebalance; i++){
 				/* Choose a random image */
 				int randomImg = rand() % totalImage[eachClass];
-				Mat generated, subImg, tmp, bin, foreground, background;
 				Mat original;
 				images[randomImg].copyTo(original);
 				/* Choose an operation
 				Case 1: All operation */
-				if (whichOperation == 1)
-				generationType = 2 + (rand() % 7);
-				else
-				generationType = whichOperation;
+				generationType = (whichOperation == 1) ? 2+(rand()%7) : whichOperation;
 
-				string nameGeneratedImage = minorityClass + to_string(totalImage[eachClass]+i) + ".png";
-				cout << "Generate image " << nameGeneratedImage << " with operation " << generationType << endl;
-				switch (generationType) {
-					case 0: /* Replication */
-					imwrite(nameGeneratedImage, original);
-					break;
-					case 2:
-					generated = generateBlur(original);
-					imwrite(nameGeneratedImage, generated);
-					break;
-					case 3:
-					generated = generateBlending(original, images, totalImage[eachClass]);
-					imwrite(nameGeneratedImage, generated);
-					break;
-					case 4:
-					generated = generateUnsharp(original);
-					imwrite(nameGeneratedImage, generated);
-					break;
-					case 5:
-					generated = generateComposition(original, images, totalImage[eachClass], 16, 1);
-					imwrite(nameGeneratedImage, generated);
-					break;
-					case 6:
-					generated = generateThreshold(original, images, totalImage[eachClass]);
-					imwrite(nameGeneratedImage, generated);
-					break;
-					case 7:
-					generated = generateSaliency(original, images, totalImage[eachClass]);
-					imwrite(nameGeneratedImage, generated);
-					break;
-					case 8:
-					generated = generateSmoteImg(original, images, totalImage[eachClass], 1);
-					imwrite(nameGeneratedImage, generated);
-					break;
-					// case 11:
-					//     generated = generateSmoteImg(original, images, totalImage[eachClass], 0);
-					//     imwrite(nameGeneratedImage, generated);
-					//     break;
-					// case 3:
-					//     generated = generateNoise(original);
-					//     imwrite(nameGeneratedImage, generated);
-					//     break;
-					// case 6:
-					//     generated = generateComposition(original, images, totalImage[eachClass], 4, 0);
-					//     imwrite(nameGeneratedImage, generated);
-					//     break;
-					// case 12:
-					//     generated = generateComposition(original, images, totalImage[eachClass], 16, 1);
-					//     imwrite(nameGeneratedImage, generated);
-					//     break;
-					// case 13:
-					//     generated = generateComposition(original, images, totalImage[eachClass], 4, 1);
-					//     imwrite(nameGeneratedImage, generated);
-					//     break;
-					// case 14:
-					//     generated = generateComposition(original, images, totalImage[eachClass], 4, 2);
-					//     imwrite(nameGeneratedImage, generated);
-					//     break;
-					// case 15:
-					//     generated = generateComposition(original, images, totalImage[eachClass], 16, 2);
-					//     imwrite(nameGeneratedImage, generated);
-					//     break;
-					default:
-					break;
-				}
-				generated.release();
+				nameGeneratedImage = minorityClass += to_string(totalImage[eachClass]+i) + ".png";
+				GenerateImage(images, generationType, nameGeneratedImage, original,
+					totalImage[eachClass]);
 			}
 			rebalanceTotal += rebalance;
 			cout << rebalance << " images were generated and this is now balanced." << endl;
-			cout << "---------------------------------------------------------------------------------------" << endl;
+			cout << "-------------------------------------------------------" << endl;
 			images.clear();
 		}
 	}

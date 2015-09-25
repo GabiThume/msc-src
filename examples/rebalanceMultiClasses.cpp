@@ -10,7 +10,6 @@
 // string descriptorMethod[8] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"};
 // string quantizationMethod[4] = {"Intensity", "Luminance", "Gleam", "MSB"};
 
-// descriptor(databaseDir.c_str(), descMethodDir.c_str(), descMethod, colors, resize, normalization, params, numParameters, deleteNull, quantMethod, id.c_str());
 string desc(string dir, string features, int d, int m, string id){
 
     vector<int> paramCCV = {25};
@@ -18,19 +17,18 @@ string desc(string dir, string features, int d, int m, string id){
     vector<int> parameters;
     /* If descriptor ==  CCV, threshold is required */
     if (d == 3)
-        return descriptor(dir, features, d, 256, 1, 1, paramCCV, 0, m, id);
+        return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramCCV, 0, m, id);
     /* If descriptor ==  ACC, distances are required */
     else if (d == 5)
-        return descriptor(dir, features, d, 256, 1, 1, paramACC, 0, m, id);
+        return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramACC, 0, m, id);
     else
-        return descriptor(dir, features, d, 256, 1, 1, parameters, 0, m, id);
+        return PerformFeatureExtraction(dir, features, d, 64, 1, 1, parameters, 0, m, id);
 }
 
 /* Generate a imbalanced class */
 string imbalance(string database, string newDir, double prob, double id){
 
-    int pos = 0, samples, imagesTraining, i, imgsInClass;
-    int x, qtdClasses, qtdImgTotal, maxc;
+    int pos = 0, samples, imagesTraining, i, imgsInClass, x, qtdClasses;
     string dir;
     vector<int> vectorRand, objperClass;
     srand(time(0));
@@ -50,7 +48,6 @@ string imbalance(string database, string newDir, double prob, double id){
 
     directory = database+"/";
     qtdClasses = qtdArquivos(directory);
-    qtdImgTotal = qtdImagensTotal(database, qtdClasses, &objperClass, &maxc);
 
     for(i = 0; i < qtdClasses; i++) {
         classNumber.str("");
@@ -115,25 +112,27 @@ string imbalance(string database, string newDir, double prob, double id){
     return dir;
 }
 
-vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int *total){
+string performSmote(vector<Classes> imbalancedData, int operation, string csvSmote){
 
-    int majority = -1, majorityClass = -1, eachClass, amountSmote;
-    int numTraining = 0, numTesting = 0, i, x, neighbors, pos;
+    int majority = -1, majorityClass = -1, eachClass, amountSmote, countImg = 0;
+    int numTraining = 0, numTesting = 0, i, x, neighbors, pos, total, h, w;
     vector<int> trainingNumber(imbalancedData.size(), 0);
     std::vector<Classes>::iterator it;
     vector<Classes> rebalancedData;
+    stringstream numberOfImages;
+    ofstream arq;
     Mat synthetic;
     SMOTE s;
 
     for (it = imbalancedData.begin(); it != imbalancedData.end(); ++it){
         if (it->fixedTrainOrTest){
             for(i = 0; i < it->trainOrTest.size().height; ++i){
-                if (it->trainOrTest.at<double>(i,0) == 1)
+                if (it->trainOrTest.at<int>(i,0) == 1)
                     trainingNumber[it->classNumber]++;
             }
         }
         else{
-            trainingNumber[it->classNumber] = it->trainOrTest.size().height/2; //TODO fixed
+            trainingNumber[it->classNumber] = it->trainOrTest.size().height/2.0;
         }
         if (trainingNumber[it->classNumber] > majority){
             majorityClass = it->classNumber;
@@ -141,16 +140,16 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
         }
     }
 
-    (*total) = 0;
+    total = 0;
     for (eachClass = 0; eachClass < (int) imbalancedData.size(); ++eachClass){
 
-        Mat dataTraining(0, imbalancedData[eachClass].features.size().width, CV_64FC1);
-        Mat dataTesting(0, imbalancedData[eachClass].features.size().width, CV_64FC1);
+        Mat dataTraining(0, imbalancedData[eachClass].features.size().width, CV_32FC1);
+        Mat dataTesting(0, imbalancedData[eachClass].features.size().width, CV_32FC1);
 
         numTraining = 0;
         numTesting = 0;
 
-        cout << "In class " << eachClass << " original images: " << trainingNumber[eachClass] << endl;
+        cout << "In class " << eachClass << " original training images: " << trainingNumber[eachClass] << endl;
         /* Find out how many samples are needed to rebalance */
         amountSmote = trainingNumber[majorityClass] - trainingNumber[eachClass];
 
@@ -160,13 +159,13 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
             //cout << " neighbors " << neighbors << endl;
 
             for (x = 0; x < imbalancedData[eachClass].trainOrTest.size().height; ++x){
-                if (imbalancedData[eachClass].trainOrTest.at<double>(x,0) == 1){
+                if (imbalancedData[eachClass].trainOrTest.at<int>(x,0) == 1){
                     dataTraining.resize(numTraining+1);
                     Mat tmp = dataTraining.row(numTraining);
                     imbalancedData[eachClass].features.row(x).copyTo(tmp);
                     numTraining++;
                 }
-                if (imbalancedData[eachClass].trainOrTest.at<double>(x,0) == 2){
+                if (imbalancedData[eachClass].trainOrTest.at<int>(x,0) == 2){
                     dataTesting.resize(numTesting+1);
                     Mat tmp = dataTesting.row(numTesting);
                     imbalancedData[eachClass].features.row(x).copyTo(tmp);
@@ -178,7 +177,7 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
                 synthetic = s.smote(dataTraining, amountSmote, neighbors);
             }
             else {
-                synthetic.create(amountSmote, imbalancedData[eachClass].features.size().width, CV_64FC1);
+                synthetic.create(amountSmote, imbalancedData[eachClass].features.size().width, CV_32FC1);
                 for (x = 0; x < amountSmote; x++){
                     pos = rand() % (dataTraining.size().height);
                     Mat tmp = synthetic.row(x);
@@ -186,7 +185,7 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
                 }
             }
 
-            cout << " new synthetic samples: " << amountSmote << endl;
+            cout << "SMOTE generated " << amountSmote << " new synthetic samples" << endl;
 
             /* Concatenate original with synthetic data*/
             Classes imgClass;
@@ -194,12 +193,12 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
             vconcat(dataTraining, synthetic, dataRebalanced);
             vconcat(dataRebalanced, dataTesting, imgClass.features);
             imgClass.classNumber = eachClass;
-            imgClass.trainOrTest.create(dataRebalanced.size().height, 1, CV_64FC1); // Training
-            imgClass.trainOrTest = Scalar(1);
-            imgClass.trainOrTest.resize(imgClass.features.size().height, 2); // Testing
+            imgClass.trainOrTest.create(dataRebalanced.size().height, 1, CV_32S); // Training
+            imgClass.trainOrTest = Scalar::all(1);
+            imgClass.trainOrTest.resize(imgClass.features.size().height, Scalar::all(2)); // Testing
 
             rebalancedData.push_back(imgClass);
-            (*total) += imgClass.features.size().height;
+            total += imgClass.features.size().height;
             dataTraining.release();
             synthetic.release();
             dataRebalanced.release();
@@ -207,27 +206,36 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
         }
         else{
             rebalancedData.push_back(imbalancedData[eachClass]);
-            (*total) += imbalancedData[eachClass].features.size().height;
+            total += imbalancedData[eachClass].features.size().height;
         }
     }
 
-    // FILE *arq = fopen("smote.data", "w+");
-    // int w, z;
-    // fprintf(arq,"%s\n", "DY");
-    // fprintf(arq,"%d\n", newClasses.size().height);
-    // fprintf(arq,"%d\n", total.size().width);
-    // for(z = 0; z < total.size().width-1; z++) {
-    //     fprintf(arq,"%s%d;", "attr",z);
-    // }
-    // fprintf(arq,"%s%d\n", "attr",z);
-    // for (w = 0; w < newClasses.size().height; w++) {
-    //     fprintf(arq,"%d%s;", w,".jpg");
-    //     for(z = 0; z < total.size().width; z++) {
-    //         fprintf(arq,"%.5f;", total.at<double>(w, z));
-    //     }
-    //     fprintf(arq,"%1.1f\n", newClasses.at<double>(w,0));
-    // }
-    return rebalancedData;
+    numberOfImages.str("");
+    numberOfImages << total;
+
+    string name = csvSmote + "256c_100r_"+numberOfImages.str()+"i_smote.csv";
+    arq.open(name.c_str(), ios::out);
+    if (!arq.is_open()) {
+      cout << "It is not possible to open the feature's file: " << name << endl;
+      exit(-1);
+    }
+    cout << "---------------------------------------------------------------------------------------" << endl;
+    cout << "Wrote on data file named " << name << endl;
+    cout << "---------------------------------------------------------------------------------------" << endl;
+    arq << total << '\t' << rebalancedData.size() << '\t' << rebalancedData[0].features.size().width << endl;
+    for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
+        cout << "SMOTE >>>>>>>>>> " << it->features.size() << endl;
+        for (h = 0; h < it->features.size().height; h++){
+            arq << countImg << '\t' << it->classNumber << '\t' << it->trainOrTest.at<int>(h,0) << '\t';
+            for (w = 0; w < it->features.size().width; w++){
+              arq << it->features.at<float>(h, w) << " ";
+            }
+            arq << endl;
+            countImg++;
+        }
+    }
+    arq.close();
+    return name;
 }
 
 int main(int argc, char const *argv[]){
@@ -237,12 +245,12 @@ int main(int argc, char const *argv[]){
     Artificial a;
     ofstream csvFile;
     stringstream numImages, globalFactor;
-    int numClasses, rep, m, d, operation, i, initialMethod, endMethod, h, w, totalRebalanced, x;
+    int numClasses, m, d, operation, i, x, minoritySize;
     double prob = 0.5, fscoreMean, bestFscoreMean;
     string nameFile, name, nameDir, descriptorName, method, newDir, baseDir, featuresDir;
     string csvOriginal, csvSmote, csvRebalance, analysisDir, csvDesbalanced;
     string directory, str, bestDir;
-    vector<Classes> imbalancedData, artificialData;
+    vector<Classes> imbalancedData, artificialData, rebalancedData;
     vector<int> objperClass;
     vector<vector<double> > rebalancedFscore, desbalancedFscore;
     vector<double> fscores, bestFscore, desbalancedFscores;
@@ -278,7 +286,7 @@ int main(int argc, char const *argv[]){
 
     vector<double> factors = {1.0, 1.5, 1.75};
 
-    for (x = 0; x < factors.size(); x++){
+    for (x = 0; x < (int)factors.size(); x++){
         /* Desbalancing Data */
         cout << "\n\n------------------------------------------------------------------------------------" << endl;
         cout << "Divide the number of original samples to create a minority class:" << endl;
@@ -305,7 +313,7 @@ int main(int argc, char const *argv[]){
                     /* Feature extraction from images */
                     string originalDescriptor = desc(dirImbalanced, featuresDir, d, m, "desbalanced");
                     /* Read the feature vectors */
-                    imbalancedData = readFeatures(originalDescriptor);
+                    imbalancedData = ReadFeaturesFromFile(originalDescriptor);
                     numClasses = imbalancedData.size();
                     if (numClasses != 0){
                         cout << "---------------------------------------------------------------------------------------" << endl;
@@ -318,7 +326,7 @@ int main(int argc, char const *argv[]){
                     }
 
                     string fileDescriptor = desc(dirRebalanced, featuresDir, d, m, "artificial");
-                    artificialData = readFeatures(fileDescriptor);
+                    artificialData = ReadFeaturesFromFile(fileDescriptor);
                     if (artificialData.size() != 0){
                         cout << "---------------------------------------------------------------------------------------" << endl;
                         cout << "Classification using rebalanced data" << endl;
@@ -329,32 +337,17 @@ int main(int argc, char const *argv[]){
                     }
 
                     /* Generate Synthetic SMOTE samples */
-                    imbalancedData = readFeatures(originalDescriptor);
-                    vector<Classes> rebalancedData = performSmote(imbalancedData, operation, &totalRebalanced);
+                    imbalancedData = ReadFeaturesFromFile(originalDescriptor);
+                    string descSmote = newDirectory+"/features/"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+                    string smoteDescriptor = performSmote(imbalancedData, operation, descSmote);
+                    rebalancedData = ReadFeaturesFromFile(smoteDescriptor);
                     if (rebalancedData.size() != 0){
                         cout << "---------------------------------------------------------------------------------------" << endl;
                         cout << "Classification using SMOTE" << endl;
-                        cout << "Features vectors file: " << name.c_str() << endl;
+                        cout << "Features vectors file: " << smoteDescriptor.c_str() << endl;
                         cout << "---------------------------------------------------------------------------------------" << endl;
-                        c.classify(prob, 1, rebalancedData, csvSmote.c_str(), x);
-
-                        stringstream numberOfImages;
-                        numberOfImages.str("");
-                        numberOfImages << totalRebalanced;
-                        string name = featuresDir+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_256c_100r_"+numberOfImages.str()+"i_smote.csv";
-
-                        FILE *arq = fopen(name.c_str(), "w+");
-                        fprintf(arq,"%d %d\t%d\n", totalRebalanced, rebalancedData.size(), (int) rebalancedData[0].features.size().width);
-                        int imgNumber = 0;
-                        for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
-                            for (h = 0; h < it->features.size().height; h++, imgNumber++){
-                                fprintf(arq,"%d\t%d\t%d\t", imgNumber, it->classNumber, (int) it->trainOrTest.at<double>(h,0));
-                                for (w = 0; w < it->features.size().width; w++){
-                                    fprintf(arq,"%.5f ", it->features.at<double>(h, w));
-                                }
-                                fprintf(arq,"\n");
-                            }
-                        }
+                        c.findSmallerClass(rebalancedData, &minoritySize);
+                        c.classify(prob, 1, rebalancedData, csvSmote.c_str(), minoritySize);
                         rebalancedData.clear();
                     }
 

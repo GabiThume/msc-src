@@ -22,7 +22,7 @@ void classifica(string base, string features, string outfileName){
 
     /* Feature extraction */
     vector<int> parameters;
-    descriptor(base.c_str(), features.c_str(), 4, 256, 1, 0, parameters, 0, 4, "");
+    PerformFeatureExtraction(base.c_str(), features.c_str(), 4, 256, 1, 0, parameters, 0, 4, "");
 
     nameDir = features + "/";
     directory = opendir(nameDir.c_str());
@@ -34,7 +34,7 @@ void classifica(string base, string features, string outfileName){
             myFile.open(name.c_str());
 
             /* Read the feature vectors */
-            data = readFeatures(name);
+            data = ReadFeaturesFromFile(name);
             if (data.size() != 0){
 
                 smallerClass = c.findSmallerClass(data, &minoritySize);

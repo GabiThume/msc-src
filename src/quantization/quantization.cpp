@@ -47,6 +47,8 @@ Requires:
 - num_colors: number of colors after quantization
 *******************************************************************************/
 void QuantizationIntensity(Mat I, Mat *Q, int num_colors) {
+  if (I.channels() > 1) return;
+
   vector<Mat> imColors(3);
   (*Q).create(I.size(), CV_8UC1);
 
@@ -76,6 +78,8 @@ Requires
 - num_colors: number of colors after quantization
 *******************************************************************************/
 void QuantizationGleam(Mat I, Mat *Q, int num_colors) {
+  if (I.channels() > 1) return;
+
   vector<Mat> imColors(3);
   (*Q).create(I.size(), CV_8UC1);
 
@@ -107,6 +111,8 @@ Requires
 - nColor : number of colors after quantization
 *******************************************************************************/
 void QuantizationLuminance(Mat I, Mat *Q, int num_colors) {
+  if (I.channels() > 1) return;
+
   vector<Mat> imColors(3);
   (*Q).create(I.size(), CV_8UC1);
 
@@ -137,6 +143,8 @@ Requires
 - nColor : number of colors after quantization
 *******************************************************************************/
 void QuantizationLuma(Mat I, Mat *Q, int num_colors) {
+  if (I.channels() > 1) return;
+
   vector<Mat> imColors(3);
   (*Q).create(I.size(), CV_8UC1);
 
@@ -170,6 +178,8 @@ Requires
 - num_colors: number of colors after quantization
 *******************************************************************************/
 void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
+  if (I.channels() > 1) return;
+
   int bitsc, rest, k;
   MatIterator_<Vec3b> itI, endI;
   MatIterator_<uchar> itQ, endQ;
@@ -244,6 +254,8 @@ Requires
 - num_colors: number of colors after quantization
 *******************************************************************************/
 void QuantizationMSBModified(Mat I, Mat *Q, int num_colors) {
+  if (I.channels() > 1) return;
+
   int bitsc, rest, k, color, b;
   MatIterator_<Vec3b> itI, endI;
   MatIterator_<uchar> itQ, endQ;

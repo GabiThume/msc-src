@@ -8,17 +8,18 @@
 #include "rebalanceTest.h"
 
 string desc(string dir, string features, int d, int m, string id){
+
     vector<int> paramCCV = {25};
     vector<int> paramACC = {1, 3, 5, 7};
     vector<int> parameters;
     /* If descriptor ==  CCV, threshold is required */
     if (d == 3)
-        return descriptor(dir, features, d, 64, 1, 1, paramCCV, 1, m, id);
+        return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramCCV, 0, m, id);
     /* If descriptor ==  ACC, distances are required */
     else if (d == 5)
-        return descriptor(dir, features, d, 64, 1, 1, paramACC, 1, m, id);
+        return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramACC, 0, m, id);
     else
-        return descriptor(dir, features, d, 64, 1, 1, parameters, 1, m, id);
+        return PerformFeatureExtraction(dir, features, d, 64, 1, 1, parameters, 0, m, id);
 }
 
 int main(int argc, char const *argv[]){
@@ -49,7 +50,7 @@ int main(int argc, char const *argv[]){
   */
   vector <int> descriptors {1, 2, 3, 4, 5, 6, 7, 8};
 
-  for (indexDescriptor = 0; (int) indexDescriptor < descriptors.size(); indexDescriptor++){
+  for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
     d = descriptors[indexDescriptor];
     for (m = 1; m <= 5; m++){
       csvOriginal = newDir+"/analysis/original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
@@ -58,7 +59,7 @@ int main(int argc, char const *argv[]){
       /* Feature extraction from images */
       string originalDescriptor = desc(baseDir, featuresDir, d, m, "original");
       /* Read the feature vectors */
-      originalData = readFeatures(originalDescriptor);
+      originalData = ReadFeaturesFromFile(originalDescriptor);
       numClasses = originalData.size();
       if (numClasses != 0){
         cout << "---------------------------------------------------------------------------------------" << endl;

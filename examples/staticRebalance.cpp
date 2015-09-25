@@ -14,12 +14,12 @@ string desc(string dir, string features, int d, int m, string id){
     vector<int> parameters;
     /* If descriptor ==  CCV, threshold is required */
     if (d == 3)
-        return descriptor(dir, features, d, 256, 1, 1, paramCCV, 0, m, id);
+        return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramCCV, 0, m, id);
     /* If descriptor ==  ACC, distances are required */
     else if (d == 5)
-        return descriptor(dir, features, d, 256, 1, 1, paramACC, 0, m, id);
+        return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramACC, 0, m, id);
     else
-        return descriptor(dir, features, d, 256, 1, 1, parameters, 0, m, id);
+        return PerformFeatureExtraction(dir, features, d, 64, 1, 1, parameters, 0, m, id);
 }
 
 string intToString(int number){
@@ -138,10 +138,9 @@ int main(int argc, char const *argv[]){
 
     Classifier c;
     Size size;
-    int m, d, h, w, totalRebalanced;
-    int initialMethod, endMethod, level;
+    int m, d, h, w, totalRebalanced, countImg, initialMethod, endMethod, level;
     double prob = 0.5;
-    ofstream csvFile;
+    ofstream arq;
     string nameFile, name, featuresDir, analysis, descriptorName, method;
     string csvOriginal, csvSmote, csvRebalance;
     vector<Classes> originalData, imbalancedData, artificialData;
@@ -173,7 +172,7 @@ int main(int argc, char const *argv[]){
                 /* Feature extraction from images */
                 string originalDescriptor = desc(path+baseDirOriginal[level], featuresDir, d, m, "original");
                 // string idDescriptor = desc(path+baseDirID[level], featuresDir, d, m, id);
-                originalData = readFeatures(originalDescriptor);
+                originalData = ReadFeaturesFromFile(originalDescriptor);
                 if (originalData.size() != 0){
                     cout << "---------------------------------------------------------------------------------------" << endl;
                     cout << "Classification using original vectors" << endl;
@@ -185,7 +184,7 @@ int main(int argc, char const *argv[]){
 
                 string dirRebalanced = path+baseDirID[level];
                 string fileDescriptor = desc(dirRebalanced, featuresDir, d, m, "artificial");
-                artificialData = readFeatures(fileDescriptor);
+                artificialData = ReadFeaturesFromFile(fileDescriptor);
                 if (artificialData.size() != 0){
                     cout << "---------------------------------------------------------------------------------------" << endl;
                     cout << "Classification using rebalanced data" << endl;
@@ -196,7 +195,7 @@ int main(int argc, char const *argv[]){
                 }
 
                 /* Generate Synthetic SMOTE samples */
-                originalData = readFeatures(originalDescriptor);
+                originalData = ReadFeaturesFromFile(originalDescriptor);
                 vector<Classes> rebalancedData = performSmote(originalData, &totalRebalanced);
                 if (rebalancedData.size() != 0){
                     cout << "---------------------------------------------------------------------------------------" << endl;
@@ -210,18 +209,26 @@ int main(int argc, char const *argv[]){
                     numberOfImages << totalRebalanced;
                     string name = featuresDir+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_256c_100r_"+numberOfImages.str()+"i_smote.csv";
 
-                    FILE *arq = fopen(name.c_str(), "w+");
-                    fprintf(arq,"%d %d\t%d\n", totalRebalanced, rebalancedData.size(), (int) rebalancedData[0].features.size().width);
-                    int imgNumber = 0;
+                    arq.open(name.c_str(), ios::out);
+                    if (!arq.is_open()) {
+                      cout << "It is not possible to open the feature's file: " << name << endl;
+                      exit(-1);
+                    }
+                    cout << "---------------------------------------------------------------------------------------" << endl;
+                    cout << "Wrote on data file named " << name << endl;
+                    cout << "---------------------------------------------------------------------------------------" << endl;
+                    arq << totalRebalanced << '\t' << rebalancedData.size() << '\t' << rebalancedData[0].features.cols << endl;
                     for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
-                        for (h = 0; h < it->features.size().height; h++, imgNumber++){
-                            fprintf(arq,"%d\t%d\t%d\t", imgNumber, it->classNumber, (int) it->trainOrTest.at<double>(h,0));
+                        for (h = 0; h < it->features.size().height; h++){
+                            arq << countImg << '\t' << it->classNumber << '\t' << it->trainOrTest.at<int>(h,0) << '\t';
                             for (w = 0; w < it->features.size().width; w++){
-                                fprintf(arq,"%.5f ", it->features.at<double>(h, w));
+                              arq << it->features.at<float>(h, w) << " ";
                             }
-                            fprintf(arq,"\n");
+                            arq << endl;
+                            countImg++;
                         }
                     }
+                    arq.close();
                     rebalancedData.clear();
                 }
             }

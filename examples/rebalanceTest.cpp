@@ -10,7 +10,6 @@
 // string descriptorMethod[8] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"};
 // string quantizationMethod[4] = {"Intensity", "Luminance", "Gleam", "MSB"};
 
-// descriptor(databaseDir.c_str(), descMethodDir.c_str(), descMethod, colors, resize, normalization, params, numParameters, deleteNull, quantMethod, id.c_str());
 string desc(string dir, string features, int d, int m, string id){
 
     vector<int> paramCCV = {25};
@@ -18,19 +17,19 @@ string desc(string dir, string features, int d, int m, string id){
     vector<int> parameters;
     /* If descriptor ==  CCV, threshold is required */
     if (d == 3)
-        return descriptor(dir, features, d, 256, 1, 1, paramCCV, 0, m, id);
+        return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramCCV, 0, m, id);
     /* If descriptor ==  ACC, distances are required */
     else if (d == 5)
-        return descriptor(dir, features, d, 256, 1, 1, paramACC, 0, m, id);
+        return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramACC, 0, m, id);
     else
-        return descriptor(dir, features, d, 256, 1, 1, parameters, 0, m, id);
+        return PerformFeatureExtraction(dir, features, d, 64, 1, 1, parameters, 0, m, id);
 }
 
 /* Generate a imbalanced class */
 string imbalance(string database, string newDir, double prob, double id){
 
     int pos = 0, samples, imagesTraining, i, imgsInClass;
-    int x, qtdClasses, qtdImgTotal, maxc;
+    int x, qtdClasses;
     string dir;
     vector<int> vectorRand, objperClass;
     srand(time(0));
@@ -50,7 +49,6 @@ string imbalance(string database, string newDir, double prob, double id){
 
     directory = database+"/";
     qtdClasses = qtdArquivos(directory);
-    qtdImgTotal = qtdImagensTotal(database, qtdClasses, &objperClass, &maxc);
 
     for(i = 0; i < qtdClasses; i++) {
         classNumber.str("");
@@ -237,15 +235,14 @@ int main(int argc, char const *argv[]){
     Artificial a;
     ofstream csvFile;
     stringstream numImages, globalFactor;
-    int numClasses, m, d, operation, i, h, w, totalRebalanced;
-    double prob = 0.5, fscoreMean, bestFscoreMean;
+    int numClasses, m, d, operation, h, w, totalRebalanced;
+    double prob = 0.5;
     string nameFile, name, nameDir, descriptorName, method, newDir, baseDir, featuresDir;
     string csvOriginal, csvSmote, csvRebalance, analysisDir, csvDesbalanced;
     string directory, str, bestDir;
     vector<Classes> imbalancedData, artificialData;
     vector<int> objperClass;
     vector<vector<double> > rebalancedFscore, desbalancedFscore;
-    bool copyBestFscoreToOtherFolder = false;
 
     if (argc != 8){
         cout << "\nUsage: ./rebalanceTest (0) (1) (2) (3) (4)\n " << endl;
@@ -294,7 +291,7 @@ int main(int argc, char const *argv[]){
     /* Feature extraction from images */
     string originalDescriptor = desc(dirImbalanced, featuresDir, d, m, "desbalanced");
     /* Read the feature vectors */
-    imbalancedData = readFeatures(originalDescriptor);
+    imbalancedData = ReadFeaturesFromFile(originalDescriptor);
     numClasses = imbalancedData.size();
     if (numClasses != 0){
         cout << "---------------------------------------------------------------------------------------" << endl;
@@ -306,7 +303,7 @@ int main(int argc, char const *argv[]){
     }
 
     string fileDescriptor = desc(dirRebalanced, featuresDir, d, m, "artificial");
-    artificialData = readFeatures(fileDescriptor);
+    artificialData = ReadFeaturesFromFile(fileDescriptor);
     if (artificialData.size() != 0){
         cout << "---------------------------------------------------------------------------------------" << endl;
         cout << "Classification using rebalanced data" << endl;
@@ -317,7 +314,7 @@ int main(int argc, char const *argv[]){
     }
 
     /* Generate Synthetic SMOTE samples */
-    imbalancedData = readFeatures(originalDescriptor);
+    imbalancedData = ReadFeaturesFromFile(originalDescriptor);
     vector<Classes> rebalancedData = performSmote(imbalancedData, operation, &totalRebalanced);
     if (rebalancedData.size() != 0){
         cout << "---------------------------------------------------------------------------------------" << endl;
@@ -332,11 +329,11 @@ int main(int argc, char const *argv[]){
         string name = featuresDir+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_256c_100r_"+numberOfImages.str()+"i_smote.csv";
 
         FILE *arq = fopen(name.c_str(), "w+");
-        fprintf(arq,"%d %d\t%d\n", totalRebalanced, rebalancedData.size(), (int) rebalancedData[0].features.size().width);
+        fprintf(arq,"%d %d\t%d\n", totalRebalanced, (int)rebalancedData.size(), rebalancedData[0].features.size().width);
         int imgNumber = 0;
         for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
             for (h = 0; h < it->features.size().height; h++, imgNumber++){
-                fprintf(arq,"%d\t%d\t%d\t", imgNumber, it->classNumber, (int) it->trainOrTest.at<int>(h,0));
+                fprintf(arq,"%d\t%d\t%d\t", imgNumber, it->classNumber, it->trainOrTest.at<int>(h,0));
                 for (w = 0; w < it->features.size().width; w++){
                     fprintf(arq,"%.5f ", it->features.at<float>(h, w));
                 }

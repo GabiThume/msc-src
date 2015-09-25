@@ -183,7 +183,7 @@ Negative: majority class
 vector<double> calculateFscore(Mat confusionMat){
 
 	double fscore, truePositive, falseNegative, falsePositive;
-	double trueNegative, precisionRate, recallRate, positive, negative;
+	double trueNegative, precisionRate, recallRate, positive;
 	vector<double> fScore;
 	int classeId, i, j;
 
@@ -204,7 +204,6 @@ vector<double> calculateFscore(Mat confusionMat){
 		}
 
 		positive = truePositive+falseNegative;
-		negative = falsePositive+trueNegative;
 
 		precisionRate = truePositive/(truePositive+falsePositive);
 		recallRate = truePositive/positive;
