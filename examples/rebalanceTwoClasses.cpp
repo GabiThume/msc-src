@@ -280,6 +280,7 @@ int main(int argc, char const *argv[]){
   */
   double factor = 1.6;
   // vector <int> descriptors {1, 6, 7};
+  // vector <int> quant {2, 2, 4};
   vector <int> descriptors {1, 2, 3, 4, 5, 6, 7, 8};
 
   /* Desbalancing Data */
@@ -299,11 +300,7 @@ int main(int argc, char const *argv[]){
 
     for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
       d = descriptors[indexDescriptor];
-
-      // if (d == 1)
-      //     m = 4;
-      // else
-      //     m = 2;
+      // m = quant[indexDescriptor];
       for (m = 1; m <= 4; m++){
         csvOriginal = newDir+"/analysis/"+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvDesbalanced = newDir+"/analysis/"+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
