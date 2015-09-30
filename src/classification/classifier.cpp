@@ -218,12 +218,15 @@ vector<double> calculateFscore(Mat confusionMat){
 
 		for(i = 0; i < confusionMat.rows; i++){
 			for(j = 0; j < confusionMat.cols; j++){
-				if(i == class_id && j != class_id)
-				falseNegative += confusionMat.at<int>(i, j);
-				if(i != class_id && j == class_id)
-				falsePositive += confusionMat.at<int>(i, j);
-				if(i != class_id && j == i)
-				trueNegative += confusionMat.at<int>(i, j);
+				if(i == class_id && j != class_id) {
+					falseNegative += confusionMat.at<int>(i, j);
+				}
+				if(i != class_id && j == class_id) {
+					falsePositive += confusionMat.at<int>(i, j);
+				}
+				if(i != class_id && j == i) {
+					trueNegative += confusionMat.at<int>(i, j);
+				}
 			}
 		}
 
@@ -307,8 +310,7 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 	vector <vector<double> > fscore;
 	vector<double> fscoreClasses;
 	outputName = name;
-	// srand(time(0));
-	srand(1);
+	srand(time(0));
 
 	/* If training and testing set are fixed */
 	for (it = imageClasses.begin(); it != imageClasses.end(); ++it) {

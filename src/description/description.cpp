@@ -138,27 +138,22 @@ Requires:
 *******************************************************************************/
 void CalculateCCV(Mat img, Mat *features, int number_colors, int normalization,
                   int threshold) {
-  int x, y, new_number_colors;
-  int size_region;
-  queue<Pixel> pixels;
-  Pixel pix;
-  int height = img.rows;
-  int width = img.cols;
+  int x, y, size_region, height = img.rows, width = img.cols;
   vector< vector<bool> > visited_pixels;
   visited_pixels.resize(height, vector<bool>(width, false));
   Mat ccv_histograms, blur_img;
+  queue<Pixel> pixels;
+  Pixel pix;
 
   // 1 - Blur the image
   blur(img, blur_img, Size(3, 3));
 
   // 2 - Discretize the colorspace to 1/4 of the colors
-  // new_number_colors = static_cast<int>(number_colors/4.0);
-  new_number_colors = static_cast<int>(number_colors);
-  reduceImageColors(&blur_img, new_number_colors);
-  new_number_colors = number_colors;
+  // number_colors = static_cast<int>(number_colors/4.0);
+  // reduceImageColors(&blur_img, number_colors);
 
-  vector<float> coherent(new_number_colors, 0);
-  vector<float> incoherent(new_number_colors, 0);
+  vector<float> coherent(number_colors, 0);
+  vector<float> incoherent(number_colors, 0);
 
   // 3 - For each pixel, classify it as either coherent or incoherent
   for (y = 0; y < height; y++) {
@@ -217,9 +212,8 @@ Requires:
 *******************************************************************************/
 void CCV(Mat img, Mat *features, int colors, int normalization, int threshold) {
   int i, img_channels = img.channels();
-  vector<Mat> color_ccv(img_channels);
+  vector<Mat> color_ccv(img_channels), channel(img_channels);
   Mat ccv_histograms;
-  vector<Mat> channel(img_channels);
 
   if (img_channels > 1) reduceImageColors(&img, colors);
   split(img, channel);
@@ -636,13 +630,13 @@ vector < vector<int> > ChessboardNeighbors(int row, int col, int distance) {
   int left = col - distance, right = col + distance;
 
   neighbors.push_back({up, col});
-  neighbors.push_back({up, right});
+  // neighbors.push_back({up, right});
   neighbors.push_back({row, right});
-  neighbors.push_back({down, right});
+  // neighbors.push_back({down, right});
   neighbors.push_back({down, col});
-  neighbors.push_back({down, left});
+  // neighbors.push_back({down, left});
   neighbors.push_back({row, left});
-  neighbors.push_back({up, left});
+  // neighbors.push_back({up, left});
 
   return neighbors;
 }
@@ -669,7 +663,6 @@ void CalculateACC(Mat I, Mat *features, int colors, int normalization,
 
   reduceImageColors(&I, colors);
   Mat acc_correlogram, autocorrelogram(colors, 1, CV_32FC1);
-
   // For each given distance in 'distances' set
   for (d = 0; d < static_cast<int>(distances.size()); ++d) {
     autocorrelogram = Scalar::all(0);
@@ -717,9 +710,8 @@ Requires:
 void ACC(Mat img, Mat *features, int colors, int normalization,
         vector<int> distances) {
   int i, img_channels = img.channels();
-  vector<Mat> color_acc(img_channels);
+  vector<Mat> color_acc(img_channels), channel(img_channels);
   Mat acc_histograms;
-  vector<Mat> channel(img_channels);
 
   if (img_channels > 1) reduceImageColors(&img, colors);
   split(img, channel);

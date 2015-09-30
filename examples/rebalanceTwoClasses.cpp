@@ -17,12 +17,12 @@ string desc(string dir, string features, int d, int m, string id){
   vector<int> parameters;
   /* If descriptor ==  CCV, threshold is required */
   if (d == 3)
-    return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramCCV, 0, m, id);
+    return PerformFeatureExtraction(dir, features, d, 256, 1, 1, paramCCV, 0, m, id);
   /* If descriptor ==  ACC, distances are required */
   else if (d == 5)
-    return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramACC, 0, m, id);
+    return PerformFeatureExtraction(dir, features, d, 256, 1, 1, paramACC, 0, m, id);
   else
-    return PerformFeatureExtraction(dir, features, d, 64, 1, 1, parameters, 0, m, id);
+    return PerformFeatureExtraction(dir, features, d, 256, 1, 1, parameters, 0, m, id);
 }
 
 /* Generate a imbalanced class */
@@ -30,14 +30,14 @@ string imbalance(string database, string newDir, double prob, double id){
 
   int pos = 0, samples, imagesTraining, i, imgsInClass, x, qtdClasses;
   vector<int> vectorRand, objperClass;
-  // srand(time(0));
-  srand(1);
   string str, nameFile, name, nameDir, directory, dir;
   stringstream numImages, classNumber, image, globalFactor;
   Size size;
   ifstream myFile;
   Mat data, classes;
   double fator = 1.0;
+  // srand(time(0));
+  srand(1);
 
   globalFactor << id;
   dir = newDir+"/Imbalance-"+globalFactor.str()+"/";
@@ -258,10 +258,6 @@ int main(int argc, char const *argv[]){
     cout << "\t(2) Features Directory\n" << endl;
     cout << "\t(3) Analysis Directory\n" << endl;
     cout << "\t(4) Descriptor Method:\n" << endl;
-    cout << "\t\t1-BIC  2-GCH  3-CCV  4-Haralick  5-ACC  6-LBP  7-HOG  8-Contour  9-Fisher" << endl << endl;
-    cout << "\t(5) Quantization Method:\n" << endl;
-    cout << "\t\t1-Intensity  2-Luminance  3-Gleam  4-MSB" << endl << endl;
-    cout << "\t(6) Artificial Generation Operation - Use 1 for ALL\n" << endl;
     cout << "\t./rebalanceTest Desbalanced/ Desbalanced/original/ Desbalanced/features/ Desbalanced/analysis/ 0\n" << endl;
     exit(-1);
   }
@@ -301,7 +297,7 @@ int main(int argc, char const *argv[]){
     for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
       d = descriptors[indexDescriptor];
       // m = quant[indexDescriptor];
-      for (m = 1; m <= 4; m++){
+      for (m = 1; m <= 5; m++){
         csvOriginal = newDir+"/analysis/"+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvDesbalanced = newDir+"/analysis/"+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";

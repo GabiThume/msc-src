@@ -473,8 +473,8 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 	DIR *dir = NULL, *minDir = NULL;
 	vector<int> totalImage, vectorRand;
 	vector<Mat> images;
-	// srand(time(0));
-	srand(1);
+
+	srand(time(0));
 
 	dir = opendir(base.c_str());
 	if(dir == NULL) {

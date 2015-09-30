@@ -33,6 +33,7 @@ Universidade de São Paulo / ICMC
 Master's thesis in Computer Science
 */
 
+#include <ctime>
 #include <string>
 #include <vector>
 #include "utils/funcoesArquivo.h"
@@ -470,6 +471,7 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
   string name, directory;
   Mat img, featureVector, features, labels, trainTest, newimg;
   vector<int> num_images_class;
+  clock_t begin, end;
 
   cout << "\n---------------------------------------------------------" << endl;
   cout << "Image feature extraction using " << descriptorMethod[method-1];
@@ -478,6 +480,7 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
 
   cout << "Database: " << database << endl;
 
+  begin = clock();
   img = imread(database, CV_LOAD_IMAGE_COLOR);
   if (!img.empty()) {
     // Resize the image given the input factor
@@ -509,7 +512,10 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
         imgTotal++;
 
         // Resize the image given the input factor
-        resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
+        img.copyTo(newimg);
+        if (resizeFactor != 1) {
+          resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
+        }
 
         // Convert the image to grayscale
         ConvertToGrayscale(quantization, newimg, &newimg, colors);
@@ -526,19 +532,19 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
       }
     }
     // Normalization of Haralick and contourExtraction features by z-index
-    if ((method == 4 || method == 8) && normalization != 0) {
+    if ((method == 4 || method == 8) && normalization) {
       ZScoreNormalization(&features);
     }
 
     // Remove null columns in Mat of features
-    RemoveNullColumns(&features);
+    if (deleteNull) {
+      RemoveNullColumns(&features);
+    }
   }
 
   // Show the number of images per class
-  cout << "File: " << name << endl;
   cout << "Images: " << features.rows << " - Classes: " << qtdClasses;
   cout << " - Features: " << features.cols << endl;
-
   for (current_class = 0; current_class < qtdClasses; current_class++) {
     bars = (static_cast<double> (num_images_class[current_class]) /
       static_cast<double> (features.rows)) * 50.0;
@@ -555,6 +561,9 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
   name = WriteFeaturesOnFile(featuresDir, quantization, method, colors,
     normalization, resizingFactor, qtdClasses, features, labels, trainTest,
     id, false);
+  cout << "File: " << name << endl;
+  end = clock();
+  cout << endl << "Elapsed time: " << double(end-begin)/ CLOCKS_PER_SEC << endl;
 
   return name;
 }
