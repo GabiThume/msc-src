@@ -17,12 +17,12 @@ string desc(string dir, string features, int d, int m, string id){
   vector<int> parameters;
   /* If descriptor ==  CCV, threshold is required */
   if (d == 3)
-    return PerformFeatureExtraction(dir, features, d, 256, 1, 1, paramCCV, 0, m, id);
+    return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramCCV, 0, m, id);
   /* If descriptor ==  ACC, distances are required */
   else if (d == 5)
-    return PerformFeatureExtraction(dir, features, d, 256, 1, 1, paramACC, 0, m, id);
+    return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramACC, 0, m, id);
   else
-    return PerformFeatureExtraction(dir, features, d, 256, 1, 1, parameters, 0, m, id);
+    return PerformFeatureExtraction(dir, features, d, 64, 1, 1, parameters, 0, m, id);
 }
 
 /* Generate a imbalanced class */
@@ -315,7 +315,7 @@ int main(int argc, char const *argv[]){
           cout << "Features vectors file: " << originalDescriptor.c_str() << endl;
           cout << "---------------------------------------------------------------------------------------" << endl;
           c.findSmallerClass(originalData, &minoritySize);
-          c.classify(prob, 1, originalData, csvOriginal.c_str(), minoritySize);
+          c.classify(prob, 10, originalData, csvOriginal.c_str(), minoritySize);
           originalData.clear();
         }
 

@@ -150,7 +150,7 @@ void CalculateCCV(Mat img, Mat *features, int number_colors, int normalization,
 
   // 2 - Discretize the colorspace to 1/4 of the colors
   // number_colors = static_cast<int>(number_colors/4.0);
-  // reduceImageColors(&blur_img, number_colors);
+  reduceImageColors(&blur_img, number_colors);
 
   vector<float> coherent(number_colors, 0);
   vector<float> incoherent(number_colors, 0);
@@ -329,7 +329,7 @@ void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
             (img.at<uchar>(row-1, col) == pixel_color) &&
             (img.at<uchar>(row, col-1) == pixel_color) &&
             (img.at<uchar>(row+1, col) == pixel_color)) {
-              interior.at<uchar>(row, col) = pixel_color;
+              interior.at<float>(row, col) = (float) pixel_color;
         } else {  // If some neighbor has a different color, is border
           border.at<float>(row, col) = (float) pixel_color;
         }
@@ -541,7 +541,7 @@ void Haralick6(vector< vector<float> > co_occurence, Mat *features) {
   }
 
   (*features).create(1, 6, CV_32FC1);
-  (*features) = Scalar::all(0);
+  (*features) = Scalar::all(0.0);
 
   entropy = -entropy;
   (*features).at<float>(0, 0) = max_probability;
@@ -665,7 +665,7 @@ void CalculateACC(Mat I, Mat *features, int colors, int normalization,
   Mat acc_correlogram, autocorrelogram(colors, 1, CV_32FC1);
   // For each given distance in 'distances' set
   for (d = 0; d < static_cast<int>(distances.size()); ++d) {
-    autocorrelogram = Scalar::all(0);
+    autocorrelogram = Scalar::all(0.0);
     current_distance = distances[d];
     // For each pixel
     for (i = current_distance; i < I.rows - current_distance; ++i) {
@@ -894,7 +894,7 @@ void CalculateHOG(Mat img, Mat *features, int normalization) {
   vector<Point> locs;
   int i, cellSize;
   Mat new_image;
-  Size new_size = Size(128, 128);
+  Size new_size = Size(256, 256);
 
   img.copyTo(new_image);
   cv::resize(new_image, new_image, new_size);
@@ -908,7 +908,7 @@ void CalculateHOG(Mat img, Mat *features, int normalization) {
   hog.compute(new_image, hogFeatures);
 
   (*features).create(1, hogFeatures.size(), CV_32FC1);
-  (*features) = Scalar::all(0);
+  (*features) = Scalar::all(0.0);
   for (i = 0; i < static_cast<int>(hogFeatures.size()); i++) {
       (*features).at<float>(0, i) = hogFeatures.at(i);
   }
@@ -959,20 +959,13 @@ void CalculateContour(Mat img, Mat *features, int normalization) {
   vector<Point> approx;
   vector<Vec4i> hierarchy;
   Mat bin;
-  Mat dst = Mat::zeros(img.rows, img.cols, CV_8UC3);
   int i, biggestAreaIndex = 0;
-  double area, areaApprox, perimeter, biggestArea = 0;
+  double area = 0.0, areaApprox, perimeter, biggestArea = 0.0;
   Moments mu;
   Point2f mc;
 
   threshold(img, bin, 100, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
   findContours(bin, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
-
-  // Mat contourImage(bin.size(), CV_8UC3, Scalar(0, 0, 0));
-  // for (i = 0; i < static_cast<int>(contours.size()); i++) {
-  //   Scalar color(rand()&255, rand()&255, rand()&255);
-  //   drawContours(contourImage, contours, i, color);
-  // }
 
   for (i = 0; i < static_cast<int>(contours.size()); i++) {
     area = contourArea(contours[i], false);
@@ -981,6 +974,12 @@ void CalculateContour(Mat img, Mat *features, int normalization) {
       biggestAreaIndex = i;
     }
   }
+
+  // Mat contourImage(bin.size(), CV_8UC3, Scalar(0, 0, 0));
+  // for (i = 0; i < static_cast<int>(contours.size()); i++) {
+  //   Scalar color(rand()&255, rand()&255, rand()&255);
+  //   drawContours(contourImage, contours, i, color);
+  // }
   // namedWindow("All", 1);
   // imshow("All", contourImage);
   // waitKey(0);
@@ -994,7 +993,7 @@ void CalculateContour(Mat img, Mat *features, int normalization) {
   // waitKey(0);
 
   (*features).create(1, 5, CV_32FC1);
-  (*features) = Scalar::all(0);
+  (*features) = Scalar::all(0.0);
 
   // Get the moments
   mu = moments(contours[biggestAreaIndex], false);

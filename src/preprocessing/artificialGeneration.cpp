@@ -476,6 +476,11 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 
 	srand(time(0));
 
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(2, 8);
+	cout << "Uniform dist: " << dis(gen) << endl;
+
 	dir = opendir(base.c_str());
 	if(dir == NULL) {
 		cout << "Error! Directory " << base << " don't exist. " << endl;

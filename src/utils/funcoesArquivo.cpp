@@ -511,10 +511,15 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
         img = FindImgInClass(database, i, j, imgTotal, treino, &trainTest);
         imgTotal++;
 
-        // Resize the image given the input factor
+        // With GCH and MSB, convert to HSV before quantization
+        if (method == 2 && (quantization == 4 || quantization == 5)) {
+          cvtColor(img, img, CV_BGR2HSV);
+        }
+
+        // Resize the image given the input size
         img.copyTo(newimg);
-        if (resizeFactor != 1) {
-          resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
+        if (resizeFactor != 1.0) {
+          cv::resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
         }
 
         // Convert the image to grayscale
