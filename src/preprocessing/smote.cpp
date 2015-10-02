@@ -74,7 +74,7 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors){
     int attributes = s.width;
     vector<int> vectorRand;
     Mat newMinority;
-    srand(time(0));
+    srand(time(NULL));
 
     if(amountSmote == 0)
         return Mat();
