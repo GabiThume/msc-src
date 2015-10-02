@@ -308,17 +308,11 @@ Requires:
 *******************************************************************************/
 void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
   int height = img.rows, width = img.cols, row, col;
-  int histogram_size[] = {colors};
-  float ranges[] = {0, 256};
-  const float* histogram_ranges[] = {ranges};
-  bool uniform = true, accumulate = false;
-  MatND histogram_border, histogram_interior;
   uchar pixel_color;
-  Mat border(img.size(), CV_32FC1);
-  Mat interior(img.size(), CV_32FC1);
-  Mat bic_histograms;
+  Mat histogram_border = Mat::zeros(1, colors, CV_32FC1);
+  Mat histogram_interior = Mat::zeros(1, colors, CV_32FC1);
 
-  // 1- Classify pixels as border or interior
+  // 1- Calculate the histogram while classify pixels as border or interior
   for (row = 0; row < height; row++) {
     for (col = 0; col < width; col++) {
       pixel_color = img.at<uchar>(row, col);
@@ -329,22 +323,17 @@ void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
             (img.at<uchar>(row-1, col) == pixel_color) &&
             (img.at<uchar>(row, col-1) == pixel_color) &&
             (img.at<uchar>(row+1, col) == pixel_color)) {
-              interior.at<float>(row, col) = (float) pixel_color;
+              histogram_interior.at<float>(0, static_cast<float>(pixel_color))++;
         } else {  // If some neighbor has a different color, is border
-          border.at<float>(row, col) = (float) pixel_color;
+          histogram_border.at<float>(0, static_cast<float>(pixel_color))++;
         }
       } else {  // If the current pixel is in the image border
-        border.at<float>(row, col) = (float) pixel_color;
+        histogram_border.at<float>(0, static_cast<float>(pixel_color))++;
       }
     }
   }
 
-  // Calculate the histogram for border and interior, normalize and concatenate
-  calcHist(&border, 1, 0, Mat(), histogram_border, 1, histogram_size,
-          histogram_ranges, uniform, accumulate);
-  calcHist(&interior, 1, 0, Mat(), histogram_interior, 1, histogram_size,
-          histogram_ranges, uniform, accumulate);
-
+  //  2- Normalize
   if (normalization != 0) {
     normalize(histogram_border, histogram_border, 0, normalization,
               NORM_MINMAX, -1, Mat());
@@ -352,11 +341,11 @@ void CalculateBIC(Mat img, Mat *features, int colors, int normalization) {
               NORM_MINMAX, -1, Mat());
   }
 
-  bic_histograms.push_back(histogram_border);
-  bic_histograms.push_back(histogram_interior);
-  bic_histograms = bic_histograms.t();  // Transpose to make rowsx1 be 1xcols
-  (*features).push_back(bic_histograms);
-  bic_histograms.release();
+  // 3- Concatenate
+  histogram_border = histogram_border.t();
+  histogram_interior = histogram_interior.t();
+  (*features).push_back(histogram_border);
+  (*features).push_back(histogram_interior);
 }
 
 /*******************************************************************************
@@ -383,7 +372,7 @@ void BIC(Mat img, Mat *features, int colors, int normalization) {
     bic_histograms.push_back(color_bic[i]);
   }
 
-  bic_histograms = bic_histograms.t();
+  // bic_histograms = bic_histograms.t();
   (*features).push_back(bic_histograms);
 }
 

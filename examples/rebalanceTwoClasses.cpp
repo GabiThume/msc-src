@@ -275,9 +275,11 @@ int main(int argc, char const *argv[]){
   Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
   */
   double factor = 1.6;
-  // vector <int> descriptors {1, 6, 7};
-  // vector <int> quant {2, 2, 4};
-  vector <int> descriptors {1, 2, 3, 4, 5, 6, 7, 8};
+  vector <int> descriptors {1, 6, 7};
+  vector <int> quant {2, 1, 5};
+
+  // vector <int> descriptors {1, 2, 3, 4, 5, 6, 7, 8};
+  // vector <int> quant {5, 5, 5, 2, 4, 4, 5, 1};
 
   /* Desbalancing Data */
   cout << "\n\n------------------------------------------------------------------------------------" << endl;

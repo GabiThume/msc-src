@@ -13,9 +13,9 @@
 
 # zero filling
 i=$1
-for file in *.jpg
+for file in *.png
 do
         j=$( printf "%d" "$i" )
-        mv "$file" "$j.jpg"
+        mv "$file" "$j.png"
         i=$((i + 1))
 done

@@ -88,8 +88,8 @@ int main(int argc, char *argv[]) {
     }
 
     normalization = atoi(argv[6]);
-    if (normalization != 0 && normalization != 1 && normalization != 2) {
-      cout << "Invalid normalization (use 0, 1 or 2)." << endl;
+    if (normalization < 0) {
+      cout << "Invalid normalization (e.g. 0, 1 or 256)." << endl;
       exit(-1);
     }
 

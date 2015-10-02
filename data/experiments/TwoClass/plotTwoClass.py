@@ -18,9 +18,9 @@ if len(sys.argv) <= 1:
 directory = sys.argv[1]
 algorithms = ["original", "desbalanced", "artificial", "smote"]
 labels = ["Original", "Desbalanced", "Imagens Artificiais", "SMOTE"]
-color = ["k", "b", "r", "g"]
+color = ["b", "k", "r", "g"]
 descriptors = ["BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"]
-methods = ["Intensity", "Gleam", "Luminance", "MSB"]
+methods = ["Intensity", "Gleam", "Luminance", "MSB", "MSBModified"]
 operations = ["Replication", "ALL", "Blur", "Blending", "UnsharpMasking", "Composition", "ThresholdCombination", "Saliency", "VisualSmote", "VisualSmote", "Noise", "Composition", "Composition", "Composition", "Composition", "Composition"]
 measurements = ["FScore", "BalancedAccuracy"]
 # marker = itertools.cycle(('+', 'o', '^', 's'))
@@ -48,13 +48,13 @@ for measure in measurements:
                         # csvData = [[int(x), np.nanmean([b[1] for b in csvData if b[0] == x])] for x in np.unique(csvData[:, :1])]
                         csvData = np.array(csvData)
                         samples.append(operation)
-                        if i < 2:
-                            if (accuracy == []):
-                                accuracy.append(csvData[1])
-                            else:
-                                accuracy.append(accuracy[0])
-                        else:
-                            accuracy.append(csvData[1])
+                        # if i < 2:
+                        # if (accuracy == []):
+                        #     accuracy.append(csvData[1])
+                        # else:
+                        #     accuracy.append(accuracy[0])
+                        # # else:
+                        accuracy.append(csvData[1])
                         allAccuracy.append(csvData[1])
                         # samples = csvData[:, 0]
                         # accuracy = csvData[:, 1]
@@ -67,12 +67,12 @@ for measure in measurements:
                 if accuracy != []:
                     m = marker.next()
                     print samples, accuracy, labels[i]
-                    if i < 2:
-                        line1, = plt.plot(samples, accuracy, color[i], label=labels[i])
-                        plt.plot(samples, accuracy, color[i]+'-')
-                    else:
-                        line1, = plt.plot(samples, accuracy, color[i]+'o', label=labels[i], marker=m)
-                        plt.plot(samples, accuracy, color[i]+'o', marker=m)
+                    # if i < 2:
+                    # line1, = plt.plot(samples, accuracy, color[i], label=labels[i])
+                    # plt.plot(samples, accuracy, color[i]+'-')
+                    # else:
+                    line1, = plt.plot(samples, accuracy, color[i]+'o', label=labels[i], marker=m)
+                    plt.plot(samples, accuracy, color[i]+'o', marker=m)
                     # if max(samples) > xlim:
                     #     xlim = np.ceil(max(samples))
                     # if max(accuracy) > ylim:

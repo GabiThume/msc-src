@@ -237,6 +237,9 @@ void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
     // Store in the new image
     (*itQ) = (new_color > 255) ? 255 : new_color;
   }
+  if (num_colors < 256) {
+    reduceImageColors(Q, num_colors);
+  }
 }
 
 /*******************************************************************************
@@ -305,5 +308,8 @@ void QuantizationMSBModified(Mat I, Mat *Q, int num_colors) {
     new_color = (green_msb | red_msb | blue_msb);
     // Store in the new image
     (*itQ) = (new_color > 255) ? (uchar) 255 : new_color;
+  }
+  if (num_colors < 256) {
+    reduceImageColors(Q, num_colors);
   }
 }
