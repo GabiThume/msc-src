@@ -14,7 +14,6 @@ if len(sys.argv) <= 1:
     print "\n\tUsage: python plot.py $directory with csv files from analysis$\n"
     sys.exit()
 
-
 directory = sys.argv[1]
 algorithms = ["original", "desbalanced", "artificial", "smote"]
 labels = ["Original", "Desbalanced", "Imagens Artificiais", "SMOTE"]
@@ -45,8 +44,14 @@ for measure in measurements:
                     if os.path.exists(fileName):
                         # print fileName
                         csvData = np.loadtxt(open(fileName, "rb"), delimiter=",", skiprows=0)
+                        if len(csvData) > 2:
+                            csvData = [b[1] for b in csvData]
+                            csvData = np.nanmean(csvData)
+                        else:
+                            csvData = csvData[1]
+
                         # csvData = [[int(x), np.nanmean([b[1] for b in csvData if b[0] == x])] for x in np.unique(csvData[:, :1])]
-                        csvData = np.array(csvData)
+                        # csvData = np.array(csvData)
                         samples.append(operation)
                         # if i < 2:
                         # if (accuracy == []):
@@ -54,8 +59,8 @@ for measure in measurements:
                         # else:
                         #     accuracy.append(accuracy[0])
                         # # else:
-                        accuracy.append(csvData[1])
-                        allAccuracy.append(csvData[1])
+                        accuracy.append(csvData)
+                        allAccuracy.append(csvData)
                         # samples = csvData[:, 0]
                         # accuracy = csvData[:, 1]
                         # accuracy = [(accuracy[len(accuracy)-1]-item) for item in accuracy]

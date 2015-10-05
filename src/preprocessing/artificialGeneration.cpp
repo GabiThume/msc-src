@@ -479,7 +479,6 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(2, 8);
-	cout << "Uniform dist: " << dis(gen) << endl;
 
 	dir = opendir(base.c_str());
 	if(dir == NULL) {
@@ -549,7 +548,7 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 				images[randomImg].copyTo(original);
 				/* Choose an operation
 				Case 1: All operations */
-				generationType = (whichOperation == 1) ? 2+(rand()%7) : whichOperation;
+				generationType = (whichOperation == 1) ? dis(gen) : whichOperation;
 
 				nameGeneratedImage = minorityClass + to_string(totalImage[eachClass]+i) + ".png";
 				GenerateImage(images, generationType, nameGeneratedImage, original,

@@ -287,10 +287,9 @@ int main(int argc, char const *argv[]){
   cout << "---------------------------------------------------------------------------------------" << endl;
   string dirImbalanced = imbalance(baseDir, newDir, 0.5, factor);
 
-  vector<String> allRebalanced;
-
   for (operation = 0; operation <= 10; operation++){
 
+    vector<String> allRebalanced;
     stringstream operationstr;
     operationstr << operation;
     op = operationstr.str();
@@ -300,15 +299,15 @@ int main(int argc, char const *argv[]){
     for (int repeatRebalance = 0; repeatRebalance < 10; repeatRebalance++) {
       stringstream repeatStr;
       repeatStr << repeatRebalance;
-      string newDirectory = newDir+"/Rebalanced-"+repeatStr.str()+op;
+      string newDirectory = newDir+"/"+op+"-Rebalanced"+repeatStr.str();
       string dirRebalanced = a.generate(dirImbalanced, newDirectory, operation);
       allRebalanced.push_back(dirRebalanced);
     }
 
     for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
       d = descriptors[indexDescriptor];
-      // m = quant[indexDescriptor];
-      for (m = 1; m <= 5; m++){
+      m = quant[indexDescriptor];
+      // for (m = 1; m <= 5; m++){
         csvOriginal = newDir+"/analysis/"+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvDesbalanced = newDir+"/analysis/"+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
@@ -374,8 +373,7 @@ int main(int argc, char const *argv[]){
             artificialData.clear();
           }
         }
-
-      }
+      //}
     }
   }
   return 0;
