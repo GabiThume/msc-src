@@ -274,12 +274,12 @@ int main(int argc, char const *argv[]){
   descriptorMethod: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"}
   Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
   */
-  // vector <int> descriptors {1, 2, 3, 4, 5, 6, 7, 8};
-  // vector <int> quant {5, 5, 5, 2, 4, 4, 5, 1};
+  vector <int> descriptors {1, 2, 3, 4, 5, 6, 7, 8};
+  // vector <int> quant {2, 4, 5, 4, 5, 1, 5, 2};
 
   double factor = 1.6;
-  vector <int> descriptors {1, 6, 7};
-  vector <int> quant {2, 1, 5};
+  // vector <int> descriptors {1, 6, 7};
+  // vector <int> quant {2, 1, 5};
 
   /* Desbalancing Data */
   cout << "\n\n------------------------------------------------------------------------------------" << endl;
@@ -306,8 +306,8 @@ int main(int argc, char const *argv[]){
 
     for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
       d = descriptors[indexDescriptor];
-      m = quant[indexDescriptor];
-      // for (m = 1; m <= 5; m++){
+      // m = quant[indexDescriptor];
+      for (m = 1; m <= 7; m++){
         csvOriginal = newDir+"/analysis/"+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvDesbalanced = newDir+"/analysis/"+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
@@ -373,7 +373,7 @@ int main(int argc, char const *argv[]){
             artificialData.clear();
           }
         }
-      //}
+      }
     }
   }
   return 0;

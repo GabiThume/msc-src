@@ -48,7 +48,7 @@ Master's thesis in Computer Science
 using namespace cv;
 using namespace std;
 
-const string quantizationMethod[5] = {"Intensity", "Luminance", "Gleam", "MSB", "MSBModified"};
+const string quantizationMethod[7] = {"Intensity", "Luminance", "Gleam", "MSB", "MSBModified", "BGR", "HSV"};
 const string descriptorMethod[9] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"};
 
 typedef struct {

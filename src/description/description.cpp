@@ -368,11 +368,11 @@ void BIC(Mat img, Mat *features, int colors, int normalization) {
 
   for (i = 0; i < img_channels; i++) {
     CalculateBIC(channel[i], &(color_bic[i]), colors, normalization);
-    color_bic[i] = color_bic[i].t();
+    // color_bic[i] = color_bic[i].t();
     bic_histograms.push_back(color_bic[i]);
   }
 
-  // bic_histograms = bic_histograms.t();
+  bic_histograms = bic_histograms.t();
   (*features).push_back(bic_histograms);
 }
 

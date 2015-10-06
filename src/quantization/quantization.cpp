@@ -306,6 +306,7 @@ void QuantizationMSBModified(Mat I, Mat *Q, int num_colors) {
     blue_msb  = (B & blue_mask);
     // Merge the bit codes
     new_color = (green_msb | red_msb | blue_msb);
+
     // Store in the new image
     (*itQ) = (new_color > 255) ? (uchar) 255 : new_color;
   }

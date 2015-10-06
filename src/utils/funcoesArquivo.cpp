@@ -408,6 +408,11 @@ void ConvertToGrayscale(int method, Mat img, Mat *gray, int colors) {
     case 5:
       QuantizationMSBModified(img, gray, colors);
       break;
+    case 6: // Keep in BRG
+      break;
+    case 7: // Convert BGR -> HSV
+      cvtColor(img, (*gray), CV_BGR2HSV);
+      break;
     default:
       cout << "Error: quantization method " << method;
       cout << " does not exists." << endl;
@@ -510,11 +515,6 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
         // Find this image in the class and open it
         img = FindImgInClass(database, i, j, imgTotal, treino, &trainTest);
         imgTotal++;
-
-        // With GCH and MSB, convert to HSV before quantization
-        if (method == 2 && (quantization == 4 || quantization == 5)) {
-          cvtColor(img, img, CV_BGR2HSV);
-        }
 
         // Resize the image given the input size
         img.copyTo(newimg);

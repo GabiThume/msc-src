@@ -69,4 +69,10 @@ for descriptor in descriptors:
                     originalAcc = table[0][1]
                     originalFscore = table[0][4]
         if table !=[]:
+            file_name = directory+descriptor+"-"+quantization+".txt"
+            print file_name
+            output = open(file_name, 'w+')
+            tab = tabulate(table, headers, floatfmt=".2f")
             print tabulate(table, headers, tablefmt="fancy_grid", floatfmt=".2f")
+            output.write(tab)
+            output.close()
