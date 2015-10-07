@@ -21,7 +21,7 @@ descriptors   = ["BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour
 quantizations = ["Intensity", "Gleam", "Luminance", "MSB", "MSBModified"]
 algorithms    = ["original", "desbalanced", "smote", "artificial"]
 labels        = ["Original", "Desbalanced", "SMOTE"]
-operations    = ["Replication", "ALL", "Blur", "Blending", "UnsharpMasking", "Composition", "ThresholdCombination", "Saliency", "VisualSmote"]
+operations    = ["Replication", "ALL", "Blur", "Blending", "UnsharpMasking", "Composition", "ThresholdCombination", "Saliency", "VisualSmote", "Noise"]
 measurements  = ["BalancedAccuracy", "FScore"]
 
 for descriptor in descriptors:
@@ -42,16 +42,17 @@ for descriptor in descriptors:
                         # print fileName
                         csvData = np.loadtxt(open(fileName, "rb"), delimiter=",", skiprows=0)
                         # print csvData
-                        if len(csvData) > 2:
-                            csvData = [b[1] for b in csvData]
-                        else:
-                            csvData = csvData[1];
-                        if measure == 0:
-                            csvMeanAcc.append(np.nanmean(csvData))
-                            csvStdAcc.append(np.nanstd(csvData))
-                        else:
-                            csvMeanFScore.append(np.nanmean(csvData))
-                            csvStdFScore.append(np.nanstd(csvData))
+                        if not (i == 2 and operation == 0):
+                            if len(csvData) > 2:
+                                csvData = [b[1] for b in csvData]
+                            else:
+                                csvData = csvData[1];
+                            if measure == 0:
+                                csvMeanAcc.append(np.nanmean(csvData))
+                                csvStdAcc.append(np.nanstd(csvData))
+                            else:
+                                csvMeanFScore.append(np.nanmean(csvData))
+                                csvStdFScore.append(np.nanstd(csvData))
                 if csvMeanAcc != [] and i == 3:
                     meanAcc = float(csvMeanAcc[0])
                     stdAcc = float(csvStdAcc[0])
@@ -63,7 +64,10 @@ for descriptor in descriptors:
                 stdAcc = np.nanstd(csvMeanAcc)
                 meanFScore = np.nanmean(csvMeanFScore)
                 stdFScore = np.nanstd(csvMeanFScore)
-                table.append([labels[i], meanAcc, stdAcc, meanAcc-originalAcc, meanFScore, stdFScore, meanFScore-originalFscore])
+                if i == 0:
+                    table.append([labels[i], meanAcc, stdAcc, 0.0, meanFScore, stdFScore, 0.0])
+                else:
+                    table.append([labels[i], meanAcc, stdAcc, meanAcc-originalAcc, meanFScore, stdFScore, meanFScore-originalFscore])
 
                 if i == 0:
                     originalAcc = table[0][1]
@@ -73,6 +77,6 @@ for descriptor in descriptors:
             print file_name
             output = open(file_name, 'w+')
             tab = tabulate(table, headers, floatfmt=".2f")
-            print tabulate(table, headers, tablefmt="fancy_grid", floatfmt=".2f")
+            print tabulate(table, headers, floatfmt=".2f")
             output.write(tab)
             output.close()

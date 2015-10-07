@@ -20,7 +20,7 @@ labels = ["Original", "Desbalanced", "Imagens Artificiais", "SMOTE"]
 color = ["b", "k", "r", "g"]
 descriptors = ["BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"]
 methods = ["Intensity", "Gleam", "Luminance", "MSB", "MSBModified", "BGR", "HSV"]
-operations = ["Replication", "ALL", "Blur", "Blending", "UnsharpMasking", "Composition", "ThresholdCombination", "Saliency", "VisualSmote", "VisualSmote", "Noise", "Composition", "Composition", "Composition", "Composition", "Composition"]
+operations = ["Replication", "ALL", "Blur", "Blending", "UnsharpMasking", "Composition", "ThresholdCombination", "Saliency", "VisualSmote", "Noise", "VisualSmote", "Composition", "Composition", "Composition", "Composition", "Composition", "Noise"]
 measurements = ["FScore", "BalancedAccuracy"]
 # marker = itertools.cycle(('+', 'o', '^', 's'))
 marker = itertools.cycle(('s'))
@@ -38,7 +38,7 @@ for measure in measurements:
             for i in range(0, len(algorithms)):
                 accuracy = []
                 samples = []
-                for operation in range(0,9):
+                for operation in range(0,10):
                     alg = directory+str(operation)+"-"+algorithms[i]+"_"
                     fileName = alg+desc+"_"+met+"_"+measure+".csv"
                     if os.path.exists(fileName):
@@ -88,9 +88,12 @@ for measure in measurements:
                     #     ylimMin = np.round(min(accuracy))
 
             if accuracy != []:
-                plt.legend(loc=3, prop={'size':8})
+                plt.legend(loc=1, prop={'size':8})
                 plt.xticks(range(0,9))
-                allAccuracy.append(0);
+                if measure == "BalancedAccuracy":
+                    allAccuracy.append(50);
+                else:
+                    allAccuracy.append(0);
                 allAccuracy.append(100);
                 plt.yticks(np.ceil(allAccuracy), rotation=0)
                 # plt.yticks(range(0,100))

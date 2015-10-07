@@ -135,15 +135,11 @@ Mat Artificial::generateBlending(Mat originalImage, vector<Mat> images, int tota
 	int randomSecondImg;
 	Mat generated;
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dis(0, total);
-
 	alpha = (rand() % 100);
 	beta = (100.0 - alpha);
-	randomSecondImg = dis(gen);
+	randomSecondImg = 0 + (rand() % total);
 	while (originalImage.size() != images[randomSecondImg].size()){
-		randomSecondImg = dis(gen);
+		randomSecondImg = 0 + (rand() % total);
 	}
 	addWeighted(originalImage, alpha/100.0, images[randomSecondImg], beta/100.0, 0.0, generated);
 	return generated;
@@ -179,14 +175,10 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images,
 	int roiWidth, roiHeight, subImage, newImage, operation;
 	int startWidth, startHeight, randH, randW;
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dis(0, total);
-
 	startWidth = startHeight = 0;
 	for (subImage = 1; subImage <= fator; subImage++){
 		do {
-			newImage = dis(gen);
+			newImage = rand() % total;
 		} while(count(vectorRand.begin(), vectorRand.end(), newImage) &&
 						(int)vectorRand.size() < total);
 		vectorRand.push_back(newImage);
@@ -259,10 +251,6 @@ Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images,
 	Mat generated, bin, foreground, background, saliency_map;
 	int randomSecondImg;
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dis(0, total);
-
 	//Create binary image using Otsu's threshold
 	cvtColor(originalImage, bin, CV_BGR2GRAY);
 	threshold(bin, bin, 127, 255, THRESH_BINARY_INV | CV_THRESH_OTSU);
@@ -276,9 +264,9 @@ Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images,
 	originalImage.copyTo(foreground, bin);
 
 	// Select another image with the same size
-	randomSecondImg = dis(gen);
+	randomSecondImg = 0 + (rand() % total);
 	while (originalImage.size() != images[randomSecondImg].size()){
-		randomSecondImg = dis(gen);
+		randomSecondImg = 0 + (rand() % total);
 	}
 
 	// Select the background
@@ -305,14 +293,10 @@ Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int tota
 	originalImage.copyTo(original);
 	saliency_map = GMRsal.GetSal(originalImage);
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dis(0, total);
-
 	while(original.size() != saliency_map.size()){
 		original.release();
 		saliency_map.release();
-		images[dis(gen)].copyTo(original);
+		images[rand() % total].copyTo(original);
 		saliency_map = GMRsal.GetSal(original);
 	}
 	original.copyTo(bin);
@@ -332,9 +316,9 @@ Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int tota
 	// waitKey(0);
 
 	/* Select another image with the same size */
-	randomSecondImg = dis(gen);
+	randomSecondImg = rand() % total;
 	while (original.size() != images[randomSecondImg].size()){
-		randomSecondImg = dis(gen);
+		randomSecondImg = rand() % total;
 	}
 
 	// Select the background
@@ -385,11 +369,7 @@ Mat Artificial::generateSmoteImg(Mat originalImage, vector<Mat> images, int tota
 	vector<Mat> imColors(3), imColorsSecond(3);
 	Mat generated, second;
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dis(0, total);
-
-	randomSecondImg = dis(gen);
+	randomSecondImg = rand() % total;
 	originalImage.copyTo(generated);
 	split(generated, imColors);
 	images[randomSecondImg].copyTo(second);
@@ -448,13 +428,13 @@ void Artificial::GenerateImage(vector<Mat> images, int generationType,
 			generated = generateSmoteImg(original, images, total, 1);
 			imwrite(name, generated);
 			break;
-		// Those below this line are not used in our tests anymore
 		case 9:
-		    generated = generateSmoteImg(original, images, total, 0);
+		    generated = generateNoise(original);
 		    imwrite(name, generated);
 		    break;
+		// Those below this line are not used in our tests anymore
 		case 10:
-		    generated = generateNoise(original);
+		    generated = generateSmoteImg(original, images, total, 0);
 		    imwrite(name, generated);
 		    break;
 		case 11:
@@ -493,6 +473,8 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 	DIR *dir = NULL, *minDir = NULL;
 	vector<int> totalImage, vectorRand;
 	vector<Mat> images;
+
+	srand(time(0));
 
 	std::random_device rd;
 	std::mt19937 gen(rd());

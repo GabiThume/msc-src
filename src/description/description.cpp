@@ -482,8 +482,8 @@ void Haralick6(vector< vector<float> > co_occurence, Mat *features) {
   double variance_rows = 0, variance_cols = 0, p_ij;
   int colors = co_occurence.size();
 
-  vector <float> frequency_rows(colors, 0);
-  vector <float> frequency_cols(colors, 0);
+  vector <double> frequency_rows(colors, 0);
+  vector <double> frequency_cols(colors, 0);
 
   for (i = 0; i < colors; i++) {
     for (j = 0; j < colors; j++) {
@@ -513,18 +513,18 @@ void Haralick6(vector< vector<float> > co_occurence, Mat *features) {
       }
       // Correlations between the rows and columns of the co-occurrence matrix
       if (standard_deviation_rows != 0 && standard_deviation_cols != 0) {
-        correlation += p_ij * (((i-mean_rows)*(j-mean_cols)) /
+        correlation += (double) p_ij * (((i-mean_rows)*(j-mean_cols)) / (double)
                       (standard_deviation_rows*standard_deviation_cols));
       }
       // Local variations in the gray-level co-occurrence matrix
-      contrast += pow(i - j, 2) * p_ij;
+      contrast += pow(i - j, 2.0) * p_ij;
       // Sum of squared elements
-      uniform += pow(p_ij, 2);
+      uniform += pow(p_ij, 2.0);
       // Closeness of the distribution of elements to the diagonal
-      homogeneity += p_ij / (1 + pow(i-j, 2));
+      homogeneity += (double) p_ij / (double) (1.0 + pow(i-j, 2.0));
       // Randomness
       if (p_ij != 0) {
-        entropy += p_ij * log2(p_ij);
+        entropy += (double) p_ij * (double) log2(p_ij);
       }
     }
   }
@@ -533,12 +533,12 @@ void Haralick6(vector< vector<float> > co_occurence, Mat *features) {
   (*features) = Scalar::all(0.0);
 
   entropy = -entropy;
-  (*features).at<float>(0, 0) = max_probability;
-  (*features).at<float>(0, 1) = correlation;
-  (*features).at<float>(0, 2) = contrast;
-  (*features).at<float>(0, 3) = uniform;
-  (*features).at<float>(0, 4) = homogeneity;
-  (*features).at<float>(0, 5) = entropy;
+  (*features).at<float>(0, 0) = (float) max_probability;
+  (*features).at<float>(0, 1) = (float) correlation;
+  (*features).at<float>(0, 2) = (float) contrast;
+  (*features).at<float>(0, 3) = (float) uniform;
+  (*features).at<float>(0, 4) = (float) homogeneity;
+  (*features).at<float>(0, 5) = (float) entropy;
 }
 
 /*******************************************************************************
@@ -899,7 +899,7 @@ void CalculateHOG(Mat img, Mat *features, int normalization) {
   (*features).create(1, hogFeatures.size(), CV_32FC1);
   (*features) = Scalar::all(0.0);
   for (i = 0; i < static_cast<int>(hogFeatures.size()); i++) {
-      (*features).at<float>(0, i) = hogFeatures.at(i);
+      (*features).at<float>(0, i) = (float) hogFeatures.at(i);
   }
 }
 

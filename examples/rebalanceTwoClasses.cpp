@@ -281,13 +281,16 @@ int main(int argc, char const *argv[]){
   // vector <int> descriptors {1, 6, 7};
   // vector <int> quant {2, 1, 5};
 
+  // vector <int> descriptors {1};
+  // vector <int> quant {3};
+
   /* Desbalancing Data */
   cout << "\n\n------------------------------------------------------------------------------------" << endl;
   cout << "Divide the number of original samples to create a minority class:" << endl;
   cout << "---------------------------------------------------------------------------------------" << endl;
   string dirImbalanced = imbalance(baseDir, newDir, 0.5, factor);
 
-  for (operation = 0; operation <= 10; operation++){
+  for (operation = 0; operation < 10; operation++){
 
     vector<String> allRebalanced;
     stringstream operationstr;
@@ -296,7 +299,7 @@ int main(int argc, char const *argv[]){
     /* Generate Artificial Images */
     // string newDirectory = newDir+"/Rebalanced-"+op;
     // string dirRebalanced = a.generate(dirImbalanced, newDirectory, operation);
-    for (int repeatRebalance = 0; repeatRebalance < 10; repeatRebalance++) {
+    for (int repeatRebalance = 0; repeatRebalance < 20; repeatRebalance++) {
       stringstream repeatStr;
       repeatStr << repeatRebalance;
       string newDirectory = newDir+"/"+op+"-Rebalanced"+repeatStr.str();
@@ -307,7 +310,7 @@ int main(int argc, char const *argv[]){
     for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
       d = descriptors[indexDescriptor];
       // m = quant[indexDescriptor];
-      for (m = 1; m <= 7; m++){
+      for (m = 1; m <= 5; m++){
         csvOriginal = newDir+"/analysis/"+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvDesbalanced = newDir+"/analysis/"+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
