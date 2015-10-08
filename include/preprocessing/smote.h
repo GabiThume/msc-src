@@ -1,13 +1,7 @@
 #ifndef _SMOTE_H
 #define _SMOTE_H
 
-#include <opencv2/core/core.hpp>
 #include <opencv2/ml/ml.hpp>
-#include <fstream>
-#include <dirent.h>
-
-#include "utils/funcoesArquivo.h"
-#include "classification/classifier.h"
 
 using namespace cv;
 using namespace std;

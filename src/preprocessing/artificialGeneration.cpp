@@ -121,11 +121,11 @@ Mat Artificial::generateBlur(Mat originalImage){
 	blurType = 1 + (rand() % 2);
 	switch (blurType) {
 		case 1:
-		GaussianBlur(originalImage, generated, Size(i, i), 0);
-		break;
+			GaussianBlur(originalImage, generated, Size(i, i), 0);
+			break;
 		case 2:
-		bilateralFilter(originalImage, generated, i, i*2, i/2);
-		break;
+			bilateralFilter(originalImage, generated, i, i*2, i/2);
+			break;
 	}
 	return generated;
 }
@@ -473,8 +473,6 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 	DIR *dir = NULL, *minDir = NULL;
 	vector<int> totalImage, vectorRand;
 	vector<Mat> images;
-
-	srand(time(0));
 
 	std::random_device rd;
 	std::mt19937 gen(rd());

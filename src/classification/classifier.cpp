@@ -310,7 +310,6 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 	vector <vector<double> > fscore;
 	vector<double> fscoreClasses;
 	outputName = name;
-	srand(time(0));
 
 	/* If training and testing set are fixed */
 	for (it = imageClasses.begin(); it != imageClasses.end(); ++it) {

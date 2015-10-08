@@ -32,8 +32,11 @@ int qtdArquivos(string diretorio);
 
 int NumberImagesInDataset(string base, int qtdClasses, vector<int> *objClass);
 
+void NumberImgInClass(string database, int img_class, int *num_imgs,
+	int *num_train);
+
 string PerformFeatureExtraction(string database, string featuresDir, int method,
-    int colors, double resizeFactor, int normalization, vector<int> param,
-    int deleteNull, int quantization, string id = "");
+	int colors, double resizeFactor, int normalization, vector<int> param,
+	int deleteNull, int quantization, string id = "");
 
 #endif

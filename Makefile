@@ -16,7 +16,7 @@ PREPROCESSING = $(SRC_DIR)/preprocessing
 QUANTIZATION = $(SRC_DIR)/quantization/quantization.cpp
 UTILS = $(SRC_DIR)/utils
 EXAMPLES = examples
-OBJS = funcoesArquivo.o description.o funcoesAux.o quantization.o classifier.o smote.o artificialGeneration.o
+OBJS = funcoesArquivo.o description.o funcoesAux.o quantization.o classifier.o smote.o rebalance.o artificialGeneration.o
 
 all: clean descriptorTest artificialGenerationTest rebalanceTest rebalanceTwoClasses rebalanceMultiClasses staticRebalance classifierTest cleanLink
 
@@ -55,6 +55,9 @@ classifier.o:
 
 smote.o:
 	$(CXX) -c $(CXXFLAGS) $(PREPROCESSING)/smote.cpp $(OPENCV) $(VLFEAT)
+
+rebalance.o:
+	$(CXX) -c $(CXXFLAGS) $(UTILS)/rebalance.cpp $(OPENCV) $(VLFEAT)
 
 artificialGeneration.o:
 	$(CXX) -c $(CXXFLAGS) $(PREPROCESSING)/artificialGeneration.cpp $(OPENCV) $(VLFEAT) $(GMR) $(SLIC)

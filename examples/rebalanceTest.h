@@ -8,6 +8,7 @@
 #include <dirent.h>
 
 #include "utils/funcoesArquivo.h"
+#include "utils/rebalance.h"
 #include "classification/classifier.h"
 #include "preprocessing/smote.h"
 #include "preprocessing/artificialGeneration.h"

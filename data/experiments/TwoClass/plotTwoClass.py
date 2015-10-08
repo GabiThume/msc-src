@@ -90,10 +90,7 @@ for measure in measurements:
             if accuracy != []:
                 plt.legend(loc=1, prop={'size':8})
                 plt.xticks(range(0,9))
-                if measure == "BalancedAccuracy":
-                    allAccuracy.append(50);
-                else:
-                    allAccuracy.append(0);
+                allAccuracy.append(0);
                 allAccuracy.append(100);
                 plt.yticks(np.ceil(allAccuracy), rotation=0)
                 # plt.yticks(range(0,100))
