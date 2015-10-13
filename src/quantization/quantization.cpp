@@ -56,7 +56,7 @@ void QuantizationIntensity(Mat I, Mat *Q, int num_colors) {
   split(I, imColors);
 
   // Compute grayscale image
-  (*Q)  = (imColors[0]/3.0 + imColors[1]/3.0 + imColors[2]/3.0);
+  (*Q) = imColors[0]/3.0 + imColors[1]/3.0 + imColors[2]/3.0;
 
   // Gamma correction after quantization
   correctGamma(Q, 2.2);
@@ -90,7 +90,7 @@ void QuantizationGleam(Mat I, Mat *Q, int num_colors) {
   correctGamma(&(imColors[2]), 2.2);
 
   // Sum 1/3 of each channel using gamma corrected pixels
-  (*Q) = (imColors[0]/3.0 + imColors[1]/3.0 + imColors[2]/3.0);
+  (*Q) = imColors[0]/3.0 + imColors[1]/3.0 + imColors[2]/3.0;
 
   // Reduce number of colors if necessary
   if (num_colors < 256) {
@@ -120,7 +120,7 @@ void QuantizationLuminance(Mat I, Mat *Q, int num_colors) {
   split(I, imColors);
 
   // Weighted combination considering input image is BGR
-  (*Q) = (0.299*imColors[2]) + (0.587*imColors[1]) + (0.114*imColors[0]);
+  (*Q) = 0.299*imColors[2] + 0.587*imColors[1] + 0.114*imColors[0];
 
   // Gamma correction
   correctGamma(Q, 2.2);
@@ -156,7 +156,7 @@ void QuantizationLuma(Mat I, Mat *Q, int num_colors) {
   correctGamma(&(imColors[2]), 2.2);
 
   // Weighted combination considering input image is BGR
-  (*Q) = (0.2126*imColors[2]) + (0.7152*imColors[1]) + (0.0722*imColors[0]);
+  (*Q) = 0.2126*imColors[2] + 0.7152*imColors[1] + 0.0722*imColors[0];
 
   // Reduce number of colors if necessary
   if (num_colors < 256) {
@@ -184,7 +184,7 @@ void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
   MatIterator_<Vec3b> itI, endI;
   MatIterator_<uchar> itQ, endQ;
   uchar dG, dR, dB, green_mask, red_mask, blue_mask, B, G, R, green_msb;
-  uchar red_msb, blue_msb, new_color;
+  uchar red_msb, blue_msb;
   (*Q).create(I.size(), CV_8UC1);
 
   // Compute amount of bits needed to obtain num_colors
@@ -224,8 +224,8 @@ void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
     red_msb   = (R & red_mask);
     blue_msb  = (B & blue_mask);
 
-    // Merge the bit codes
-    new_color = (green_msb | red_msb | blue_msb);
+    // Merge the bit codes and store in the new image
+    (*itQ) = saturate_cast<uchar>(green_msb | red_msb | blue_msb);
 
     // std::bitset<8> b(B), g(G), r(R);
     // cout << "Color: G " << g << " R " << r << " B " << b << endl;
@@ -233,9 +233,6 @@ void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
     // cout << "Masks: G " << gm << " R " << rm << " B " << bm << endl;
     // std::bitset<8> p(new_color);
     // cout << "New pixel: " << p << " : " << (int) new_color << endl;
-
-    // Store in the new image
-    (*itQ) = (new_color > 255) ? 255 : new_color;
   }
   if (num_colors < 256) {
     reduceImageColors(Q, num_colors);
@@ -263,7 +260,6 @@ void QuantizationMSBModified(Mat I, Mat *Q, int num_colors) {
   MatIterator_<Vec3b> itI, endI;
   MatIterator_<uchar> itQ, endQ;
   uchar green_mask, red_mask, blue_mask, B, G, R, green_msb, red_msb, blue_msb;
-  uchar new_color;
   (*Q).create(I.size(), CV_8UC1);
 
   // Compute amount of bits needed to obtain num_colors
@@ -304,11 +300,8 @@ void QuantizationMSBModified(Mat I, Mat *Q, int num_colors) {
     green_msb = (G & green_mask);
     red_msb   = (R & red_mask);
     blue_msb  = (B & blue_mask);
-    // Merge the bit codes
-    new_color = (green_msb | red_msb | blue_msb);
-
-    // Store in the new image
-    (*itQ) = (new_color > 255) ? (uchar) 255 : new_color;
+    // Merge the bit codes and store in the new image
+    (*itQ) = saturate_cast<uchar>(green_msb | red_msb | blue_msb);
   }
   if (num_colors < 256) {
     reduceImageColors(Q, num_colors);

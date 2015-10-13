@@ -77,7 +77,7 @@ void correctGamma(Mat *I, double gamma) {
 
     // Create a lookup table with a grayscale color ajusted for each color
     for (i = 0; i < 256; i++ ) {
-        ptr[i] = (uchar)(pow((double)i/255.0, iGamma) * 255.0);
+        ptr[i] = saturate_cast<uchar>(pow((double)i/255.0, iGamma) * 255.0);
     }
 
     vector<Mat> channel(img_channels);

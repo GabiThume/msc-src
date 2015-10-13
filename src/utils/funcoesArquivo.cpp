@@ -352,9 +352,13 @@ void ZScoreNormalization(Mat *features) {
     cv::meanStdDev(stats, mean, std);
 
     for (row = 0; row < (*features).rows; ++row) {
+      cout << "(*features).at<float>(row, column) " << (*features).at<float>(row, column) << endl;
       (*features).at<float>(row, column) =
         ((*features).at<float>(row, column) - (float) mean.val[0])
         / (float) std.val[0];
+      cout << "(float) mean.val[0]) " << (float) mean.val[0] << endl;
+      cout << "(float) std.val[0] " << (float) std.val[0] << endl;
+      cout << "result " << (*features).at<float>(row, column) << endl << endl;
     }
   }
 }

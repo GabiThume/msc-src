@@ -424,20 +424,20 @@ Requires:
 - int distance between neighbors (usually 2)
 - int angle (0||45||90||135)
 *******************************************************************************/
-void CoocurrenceMatrix(Mat img, vector< vector<float> > *co_occurence,
+void CoocurrenceMatrix(Mat img, vector< vector<double> > *co_occurence,
                       int colors, int distance, int angle) {
-  int64 number_occurences = 0;
+  double number_occurences = 0;
   int color_reference, color_neighbor;
   int row, col, height = img.rows, width = img.cols;
   vector<int> neighbor;
 
   reduceImageColors(&img, colors);
-  (*co_occurence).resize(colors, vector<float>(colors, 0));
+  (*co_occurence).resize(colors, vector<double>(colors, 0));
   for (row = distance; row < height-distance; ++row) {
     for (col = distance; col < width-distance; ++col) {
       neighbor = NearestNeighborAngle(row, col, distance, angle);
-      color_reference = img.at<uchar>(row, col);
-      color_neighbor = img.at<uchar>(neighbor[0], neighbor[1]);
+      color_reference = (int) img.at<uchar>(row, col);
+      color_neighbor = (int) img.at<uchar>(neighbor[0], neighbor[1]);
       // Symmetry will be achieved if each pixel pair is counted twice
       (*co_occurence)[color_reference][color_neighbor]++;
       number_occurences++;
@@ -450,7 +450,7 @@ void CoocurrenceMatrix(Mat img, vector< vector<float> > *co_occurence,
   // matrix by the sum of pairs
   for (row = 0; row < colors; row++) {
     for (col = 0; col < colors; col++) {
-      (*co_occurence)[row][col] /= static_cast<float> (number_occurences);
+      (*co_occurence)[row][col] /= number_occurences;
     }
   }
 }
@@ -474,13 +474,12 @@ Requires:
 - vector< vector<float> >* GLCM matrix
 - Mat* to write the 6 measurements after computing them
 *******************************************************************************/
-void Haralick6(vector< vector<float> > co_occurence, Mat *features) {
-  int i, j;
+void Haralick6(vector< vector<double> > co_occurence, Mat *features) {
   double mean_rows = 0, mean_cols = 0, standard_deviation_rows = 0;
   double standard_deviation_cols = 0, entropy = 0, homogeneity = 0;
   double max_probability = 0, correlation = 0, contrast = 0, uniform = 0;
   double variance_rows = 0, variance_cols = 0, p_ij;
-  int colors = co_occurence.size();
+  int i, j, colors = co_occurence.size();
 
   vector <double> frequency_rows(colors, 0);
   vector <double> frequency_cols(colors, 0);
@@ -513,8 +512,8 @@ void Haralick6(vector< vector<float> > co_occurence, Mat *features) {
       }
       // Correlations between the rows and columns of the co-occurrence matrix
       if (standard_deviation_rows != 0 && standard_deviation_cols != 0) {
-        correlation += (double) p_ij * (((i-mean_rows)*(j-mean_cols)) / (double)
-                      (standard_deviation_rows*standard_deviation_cols));
+        correlation += (double) p_ij * (((i-mean_rows)*(j-mean_cols)) /
+          (double) (standard_deviation_rows*standard_deviation_cols));
       }
       // Local variations in the gray-level co-occurrence matrix
       contrast += pow(i - j, 2.0) * p_ij;
@@ -533,12 +532,12 @@ void Haralick6(vector< vector<float> > co_occurence, Mat *features) {
   (*features) = Scalar::all(0.0);
 
   entropy = -entropy;
-  (*features).at<float>(0, 0) = (float) max_probability;
-  (*features).at<float>(0, 1) = (float) correlation;
-  (*features).at<float>(0, 2) = (float) contrast;
-  (*features).at<float>(0, 3) = (float) uniform;
-  (*features).at<float>(0, 4) = (float) homogeneity;
-  (*features).at<float>(0, 5) = (float) entropy;
+  (*features).at<float>(0, 0) = static_cast<float>(max_probability);
+  (*features).at<float>(0, 1) = static_cast<float>(correlation);
+  (*features).at<float>(0, 2) = static_cast<float>(contrast);
+  (*features).at<float>(0, 3) = static_cast<float>(uniform);
+  (*features).at<float>(0, 4) = static_cast<float>(homogeneity);
+  (*features).at<float>(0, 5) = static_cast<float>(entropy);
 }
 
 /*******************************************************************************
@@ -554,7 +553,7 @@ Requires:
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
 void CalculateHARALICK(Mat img, Mat *features, int colors, int normalization) {
-  vector< vector<float> > GLCM_0, GLCM_45, GLCM_90, GLCM_135, GLCM;
+  vector< vector<double> > GLCM_0, GLCM_45, GLCM_90, GLCM_135, GLCM;
   int distance, i, j;
 
   distance = 1;
@@ -564,7 +563,7 @@ void CalculateHARALICK(Mat img, Mat *features, int colors, int normalization) {
   CoocurrenceMatrix(img, &GLCM_135, colors, distance, 135);
 
   // The GLCM matrix is the average of four matrixes with different directions
-  GLCM.resize(colors, vector<float>(colors, 0));
+  GLCM.resize(colors, vector<double>(colors, 0));
   for (i = 0; i < colors; ++i) {
     for (j = 0; j < colors; ++j) {
       GLCM[i][j] =

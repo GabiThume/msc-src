@@ -45,12 +45,12 @@ string description(string dir, string features, int d, int m, string id) {
   // string quantizationMethod[4] = {"Intensity", "Luminance", "Gleam", "MSB"};
   /* If descriptor ==  CCV, threshold is required */
   if (d == 3)
-    return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramCCV, 0, m, id);
+    return PerformFeatureExtraction(dir, features, d, 64, 1, 0, paramCCV, 0, m, id);
   /* If descriptor ==  ACC, distances are required */
   else if (d == 5)
-    return PerformFeatureExtraction(dir, features, d, 64, 1, 1, paramACC, 0, m, id);
+    return PerformFeatureExtraction(dir, features, d, 64, 1, 0, paramACC, 0, m, id);
   else
-    return PerformFeatureExtraction(dir, features, d, 64, 1, 1, parameters, 0, m, id);
+    return PerformFeatureExtraction(dir, features, d, 64, 1, 0, parameters, 0, m, id);
 }
 
 
@@ -71,7 +71,6 @@ int main(int argc, char const *argv[]){
   vector<Classes> imbalancedData, artificialData, originalData, rebalancedData;
   vector<int> objperClass;
   vector<vector<double> > rebalancedFscore, desbalancedFscore;
-  bool do_remove_samples = true;
 
   if (argc != 3){
     cout << "\nUsage: ./rebalanceTest (0) (1) (2) (3) (4)\n " << endl;
@@ -96,18 +95,11 @@ int main(int argc, char const *argv[]){
   descriptorMethod: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"}
   Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
   */
-  vector <int> descriptors {1, 2, 3, 4, 5, 6, 7, 8};
   // vector <int> descriptors {1, 2, 4, 6, 7, 8};
   // vector <int> quant {2, 4, 4, 2, 3, 2};
-  //vector <int> descriptors {1};
-  // vector <int> quant {1};
 
   double factor = 1.6;
-  // vector <int> descriptors {1, 6, 7};
-  // vector <int> quant {2, 1, 5};
-
-  // vector <int> descriptors {1};
-  // vector <int> quant {3};
+  vector <int> descriptors {1, 2, 6, 7};
 
   // Check how many classes and images there are
   qtd_classes = qtdArquivos(baseDir+"/");
@@ -123,15 +115,12 @@ int main(int argc, char const *argv[]){
     count_diff = count_diff + abs(numImages - prev);
     prev = numImages;
   }
-  if (count_diff > 0 || do_remove_samples) {
-    /* Desbalancing Data */
-    cout << "\n\n------------------------------------------------------------------------------------" << endl;
-    cout << "Divide the number of original samples to create a minority class:" << endl;
-    cout << "---------------------------------------------------------------------------------------" << endl;
-    images_directory = RemoveSamples(baseDir, newDir, 0.5, factor);
-  } else {
-    images_directory = baseDir;
-  }
+
+  /* Desbalancing Data */
+  cout << "\n\n------------------------------------------------------------------------------------" << endl;
+  cout << "Divide the number of original samples to create a minority class:" << endl;
+  cout << "---------------------------------------------------------------------------------------" << endl;
+  images_directory = RemoveSamples(baseDir, newDir, 0.5, factor);
 
   srand(time(0));
   // For each rebalancing operation
@@ -179,20 +168,23 @@ int main(int argc, char const *argv[]){
 
         // Feature extraction from images
         originalDescriptor = description(images_directory, featuresDir, d, m, "desbalanced");
-        // Read the feature vectors
-        imbalancedData = ReadFeaturesFromFile(originalDescriptor);
-        numClasses = imbalancedData.size();
-        if (numClasses != 0){
-          cout << "---------------------------------------------------------------------------------------" << endl;
-          cout << "Classification using desbalanced data" << endl;
-          cout << "Features vectors file: " << originalDescriptor.c_str() << endl;
-          cout << "---------------------------------------------------------------------------------------" << endl;
-          c.findSmallerClass(imbalancedData, &minoritySize);
-          desbalancedFscore = c.classify(prob, 1, imbalancedData, csvDesbalanced.c_str(), minoritySize);
-          imbalancedData.clear();
+        if (count_diff == 0) {
+          // Read the feature vectors
+          imbalancedData = ReadFeaturesFromFile(originalDescriptor);
+          numClasses = imbalancedData.size();
+          if (numClasses != 0){
+            cout << "---------------------------------------------------------------------------------------" << endl;
+            cout << "Classification using desbalanced data" << endl;
+            cout << "Features vectors file: " << originalDescriptor.c_str() << endl;
+            cout << "---------------------------------------------------------------------------------------" << endl;
+            c.findSmallerClass(imbalancedData, &minoritySize);
+            desbalancedFscore = c.classify(prob, 1, imbalancedData, csvDesbalanced.c_str(), minoritySize);
+            imbalancedData.clear();
+          }
         }
 
-        for (i = 0; i < allRebalanced.size(); i++) {
+        for (i = 0; i < (int)allRebalanced.size(); i++) {
+          cout << "allRebalanced " << allRebalanced[i] << endl;
           // Generate Synthetic SMOTE samples
           imbalancedData = ReadFeaturesFromFile(originalDescriptor);
           descSmote = newDir+"/features/"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
@@ -225,5 +217,7 @@ int main(int argc, char const *argv[]){
     }
     allRebalanced.clear();
   }
+
+  cout << "Done." << endl;
   return 0;
 }
