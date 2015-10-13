@@ -27,7 +27,7 @@ class Artificial{
     string generate(string base, string newDirectory, int whichOperation);
     void GenerateImage(vector<Mat> images, int generationType, string name,
       Mat original, int total);
-    Mat generateBlur(Mat originalImage);
+    Mat generateBlur(Mat originalImage, int blurType);
     Mat generateNoise(Mat img);
     Mat generateBlending(Mat originalImage, vector<Mat> images, int total);
     Mat generateUnsharp(Mat originalImage);

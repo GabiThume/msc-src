@@ -96,10 +96,11 @@ int main(int argc, char const *argv[]){
   descriptorMethod: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"}
   Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
   */
+  vector <int> descriptors {1, 2, 3, 4, 5, 6, 7, 8};
   // vector <int> descriptors {1, 2, 4, 6, 7, 8};
   // vector <int> quant {2, 4, 4, 2, 3, 2};
-  vector <int> descriptors {1};
-  vector <int> quant {1};
+  //vector <int> descriptors {1};
+  // vector <int> quant {1};
 
   double factor = 1.6;
   // vector <int> descriptors {1, 6, 7};
@@ -132,7 +133,7 @@ int main(int argc, char const *argv[]){
     images_directory = baseDir;
   }
 
-  srand(time(NULL));
+  srand(time(0));
   // For each rebalancing operation
   for (operation = 0; operation < 10; operation++){
 
@@ -153,17 +154,17 @@ int main(int argc, char const *argv[]){
 
     for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
       d = descriptors[indexDescriptor];
-      m = quant[indexDescriptor];
-      // for (m = 1; m <= 5; m++){
+      // m = quant[indexDescriptor];
+      for (m = 1; m <= 5; m++){
         csvOriginal = newDir+"/analysis/"+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvDesbalanced = newDir+"/analysis/"+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvRebalance = newDir+"/analysis/"+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         featuresDir = newDir+"/features/";
 
-        /* Feature extraction from images */
+        // Feature extraction from images
         string originalDescriptor = description(baseDir, featuresDir, d, m, "original");
-        /* Read the feature vectors */
+        // Read the feature vectors
         originalData = ReadFeaturesFromFile(originalDescriptor);
         numClasses = originalData.size();
         if (numClasses != 0){
@@ -176,9 +177,9 @@ int main(int argc, char const *argv[]){
           originalData.clear();
         }
 
-        /* Feature extraction from images */
+        // Feature extraction from images
         originalDescriptor = description(images_directory, featuresDir, d, m, "desbalanced");
-        /* Read the feature vectors */
+        // Read the feature vectors
         imbalancedData = ReadFeaturesFromFile(originalDescriptor);
         numClasses = imbalancedData.size();
         if (numClasses != 0){
@@ -192,7 +193,7 @@ int main(int argc, char const *argv[]){
         }
 
         for (i = 0; i < allRebalanced.size(); i++) {
-          /* Generate Synthetic SMOTE samples */
+          // Generate Synthetic SMOTE samples
           imbalancedData = ReadFeaturesFromFile(originalDescriptor);
           descSmote = newDir+"/features/"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
           smoteDescriptor = PerformSmote(imbalancedData, operation, descSmote);
@@ -219,9 +220,10 @@ int main(int argc, char const *argv[]){
             rebalancedFscore = c.classify(prob, 1, artificialData, csvRebalance.c_str(), minoritySize);
             artificialData.clear();
           }
-        // }
+        }
       }
     }
+    allRebalanced.clear();
   }
   return 0;
 }

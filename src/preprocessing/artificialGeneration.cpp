@@ -113,18 +113,20 @@ Mat Artificial::generateNoise(Mat img) {
 	return out;
 }
 
-Mat Artificial::generateBlur(Mat originalImage){
-	int i, blurType;
+Mat Artificial::generateBlur(Mat originalImage, int blurType) {
+	int i;
 	Mat generated;
 
 	i = 3 + 2*(rand() % 15);
-	blurType = 1 + (rand() % 2);
+	//blurType = 1 + (rand() % 2);
 	switch (blurType) {
 		case 1:
 			GaussianBlur(originalImage, generated, Size(i, i), 0);
 			break;
 		case 2:
 			bilateralFilter(originalImage, generated, i, i*2, i/2);
+			break;
+		default:
 			break;
 	}
 	return generated;
@@ -187,7 +189,7 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images,
 		operation = 1 + (rand() % 6);
 		switch(operation){
 			case 1:
-				generated = generateBlur(img);
+				generated = generateBlur(img, 1);
 				break;
 			case 2:
 				generated = generateBlending(img, images, total);
@@ -401,7 +403,7 @@ void Artificial::GenerateImage(vector<Mat> images, int generationType,
 			imwrite(name, original);
 			break;
 		case 2:
-			generated = generateBlur(original);
+			generated = generateBlur(original, 1);
 			imwrite(name, generated);
 			break;
 		case 3:
@@ -479,10 +481,11 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 	std::uniform_int_distribution<> dis(2, 8);
 
 	dir = opendir(base.c_str());
-	if(dir == NULL) {
-		cout << "Error! Directory " << base << " don't exist. " << endl;
+	if (!dir) {
+		cout << "Error! Directory " << base << " doesn't exist." << endl;
 		exit(1);
 	}
+	closedir(dir);
 
 	str = "rm -f -r "+newDirectory+"/*;";
 	str += "mkdir -p "+newDirectory+";";
@@ -495,8 +498,8 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 
 	newDirectory += "/original/";
 	dir = opendir(newDirectory.c_str());;
-	if(dir == NULL) {
-		cout << "Error! Directory " << newDirectory << " don't exist. " << endl;
+	if (!dir) {
+		cout << "Error! Directory " << newDirectory << " doesn't exist. " << endl;
 		exit(1);
 	}
 
@@ -506,6 +509,7 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 
 	qtdClasses = classesNumber(newDirectory);
 	cout << "Number of classes: " << qtdClasses << endl;
+	closedir(dir);
 	/* Count how many files there are in classes and which is the majority */
 	maior = -1;
 	for(i = 0; i < qtdClasses; i++) {
@@ -529,15 +533,21 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 			minorityClass = newDirectory + "/" + to_string(eachClass) + "/treino/";
 			cout << "Class: " << minorityClass << " contain " << totalImage[eachClass] << " images" << endl;
 			minDir = opendir(minorityClass.c_str());
-
+			if (!minDir) {
+				cout << "Error! Directory " << minorityClass.c_str() << " doesn't exist. " << endl;
+				exit(1);
+			}
 			/* Add all minority images in vector<Mat>images */
 			while ((sDir = readdir(minDir))) {
 				imgName = sDir->d_name;
 				img = imread(minorityClass + imgName, CV_LOAD_IMAGE_COLOR);
-				if (!img.data) continue;
+				if (!img.data) {
+					cout << "The image " << minorityClass+imgName << " could't be read" << endl;
+					exit(-1);
+				};
 				images.push_back(img);
 			}
-
+			closedir(minDir);
 			/* For each image needed to full rebalance*/
 			for (i = 0; i < rebalance; i++){
 				/* Choose a random image */
