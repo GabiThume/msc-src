@@ -541,11 +541,12 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 			while ((sDir = readdir(minDir))) {
 				imgName = sDir->d_name;
 				img = imread(minorityClass + imgName, CV_LOAD_IMAGE_COLOR);
-				if (!img.data) {
-					cout << "The image " << minorityClass+imgName << " could't be read" << endl;
-					exit(-1);
-				};
+				if (!img.data) continue;
 				images.push_back(img);
+			}
+			if (images.size() == 0) {
+				cout << "The class " << minorityClass+imgName << " could't be read" << endl;
+				exit(-1);
 			}
 			closedir(minDir);
 			/* For each image needed to full rebalance*/
