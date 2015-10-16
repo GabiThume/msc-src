@@ -87,7 +87,7 @@ void SMOTE::computeNeighbors(Mat minority, int nearestNeighbors,
 
   KNearest knn(minority, classes);
 
-  k = nearestNeighbors+1;
+  k = nearestNeighbors;
   max = knn.get_max_k();
   knn.find_nearest(minority, (k > max ? max : k), 0, 0, neighbors, 0);
 
@@ -102,7 +102,6 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors) {
   int attributes = s.width;
   vector<int> vectorRand;
   Mat newMinority;
-
   if (amountSmote == 0) return Mat();
 
   /* If amount to smote is less than 100%, randomize the minority class
@@ -155,6 +154,5 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors) {
   for (i = 0; i < minoritySamples; i++) {
     populate(minority, neighbors, &synthetic, &index, 1, i, nearestNeighbors);
   }
-
   return synthetic;
 }

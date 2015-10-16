@@ -33,22 +33,15 @@ int classesNumber(string diretorio){
 
 Mat unsharp(Mat img, int N) {
 
-	Mat out(img.size(), img.depth());
-	Mat blur;
-	int diff, newpixel;
+	Mat out(img.size(), img.depth()), blur;
+	int diff, i, j;
 
 	GaussianBlur(img, blur, Size(N, N), 0);
 
-	for (int i = 0; i < img.size().height; i++) {
-		for (int j = 0; j < img.size().width; j++) {
-
+	for (i = 0; i < img.rows; i++) {
+		for (j = 0; j < img.cols; j++) {
 			diff = img.at<uchar>(i,j) - blur.at<uchar>(i,j);
-			newpixel = img.at<uchar>(i,j) + diff;
-			// overflow / underflow control
-			newpixel = (newpixel > 255) ? 255 : newpixel;
-			newpixel = (newpixel < 0) ? 0 : newpixel;
-
-			out.at<uchar>(i,j) = newpixel;
+			out.at<uchar>(i,j) = saturate_cast<uchar>(img.at<uchar>(i,j) + diff);
 		}
 	}
 	return out;
@@ -60,7 +53,7 @@ utilizando a distribuicao de Poisson.
 o ruido eh correlacionado com o sinal e portanto
 o nivel do ruido depende do nivel do sinal
 */
-int poissNoise(int lambda){
+uchar poissNoise(int lambda){
 
 	int k, value;
 	double L, p;
@@ -72,24 +65,17 @@ int poissNoise(int lambda){
 		p = p * (rand()/(double)RAND_MAX);
 	} while (p > L);
 
-	value = k-1;
-	value = (value > 255) ? 255 : value;
+	value = saturate_cast<uchar>(k-1);
 	return value;
 }
 
 Mat noiseSingleChannel(Mat img){
-
-	int height, width, cinzar, cinza, i, j;
+	int i, j;
 	Mat out(img.size(), CV_8U);
 
-	height = img.size().height;
-	width = img.size().width;
-
-	for(i = 0; i < height; i++) {
-		for(j = 0; j < width; j++) {
-			cinza = (int)img.at<uchar>(i,j);
-			cinzar = poissNoise(cinza);
-			out.at<uchar>(i,j) = (uchar)cinzar;
+	for(i = 0; i < img.rows; i++) {
+		for(j = 0; j < img.cols; j++) {
+			out.at<uchar>(i,j) = poissNoise((int)img.at<uchar>(i,j));
 		}
 	}
 	return out;
@@ -135,15 +121,19 @@ Mat Artificial::generateBlur(Mat originalImage, int blurType) {
 Mat Artificial::generateBlending(Mat originalImage, vector<Mat> images, int total){
 	double alpha, beta;
 	int randomSecondImg;
-	Mat generated;
+	Mat generated, second;
 
-	alpha = (rand() % 100);
+	alpha = 10.0 + (rand() % 80);
 	beta = (100.0 - alpha);
-	randomSecondImg = 0 + (rand() % total);
-	while (originalImage.size() != images[randomSecondImg].size()){
-		randomSecondImg = 0 + (rand() % total);
+
+	randomSecondImg = rand() % total;
+	images[randomSecondImg].copyTo(second);
+	if (originalImage.size() != second.size()) {
+		resize(second, second, originalImage.size());
 	}
-	addWeighted(originalImage, alpha/100.0, images[randomSecondImg], beta/100.0, 0.0, generated);
+
+	addWeighted(originalImage, alpha/100.0, second, beta/100.0, 0.0, generated);
+
 	return generated;
 }
 
@@ -186,10 +176,10 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images,
 		vectorRand.push_back(newImage);
 		images[newImage].copyTo(img);
 
-		operation = 1 + (rand() % 6);
+		operation = 1 + (rand() % 4);
 		switch(operation){
 			case 1:
-				generated = generateBlur(img, 1);
+				generated = generateBlur(img, 2);
 				break;
 			case 2:
 				generated = generateBlending(img, images, total);
@@ -198,12 +188,9 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images,
 				generated = generateUnsharp(img);
 				break;
 			case 4:
-				generated = generateThreshold(img, images, total);
-				break;
-			case 5:
 				generated = generateSaliency(img, images, total);
 				break;
-			case 6:
+			case 5:
 				generated = generateSmoteImg(img, images, total, 1);
 				default:
 			break;
@@ -250,36 +237,36 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images,
 Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images,
 		int total){
 
-	Mat generated, bin, foreground, background, saliency_map;
+	Mat generated, bin, foreground, background, second;
 	int randomSecondImg;
 
+	bilateralFilter(originalImage, bin, 6, 18, 3);
 	//Create binary image using Otsu's threshold
-	cvtColor(originalImage, bin, CV_BGR2GRAY);
-	threshold(bin, bin, 127, 255, THRESH_BINARY_INV | CV_THRESH_OTSU);
+	cvtColor(bin, bin, CV_BGR2GRAY);
 
-	// MORPH_RECT
-	int erosion_size = 1;
-	morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE,
-		Size(2*erosion_size+1, 2*erosion_size+1),
-		Point(erosion_size,erosion_size)), Point(-1,-1));
+	threshold(bin, bin, 0, 255, THRESH_BINARY_INV | CV_THRESH_OTSU);
 
 	originalImage.copyTo(foreground, bin);
 
 	// Select another image with the same size
-	randomSecondImg = 0 + (rand() % total);
-	while (originalImage.size() != images[randomSecondImg].size()){
-		randomSecondImg = 0 + (rand() % total);
+	randomSecondImg = rand() % total;
+	images[randomSecondImg].copyTo(second);
+	if (originalImage.size() != second.size()) {
+		resize(second, second, originalImage.size());
 	}
+
+	// namedWindow("Display window", WINDOW_AUTOSIZE );
+	// imshow("original", originalImage);
+	// imshow("foreground", bin);
+	// imshow("second", randomSecondImg);
 
 	// Select the background
 	bitwise_not(bin, bin);
-	images[randomSecondImg].copyTo(background, bin);
+	second.copyTo(background, bin);
 
 	// Blend of background and foreground
 	generated = background + foreground;
 
-	// namedWindow("Display window", WINDOW_AUTOSIZE );
-	// imshow("foreground", bin);
 	// imshow("background", background);
 	// imshow("generated", generated);
 	// waitKey(0);
@@ -290,7 +277,7 @@ Mat Artificial::generateThreshold(Mat originalImage, vector<Mat> images,
 Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int total){
 
 	GMRsaliency GMRsal;
-	Mat saliency_map, original, generated, bin, foreground, background;
+	Mat saliency_map, original, generated, bin, foreground, background, second;
 	int randomSecondImg;
 	originalImage.copyTo(original);
 	saliency_map = GMRsal.GetSal(originalImage);
@@ -305,32 +292,30 @@ Mat Artificial::generateSaliency(Mat originalImage, vector<Mat> images, int tota
 
 	// Select just the most salient region, given a threshold value
 	bin = saliency_map * 255;
-	// GaussianBlur(bin, bin, Size(1,1), 0, 0);
 	bin.convertTo(bin, CV_8U);
-	threshold(bin, bin, 127, 255, THRESH_BINARY_INV | THRESH_OTSU);
+	threshold(bin, bin, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
 
-	morphologyEx(bin, bin, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(2*1+1, 2*1+1), Point(1,1)), Point(-1,-1));
+	morphologyEx(bin, bin, MORPH_OPEN,
+		getStructuringElement(MORPH_ELLIPSE, Size(3, 3), Point(1,1)), Point(-1,-1));
 	original.copyTo(foreground, bin);
 
-	// imwrite(nameGeneratedImage+"_saliency", bin);
-	// namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
+	// namedWindow( "Display window", WINDOW_AUTOSIZE );
 	// imshow("saliency", bin);
-	// waitKey(0);
 
 	/* Select another image with the same size */
 	randomSecondImg = rand() % total;
-	while (original.size() != images[randomSecondImg].size()){
-		randomSecondImg = rand() % total;
+	images[randomSecondImg].copyTo(second);
+	if (originalImage.size() != second.size()) {
+		resize(second, second, originalImage.size());
 	}
 
 	// Select the background
 	bitwise_not(bin, bin);
-	images[randomSecondImg].copyTo(background, bin);
+	second.copyTo(background, bin);
 
 	// Blend of background and foreground
 	generated = background + foreground;
 
-	// namedWindow( "Display window", WINDOW_AUTOSIZE );
 	// imshow("saliency", generated);
 	// waitKey(0);
 	return generated;
@@ -372,9 +357,13 @@ Mat Artificial::generateSmoteImg(Mat originalImage, vector<Mat> images, int tota
 	Mat generated, second;
 
 	randomSecondImg = rand() % total;
+	images[randomSecondImg].copyTo(second);
+	if (originalImage.size() != second.size()) {
+		resize(second, second, originalImage.size());
+	}
+
 	originalImage.copyTo(generated);
 	split(generated, imColors);
-	images[randomSecondImg].copyTo(second);
 	split(second, imColorsSecond);
 
 	imColors[0] = smoteImg(imColors[0], imColorsSecond[0], option);
@@ -403,7 +392,7 @@ void Artificial::GenerateImage(vector<Mat> images, int generationType,
 			imwrite(name, original);
 			break;
 		case 2:
-			generated = generateBlur(original, 1);
+			generated = generateBlur(original, 2);
 			imwrite(name, generated);
 			break;
 		case 3:
@@ -475,10 +464,9 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 	DIR *dir = NULL, *minDir = NULL;
 	vector<int> totalImage, vectorRand;
 	vector<Mat> images;
-
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dis(2, 8);
+	std::uniform_int_distribution<> dis(2, 9);
 
 	dir = opendir(base.c_str());
 	if (!dir) {

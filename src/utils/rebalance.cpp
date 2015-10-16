@@ -148,7 +148,7 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
   numberOfImages.str("");
   numberOfImages << total;
 
-  string name = csvSmote + "256c_100r_"+numberOfImages.str()+"i_smote.csv";
+  string name = csvSmote + numberOfImages.str()+"i_smote.csv";
   arq.open(name.c_str(), ios::out);
   if (!arq.is_open()) {
     cout << "It is not possible to open the feature's file: " << name << endl;

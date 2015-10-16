@@ -62,12 +62,12 @@ int main(int argc, char const *argv[]){
   ofstream csvFile;
   stringstream globalFactor;
   int numClasses, m, d, operation, indexDescriptor, minoritySize, i, numImages;
-  int repeatRebalance = 10, repeat, count_diff, prev, qtd_classes, treino;
+  int repeatRebalance = 1, repeat, count_diff, prev, qtd_classes, treino;
   double prob = 0.5;
   string nameFile, name, nameDir, descriptorName, method, newDir, baseDir, featuresDir;
   string csvOriginal, csvSmote, csvRebalance, analysisDir, csvDesbalanced;
   string directory, str, bestDir, op, descSmote, smoteDescriptor, fileDescriptor;
-  string images_directory;
+  string images_directory, originalDescriptor;
   vector<Classes> imbalancedData, artificialData, originalData, rebalancedData;
   vector<int> objperClass;
   vector<vector<double> > rebalancedFscore, desbalancedFscore;
@@ -99,7 +99,7 @@ int main(int argc, char const *argv[]){
   // vector <int> quant {2, 4, 4, 2, 3, 2};
 
   double factor = 1.6;
-  vector <int> descriptors {1, 2, 6, 7};
+  vector <int> descriptors {1, 3, 6, 7, 8};
 
   // Check how many classes and images there are
   qtd_classes = qtdArquivos(baseDir+"/");
@@ -124,7 +124,7 @@ int main(int argc, char const *argv[]){
 
   srand(time(0));
   // For each rebalancing operation
-  for (operation = 0; operation < 10; operation++){
+  for (operation = 1; operation < 10; operation++){
 
     vector<String> allRebalanced;
     stringstream operationstr;
@@ -147,40 +147,39 @@ int main(int argc, char const *argv[]){
       for (m = 1; m <= 5; m++){
         csvOriginal = newDir+"/analysis/"+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvDesbalanced = newDir+"/analysis/"+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-        csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+        csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_64c_100r_";
         csvRebalance = newDir+"/analysis/"+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         featuresDir = newDir+"/features/";
 
         // Feature extraction from images
-        string originalDescriptor = description(baseDir, featuresDir, d, m, "original");
-        // Read the feature vectors
-        originalData = ReadFeaturesFromFile(originalDescriptor);
-        numClasses = originalData.size();
-        if (numClasses != 0){
-          cout << "---------------------------------------------------------------------------------------" << endl;
-          cout << "Classification using original data" << endl;
-          cout << "Features vectors file: " << originalDescriptor.c_str() << endl;
-          cout << "---------------------------------------------------------------------------------------" << endl;
-          c.findSmallerClass(originalData, &minoritySize);
-          c.classify(prob, 10, originalData, csvOriginal.c_str(), minoritySize);
-          originalData.clear();
-        }
-
-        // Feature extraction from images
-        originalDescriptor = description(images_directory, featuresDir, d, m, "desbalanced");
         if (count_diff == 0) {
+          originalDescriptor = description(baseDir, featuresDir, d, m, "original");
           // Read the feature vectors
-          imbalancedData = ReadFeaturesFromFile(originalDescriptor);
-          numClasses = imbalancedData.size();
+          originalData = ReadFeaturesFromFile(originalDescriptor);
+          numClasses = originalData.size();
           if (numClasses != 0){
             cout << "---------------------------------------------------------------------------------------" << endl;
-            cout << "Classification using desbalanced data" << endl;
+            cout << "Classification using original data" << endl;
             cout << "Features vectors file: " << originalDescriptor.c_str() << endl;
             cout << "---------------------------------------------------------------------------------------" << endl;
-            c.findSmallerClass(imbalancedData, &minoritySize);
-            desbalancedFscore = c.classify(prob, 1, imbalancedData, csvDesbalanced.c_str(), minoritySize);
-            imbalancedData.clear();
+            c.findSmallerClass(originalData, &minoritySize);
+            c.classify(prob, 10, originalData, csvOriginal.c_str(), minoritySize);
+            originalData.clear();
           }
+        }
+        // Feature extraction from images
+        originalDescriptor = description(images_directory, featuresDir, d, m, "desbalanced");
+        // Read the feature vectors
+        imbalancedData = ReadFeaturesFromFile(originalDescriptor);
+        numClasses = imbalancedData.size();
+        if (numClasses != 0){
+          cout << "---------------------------------------------------------------------------------------" << endl;
+          cout << "Classification using desbalanced data" << endl;
+          cout << "Features vectors file: " << originalDescriptor.c_str() << endl;
+          cout << "---------------------------------------------------------------------------------------" << endl;
+          c.findSmallerClass(imbalancedData, &minoritySize);
+          desbalancedFscore = c.classify(prob, 1, imbalancedData, csvDesbalanced.c_str(), minoritySize);
+          imbalancedData.clear();
         }
 
         for (i = 0; i < (int)allRebalanced.size(); i++) {
