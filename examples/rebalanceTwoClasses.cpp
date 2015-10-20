@@ -54,15 +54,14 @@ string description(string dir, string features, int d, int m, string id) {
 }
 
 
-int main(int argc, char const *argv[]){
-
+int main(int argc, char const *argv[]) {
   Classifier c;
   Size size;
   Artificial a;
   ofstream csvFile;
   stringstream globalFactor;
   int numClasses, m, d, operation, indexDescriptor, minoritySize, i, numImages;
-  int repeatRebalance = 1, repeat, count_diff, prev, qtd_classes, treino;
+  int repeatRebalance = 10, repeat, count_diff, prev, qtd_classes, treino;
   double prob = 0.5;
   string nameFile, name, nameDir, descriptorName, method, newDir, baseDir, featuresDir;
   string csvOriginal, csvSmote, csvRebalance, analysisDir, csvDesbalanced;
@@ -71,6 +70,7 @@ int main(int argc, char const *argv[]){
   vector<Classes> imbalancedData, artificialData, originalData, rebalancedData;
   vector<int> objperClass;
   vector<vector<double> > rebalancedFscore, desbalancedFscore;
+  srand(time(0));
 
   if (argc != 3){
     cout << "\nUsage: ./rebalanceTest (0) (1) (2) (3) (4)\n " << endl;
@@ -99,7 +99,8 @@ int main(int argc, char const *argv[]){
   // vector <int> quant {2, 4, 4, 2, 3, 2};
 
   double factor = 1.6;
-  vector <int> descriptors {1, 3, 6, 7, 8};
+  // vector <int> descriptors {1, 3, 6, 7, 8};
+  vector <int> descriptors {1, 6, 7};
 
   // Check how many classes and images there are
   qtd_classes = qtdArquivos(baseDir+"/");
@@ -122,7 +123,6 @@ int main(int argc, char const *argv[]){
   cout << "---------------------------------------------------------------------------------------" << endl;
   images_directory = RemoveSamples(baseDir, newDir, 0.5, factor);
 
-  srand(time(0));
   // For each rebalancing operation
   for (operation = 1; operation < 10; operation++){
 
@@ -144,10 +144,10 @@ int main(int argc, char const *argv[]){
     for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
       d = descriptors[indexDescriptor];
       // m = quant[indexDescriptor];
-      for (m = 1; m <= 5; m++){
+      for (m = 2; m <= 3; m++){
         csvOriginal = newDir+"/analysis/"+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvDesbalanced = newDir+"/analysis/"+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-        csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_64c_100r_";
+        csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvRebalance = newDir+"/analysis/"+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         featuresDir = newDir+"/features/";
 
@@ -187,7 +187,9 @@ int main(int argc, char const *argv[]){
           // Generate Synthetic SMOTE samples
           imbalancedData = ReadFeaturesFromFile(originalDescriptor);
           descSmote = newDir+"/features/"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+          cout << descSmote << endl;
           smoteDescriptor = PerformSmote(imbalancedData, operation, descSmote);
+          cout << smoteDescriptor << endl;
           rebalancedData = ReadFeaturesFromFile(smoteDescriptor);
           if (rebalancedData.size() != 0){
             cout << "---------------------------------------------------------------------------------------" << endl;
@@ -195,6 +197,7 @@ int main(int argc, char const *argv[]){
             cout << "Features vectors file: " << smoteDescriptor.c_str() << endl;
             cout << "---------------------------------------------------------------------------------------" << endl;
             c.findSmallerClass(rebalancedData, &minoritySize);
+            cout << csvSmote << endl;
             c.classify(prob, 1, rebalancedData, csvSmote.c_str(), minoritySize);
             rebalancedData.clear();
           }

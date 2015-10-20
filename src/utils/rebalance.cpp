@@ -45,7 +45,7 @@ Requires:
 string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmote) {
 
   int majority = -1, majorityClass = -1, eachClass, amountSmote, countImg = 0;
-  int numTraining = 0, numTesting = 0, i, x, neighbors, pos, total, h, w;
+  int numTraining = 0, numTesting = 0, i, x, neighbors, pos, total, h, w, numRaw;
   vector<int> trainingNumber(imbalancedData.size(), 0);
   std::vector<Classes>::iterator it;
   vector<Classes> rebalancedData;
@@ -79,9 +79,11 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
 
     Mat dataTraining(0, imbalancedData[eachClass].features.size().width, CV_32FC1);
     Mat dataTesting(0, imbalancedData[eachClass].features.size().width, CV_32FC1);
+    Mat dataRaw(0, imbalancedData[eachClass].features.size().width, CV_32FC1);
 
     numTraining = 0;
     numTesting = 0;
+    numRaw = 0;
 
     cout << "In class " << eachClass << " were found " << trainingNumber[eachClass] << " original training images"<< endl;
     /* Find out how many samples are needed to rebalance */
@@ -103,6 +105,11 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
           Mat tmp = dataTesting.row(numTesting);
           imbalancedData[eachClass].features.row(x).copyTo(tmp);
           numTesting++;
+        } else {
+          dataRaw.resize(numRaw+1);
+          Mat tmp = dataRaw.row(numRaw);
+          imbalancedData[eachClass].features.row(x).copyTo(tmp);
+          numRaw++;
         }
       }
 
@@ -110,7 +117,6 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
         if (operation != 0){
           synthetic = s.smote(dataTraining, amountSmote, neighbors);
         } else {
-          cout << imbalancedData[eachClass].features.size().width << endl;
           synthetic.create(amountSmote, imbalancedData[eachClass].features.size().width, CV_32FC1);
           for (x = 0; x < amountSmote; x++){
             pos = rand() % (dataTraining.size().height);
@@ -137,9 +143,18 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
         synthetic.release();
         dataRebalanced.release();
         dataTesting.release();
+      } else if (dataRaw.rows > 0) {
+        synthetic = s.smote(imbalancedData[eachClass].features, amountSmote, neighbors);
+        cout << "SMOTE generated " << synthetic.rows << " new synthetic samples" << endl;
+        Classes imgClass;
+        vconcat(imbalancedData[eachClass].features, synthetic, imgClass.features);
+        imgClass.classNumber = eachClass;
+        imgClass.trainOrTest.create(imgClass.features.size().height, 1, CV_32S);
+        imgClass.trainOrTest = Scalar::all(0);
+        rebalancedData.push_back(imgClass);
+        total += imgClass.features.size().height;
       }
-    }
-    else{
+    } else {
       rebalancedData.push_back(imbalancedData[eachClass]);
       total += imbalancedData[eachClass].features.size().height;
     }

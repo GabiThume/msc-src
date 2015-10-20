@@ -103,14 +103,16 @@ Mat Artificial::generateBlur(Mat originalImage, int blurType) {
 	int i;
 	Mat generated;
 
-	i = 3 + 2*(rand() % 15);
+	// i = 3 + 2*(rand() % 15);
+	i = 10 + (rand() % 140);
 	//blurType = 1 + (rand() % 2);
 	switch (blurType) {
 		case 1:
 			GaussianBlur(originalImage, generated, Size(i, i), 0);
 			break;
 		case 2:
-			bilateralFilter(originalImage, generated, i, i*2, i/2);
+			// bilateralFilter(originalImage, generated, i, i*2, i/2);
+			bilateralFilter(originalImage, generated, 5, i, i);
 			break;
 		default:
 			break;
@@ -338,12 +340,10 @@ Mat smoteImg(Mat first, Mat second, bool option){
 			gap = (double)rand()/(RAND_MAX);
 			newpixel = (int)first.at<uchar>(i,j);
 			if (option)
-			newpixel += gap*diff;
+				newpixel += gap*diff;
 			else
-			newpixel += (((newpixel + gap*diff) < 0) || ((newpixel + gap*diff) > 255) ) ? -gap*diff : gap*diff;
-			newpixel = (newpixel > 255) ? 255 : newpixel;
-			newpixel = (newpixel < 0) ? 0 : newpixel;
-			out.at<uchar>(i,j) = (uchar)newpixel;
+				newpixel += (((newpixel + gap*diff) < 0) || ((newpixel + gap*diff) > 255) ) ? -gap*diff : gap*diff;
+			out.at<uchar>(i,j) = saturate_cast<uchar>(newpixel);
 		}
 	}
 
@@ -537,6 +537,7 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 				exit(-1);
 			}
 			closedir(minDir);
+
 			/* For each image needed to full rebalance*/
 			for (i = 0; i < rebalance; i++){
 				/* Choose a random image */

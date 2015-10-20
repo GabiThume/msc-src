@@ -71,7 +71,7 @@ for measure in measurements:
 
                 if accuracy != []:
                     m = marker.next()
-                    print samples, accuracy, labels[i]
+                    # print samples, accuracy, labels[i]
                     # if i < 2:
                     # line1, = plt.plot(samples, accuracy, color[i], label=labels[i])
                     # plt.plot(samples, accuracy, color[i]+'-')
@@ -100,4 +100,4 @@ for measure in measurements:
                 # plt.gca().set_aspect('equal', adjustable='box')
 
                 plt.savefig(directory+"/graficos/"+measure+"/"+desc+"_"+met+"_"+measure+".png",  dpi=100)
-                print directory+"/graficos/"+measure+"/"+desc+"_"+met+"_"+measure+".png"
+                print "Saved in: "+directory+"/graficos/"+measure+"/"+desc+"_"+met+"_"+measure+".png"

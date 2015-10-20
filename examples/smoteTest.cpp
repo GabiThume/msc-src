@@ -1,152 +1,129 @@
-/**
- *
- *  Author: Gabriela Thumé
- *  Universidade de São Paulo / ICMC / 2014
- *
- **/
+/*
+Copyright (c) 2015, All rights reserved.
 
-#include "preprocessing/smote.h"
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
 
-/* Generate a imbalanced class and save it in imbalancedData and imbalancedClasses */
-void imbalance(Mat original, Mat classes, int factor, int numClasses, Mat *imbalancedData, Mat *imbalancedClasses, int start, int end){
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Gabriela Thumé nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
 
-    int total = 0, pos = 0, i, num, samples;
-    Size size = original.size();
-    vector<int> vectorRand;
-    Mat other, otherClasses;
-    srand(time(0));
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    samples = end - start;
-    num = size.height - samples + ceil(samples/factor);
-    samples = ceil(samples/factor);
+Authors:  Gabriela Thumé (gabithume@gmail.com)
+          Moacir Antonelli Ponti (moacirponti@gmail.com)
+Universidade de São Paulo / ICMC
+Master's thesis in Computer Science
+*/
 
-    (*imbalancedData).create(num, size.width, CV_64FC1);
-    (*imbalancedClasses).create(num, 1, CV_64FC1);
+#include "rebalanceTest.h"
+#include "utils/rebalance.h"
 
-    while (total < samples) {
-        /* Generate a random position to select samples to crete the minority class */
-        pos = start + (rand() % end);
-        if (!count(vectorRand.begin(), vectorRand.end(), pos)){
-            vectorRand.push_back(pos);
-            Mat tmp = (*imbalancedData).row(total);
-            original.row(pos).copyTo(tmp);
-            (*imbalancedClasses).at<double>(total, 0) = classes.at<double>(start,0);
-            total++;
-       }
-    }
 
-    for (i = end; i < size.height; i++) {
-        if (!count(vectorRand.begin(), vectorRand.end(), i)){
-            Mat tmp = (*imbalancedData).row(total);
-            original.row(i).copyTo(tmp);
-            (*imbalancedClasses).at<double>(total, 0) = classes.at<double>(i,0);
-            total++;
-        }
-    }
+string description(string dir, string features, int d, int m, string id) {
 
+  vector<int> paramCCV = {25}, paramACC = {1, 3, 5, 7}, parameters;
+
+  // string descriptorMethod[8] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"};
+  // string quantizationMethod[4] = {"Intensity", "Luminance", "Gleam", "MSB"};
+  /* If descriptor ==  CCV, threshold is required */
+  if (d == 3)
+    return PerformFeatureExtraction(dir, features, d, 64, 1, 0, paramCCV, 0, m, id);
+  /* If descriptor ==  ACC, distances are required */
+  else if (d == 5)
+    return PerformFeatureExtraction(dir, features, d, 64, 1, 0, paramACC, 0, m, id);
+  else
+    return PerformFeatureExtraction(dir, features, d, 64, 1, 0, parameters, 0, m, id);
 }
 
-int main(int argc, char const *argv[]){
 
-    SMOTE s;
-    Classifier c;
-    Size size;
-    int i, smallerClass, amountSmote, neighbors;
-    double prob = 0.5;
-    DIR *directory;
-    struct dirent *arq;
-    ifstream myFile;
-    string nameFile, name, nameDir, baseDir, featuresDir;
-    Mat minorityClass, classes, minorityOverSampled, majority, majorityClasses;
-    Mat newClasses, total, synthetic, trainTest;
-    pair <int, int> min(-1,-1);
-    vector<Classes> data;
+int main(int argc, char const *argv[]) {
+  Classifier c;
+  Size size;
+  ofstream csvFile;
+  stringstream globalFactor;
+  int numClasses, m, d, indexDescriptor, minoritySize;
+  double prob = 0.5;
+  string nameFile, name, nameDir, descriptorName, method, newDir, baseDir, featuresDir;
+  string csvOriginal, csvSmote, csvRebalance, analysisDir, csvDesbalanced;
+  string directory, str, bestDir, op, descSmote, smoteDescriptor, fileDescriptor;
+  string images_directory, originalDescriptor;
+  vector<Classes> imbalancedData, artificialData, originalData, rebalancedData;
+  vector<int> objperClass;
+  vector<vector<double> > rebalancedFscore, desbalancedFscore;
+  srand(time(0));
 
-    myFile.open("original.csv");
-    myFile.close();
-    myFile.open("smote_accuracy.csv");
-    myFile.close();
+  if (argc != 3){
+    cout << "\nUsage: ./smoteTest (0) (1)\n " << endl;
+    cout << "\t(0) Directory to place tests\n" << endl;
+    cout << "\t(1) Image Directory\n" << endl;
+    exit(-1);
+  }
+  newDir = string(argv[1]);
+  baseDir = string(argv[2]);
 
-    if (argc != 3){
-        cout << "\nUsage: ./smoteTest (1) (2)\n\n\t(1) Image Directory" << endl;
-        cout << "\t(2) Features Directory\n" << endl;
-        exit(-1);
+  /*  Available
+  descriptorMethod: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"}
+  Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
+  */
+  vector <int> descriptors {1, 3, 6, 7, 8};
+
+  for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
+    d = descriptors[indexDescriptor];
+    for (m = 1; m <= 5; m++){
+      csvOriginal = newDir+"/analysis/"+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+      csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+      featuresDir = newDir+"/features/";
+
+      // Feature extraction from images
+      originalDescriptor = description(baseDir, featuresDir, d, m, "original");
+      // Read the feature vectors
+      originalData = ReadFeaturesFromFile(originalDescriptor);
+      numClasses = originalData.size();
+      if (numClasses != 0){
+        cout << "---------------------------------------------------------------------------------------" << endl;
+        cout << "Classification using original data" << endl;
+        cout << "Features vectors file: " << originalDescriptor.c_str() << endl;
+        cout << "---------------------------------------------------------------------------------------" << endl;
+        c.findSmallerClass(originalData, &minoritySize);
+        c.classify(prob, 10, originalData, csvOriginal.c_str(), minoritySize);
+        originalData.clear();
+      }
+
+      // Generate Synthetic SMOTE samples
+      imbalancedData = ReadFeaturesFromFile(originalDescriptor);
+      descSmote = newDir+"/features/"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+      smoteDescriptor = PerformSmote(imbalancedData, 1, descSmote);
+      rebalancedData = ReadFeaturesFromFile(smoteDescriptor);
+      if (rebalancedData.size() != 0){
+        cout << "---------------------------------------------------------------------------------------" << endl;
+        cout << "Classification using SMOTE" << endl;
+        cout << "Features vectors file: " << smoteDescriptor.c_str() << endl;
+        cout << "---------------------------------------------------------------------------------------" << endl;
+        c.findSmallerClass(rebalancedData, &minoritySize);
+        c.classify(prob, 10, rebalancedData, csvSmote.c_str(), minoritySize);
+        rebalancedData.clear();
+      }
     }
-    baseDir = string(argv[1]);
-    featuresDir = string(argv[2]);
+  }
 
-    /* Feature extraction from images */
-    vector<int> parameters;
-    PerformFeatureExtraction(baseDir.c_str(), featuresDir.c_str(), 4, 64, 1, 1, parameters, 0, 4, "");
-
-    nameDir = string(featuresDir.c_str()) + "/";
-    directory = opendir(nameDir.c_str());
-
-    if (directory != NULL){
-        while ((arq = readdir(directory))){
-
-            nameFile = arq->d_name;
-            name = nameDir + arq->d_name;
-            myFile.open(name.c_str());
-
-            /* Read the feature vectors */
-            data = ReadFeaturesFromFile(name);
-            if (data.size() != 0){
-
-                cout << "---------------------------------------------------------------" << endl;
-                cout << endl << "Features vectors file: " << name.c_str() << endl << endl;
-                cout << "---------------------------------------------------------------" << endl;
-                cout << "Classification using original vectors" << endl;
-                c.classify(prob, 10, data, "original.csv", 0);
-
-                for (i = 2; i <= 10; i*=2){
-
-                    cout << "---------------------------------------------------------------" << endl;
-                    cout << endl <<  "Normal Bayes Classification for imbalanced classes" << endl << endl;
-                    cout << "\tDivide the number of original samples by a factor of " << i << endl <<"\tto create a minority class:"<< endl;
-
-                    Mat imbalancedClasses, imbalancedData;
-                    // /* Desbalancing Data */
-                    // c.findSmallerClass(data, &smallerClass);
-                    // imbalance(data, i, &imbalancedData, smallerClass);
-                    // size = imbalancedData.size();
-                    // /* Classifying without rebalancing */
-                    // c.classify(prob, 10, imbalancedData, "original.csv");
-
-                    // /* Copy the feature data to minorityClass */
-                    // imbalancedData.rowRange(start,end).copyTo(minorityClass);
-                    // /* Amount of SMOTE % */
-                    // amountSmote = minorityClass.size().height;
-                    // neighbors = 5;
-                    // /* Over-sampling the minority class */
-                    // synthetic = s.smote(minorityClass, amountSmote, neighbors);
-
-                    //  Concatenate the minority class with the synthetic
-                    // vconcat(minorityClass, synthetic, minorityOverSampled);
-                    //Mat minorityClasses(minorityOverSampled.size().height, 1, CV_64FC1, smallerClass+1);
-
-                    // /* Select the majority classes */
-                    // imbalancedData.rowRange(end, size.height).copyTo(majority);
-                    // imbalancedClasses.rowRange(end, size.height).copyTo(majorityClasses);
-
-                    // /* Concatenate the feature samples and classes */
-                    // vconcat(minorityClasses, majorityClasses, newClasses);
-                    // vconcat(minorityOverSampled, majority, total);
-
-                    // cout << endl << "\tSMOTE: Synthetic Minority Over-sampling Technique" << endl;
-                    // cout << "\tAmount to SMOTE: " << amountSmote << "%" << endl;
-                    // c.classify(prob, 10, total, newClasses, numClasses, min, trainTest, "smote_accuracy.csv");
-
-                    minorityOverSampled.release();
-                    //minorityClasses.release();
-                    majority.release();
-                    majorityClasses.release();
-                    newClasses.release();
-                    total.release();
-                }
-            }
-            myFile.close();
-           }
-    }
-    return 0;
+  cout << "Done." << endl;
+  return 0;
 }

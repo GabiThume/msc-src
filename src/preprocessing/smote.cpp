@@ -50,15 +50,14 @@ void SMOTE::populate(Mat minority, Mat neighbors, Mat *synthetic, int *index,
   /* amountSmote is how many synthetic samples need to be generated for i */
   while (amountSmote != 0) {
     /* Choose randomly one of the nearest neighbors of i */
-    nn = (rand() % nearestNeighbors);
-
+    /* The first is the sample itself */
+    nn = 1 + (rand() % nearestNeighbors);
     if (!count(vectorRand.begin(), vectorRand.end(), nn)) {
       vectorRand.push_back(nn);
+      neighbor = neighbors.at<float>(i, nn);
 
       for (attr = 0; attr < attributes; attr++) {
-        neighbor = neighbors.at<float>(i, nn);
         attrOriginal = minority.at<float>(i, attr);
-
         /* The difference between the feature vector under and its
         nearest neighbor*/
         dif = minority.at<float>(neighbor, attr) - attrOriginal;
@@ -87,9 +86,16 @@ void SMOTE::computeNeighbors(Mat minority, int nearestNeighbors,
 
   KNearest knn(minority, classes);
 
-  k = nearestNeighbors;
-  max = knn.get_max_k();
+  k = nearestNeighbors+1;
+  max = (minority.rows > knn.get_max_k() ? knn.get_max_k() : minority.rows);
   knn.find_nearest(minority, (k > max ? max : k), 0, 0, neighbors, 0);
+
+  // for (i = 0; i < (*neighbors).size().height; i++){
+  //   cout << endl << "Vizinhos de i: " << i << endl;
+  //   for (int x = 0; x < (*neighbors).size().width; x++){
+  //     cout << (*neighbors).at<float>(i, x) << " ";
+  //   }
+  // }
 
   classes.release();
 }
@@ -104,13 +110,12 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors) {
   Mat newMinority;
   if (amountSmote == 0) return Mat();
 
+  minoritySamples = amountSmote;
+  newMinority.create(minoritySamples, attributes, CV_32FC1);
+  samples = 0;
   /* If amount to smote is less than 100%, randomize the minority class
   samples as only a random percent of them will be SMOTEd */
   if (amountSmote < s.height) {
-    // minoritySamples = (amountSmote/100.0)*minoritySamples;
-    minoritySamples = amountSmote;
-    newMinority.create(minoritySamples, attributes, CV_32FC1);
-    samples = 0;
     while (samples < minoritySamples) {
       /* Generate a random position for the minority class samples */
       pos = rand() % (s.height);
@@ -122,37 +127,21 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors) {
       }
     }
     minority = newMinority;
-
-    // amountSmote = s.height;
   }
 
-  /* If amount to smote is higher than 100%, randomize the minority class
-  samples as a random percent of them will be SMOTEd */
-  if (amountSmote > s.height) {
-    minoritySamples = amountSmote;
-    newMinority.create(minoritySamples, attributes, CV_32FC1);
-    samples = 0;
-    while (samples < minoritySamples) {
-      /* Generate a random position for the minority class samples */
-      pos = rand() % (s.height);
-      Mat tmp = newMinority.row(samples);
-      minority.row(pos).copyTo(tmp);
-      samples++;
-    }
-    minority = newMinority;
-  }
-
-  // amountSmote = amountSmote/100.0;
   Mat synthetic(amountSmote, attributes, CV_32FC1);
-  // Mat synthetic(minoritySamples*amountSmote, attributes, CV_32FC1);
   Mat neighbors(minoritySamples, nearestNeighbors, CV_32FC1);
 
   /* Compute all the neighbors for the minority class */
   computeNeighbors(minority, nearestNeighbors, &neighbors);
 
   /* For each sample, generate it(s) synthetic(s) sample(s) */
-  for (i = 0; i < minoritySamples; i++) {
+  i = 0;
+  while (amountSmote > 0) {
+    if (i == minority.rows) i = 0;
     populate(minority, neighbors, &synthetic, &index, 1, i, nearestNeighbors);
+    amountSmote--;
+    i++;
   }
   return synthetic;
 }

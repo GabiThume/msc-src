@@ -18,7 +18,7 @@ UTILS = $(SRC_DIR)/utils
 EXAMPLES = examples
 OBJS = funcoesArquivo.o description.o funcoesAux.o quantization.o classifier.o smote.o rebalance.o artificialGeneration.o
 
-all: clean descriptorTest artificialGenerationTest rebalanceTest rebalanceTwoClasses rebalanceMultiClasses staticRebalance classifierTest cleanLink
+all: clean descriptorTest artificialGenerationTest rebalanceTest smoteTest rebalanceTwoClasses rebalanceMultiClasses staticRebalance classifierTest cleanLink
 
 # run: run-desbalanced
 #
@@ -65,8 +65,8 @@ artificialGeneration.o:
 descriptorTest: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o bin/descriptor $(EXAMPLES)/descriptorTest.cpp $(INCLUDES)
 
-# smoteTest: $(OBJS)
-# 	$(CXX) $(CXXFLAGS) $(OBJS) -o bin/smoteTest $(EXAMPLES)/smoteTest.cpp $(INCLUDES)
+smoteTest: $(OBJS)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o bin/smoteTest $(EXAMPLES)/smoteTest.cpp $(INCLUDES)
 
 artificialGenerationTest: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o bin/artificialGenerationTest $(EXAMPLES)/artificialGenerationTest.cpp $(INCLUDES)
