@@ -70,7 +70,6 @@ int main(int argc, char const *argv[]) {
   vector<Classes> imbalancedData, artificialData, originalData, rebalancedData;
   vector<int> objperClass;
   vector<vector<double> > rebalancedFscore, desbalancedFscore;
-  srand(time(0));
 
   if (argc != 3){
     cout << "\nUsage: ./rebalanceTest (0) (1) (2) (3) (4)\n " << endl;
@@ -91,6 +90,8 @@ int main(int argc, char const *argv[]) {
   // operation = atoi(argv[7]);
   // op = argv[7];
 
+  srand(time(0));
+
   /*  Available
   descriptorMethod: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"}
   Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
@@ -99,8 +100,7 @@ int main(int argc, char const *argv[]) {
   // vector <int> quant {2, 4, 4, 2, 3, 2};
 
   double factor = 1.6;
-  // vector <int> descriptors {1, 3, 6, 7, 8};
-  vector <int> descriptors {1, 6, 7};
+  vector <int> descriptors {1, 3, 6, 7, 8};
 
   // Check how many classes and images there are
   qtd_classes = qtdArquivos(baseDir+"/");
@@ -124,7 +124,7 @@ int main(int argc, char const *argv[]) {
   images_directory = RemoveSamples(baseDir, newDir, 0.5, factor);
 
   // For each rebalancing operation
-  for (operation = 1; operation < 10; operation++){
+  for (operation = 0; operation <= 10; operation++){
 
     vector<String> allRebalanced;
     stringstream operationstr;
@@ -144,7 +144,7 @@ int main(int argc, char const *argv[]) {
     for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
       d = descriptors[indexDescriptor];
       // m = quant[indexDescriptor];
-      for (m = 2; m <= 3; m++){
+      for (m = 1; m <= 5; m++){
         csvOriginal = newDir+"/analysis/"+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvDesbalanced = newDir+"/analysis/"+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
