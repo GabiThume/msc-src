@@ -28,6 +28,7 @@ for descriptor in descriptors:
     for quantization in quantizations:
         headers = [descriptor+"_"+quantization+"_"+base, "Balanced accuracy", "std", "diff", "FScore", "std", "diff"]
         table = []
+        original = 0
         originalFscore = 0.0
         originalAcc = 0.0
         for i in range(0, len(algorithms)):
@@ -40,13 +41,8 @@ for descriptor in descriptors:
                     fileName = alg+descriptor+"_"+quantization+"_"+measurements[measure]+".csv"
                     if os.path.exists(fileName):
                         # print fileName
-                        csvData = np.loadtxt(open(fileName, "rb"), delimiter=",", skiprows=0)
-                        # print csvData
+                        x, csvData = np.loadtxt(open(fileName, "rb"), delimiter=",", unpack=True)
                         if not (i == 2 and operation == 0):
-                            if len(csvData) > 2:
-                                csvData = [b[1] for b in csvData]
-                            else:
-                                csvData = csvData[1];
                             if measure == 0:
                                 csvMeanAcc.append(np.nanmean(csvData))
                                 csvStdAcc.append(np.nanstd(csvData))
@@ -64,14 +60,12 @@ for descriptor in descriptors:
                 stdAcc = np.nanstd(csvMeanAcc)
                 meanFScore = np.nanmean(csvMeanFScore)
                 stdFScore = np.nanstd(csvMeanFScore)
-                if i == 0:
+                if i == original:
                     table.append([labels[i], meanAcc, stdAcc, 0.0, meanFScore, stdFScore, 0.0])
-                else:
-                    table.append([labels[i], meanAcc, stdAcc, meanAcc-originalAcc, meanFScore, stdFScore, meanFScore-originalFscore])
-
-                if i == 0:
                     originalAcc = table[0][1]
                     originalFscore = table[0][4]
+                else:
+                    table.append([labels[i], meanAcc, stdAcc, meanAcc-originalAcc, meanFScore, stdFScore, meanFScore-originalFscore])
         if table !=[]:
             file_name = directory+descriptor+"-"+quantization+".txt"
             print file_name

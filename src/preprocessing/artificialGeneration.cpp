@@ -31,6 +31,9 @@ int classesNumber(string diretorio){
 	return count;
 }
 
+/*******************************************************************************
+Artificial generation: Unsharp Masking
+*******************************************************************************/
 Mat unsharp(Mat img, int N) {
 
 	Mat out(img.size(), img.depth()), blur;
@@ -47,17 +50,34 @@ Mat unsharp(Mat img, int N) {
 	return out;
 }
 
-/* poissNoise(int lambda)
-gera um valor ruidoso com base no valor passado por parametro
-utilizando a distribuicao de Poisson.
-o ruido eh correlacionado com o sinal e portanto
-o nivel do ruido depende do nivel do sinal
-*/
-uchar poissNoise(int lambda){
+Mat Artificial::generateUnsharp(Mat originalImage){
+	int unsharpLevel;
 
-	int k, value;
+	unsharpLevel = 3 + 2*(rand() % 5);
+
+	Size s = originalImage.size();
+	Mat generated(s, CV_8U, 3);
+
+	vector<Mat> imColors(3);
+	originalImage.copyTo(generated);
+
+	split(generated, imColors);
+
+	imColors[0] = unsharp(imColors[0], unsharpLevel);
+	imColors[1] = unsharp(imColors[1], unsharpLevel);
+	imColors[2] = unsharp(imColors[2], unsharpLevel);
+
+	merge(imColors, generated);
+	return generated;
+}
+/*******************************************************************************
+Artificial generation: Poisson-distributed numbers (pseudo-random number sampling) by Knuth
+*******************************************************************************/
+uchar poissNoise(double lambda) {
+	int k;
 	double L, p;
-	L = exp(-(double)lambda);
+
+	L = exp(-lambda);
 	p = 1.0;
 	k = 0;
 	do {
@@ -65,8 +85,7 @@ uchar poissNoise(int lambda){
 		p = p * (rand()/(double)RAND_MAX);
 	} while (p > L);
 
-	value = saturate_cast<uchar>(k-1);
-	return value;
+	return saturate_cast<uchar>(k-1);
 }
 
 Mat noiseSingleChannel(Mat img){
@@ -75,7 +94,7 @@ Mat noiseSingleChannel(Mat img){
 
 	for(i = 0; i < img.rows; i++) {
 		for(j = 0; j < img.cols; j++) {
-			out.at<uchar>(i,j) = poissNoise((int)img.at<uchar>(i,j));
+			out.at<uchar>(i,j) = poissNoise((double)img.at<uchar>(i,j));
 		}
 	}
 	return out;
@@ -99,6 +118,9 @@ Mat Artificial::generateNoise(Mat img) {
 	return out;
 }
 
+/*******************************************************************************
+Artificial generation: Blur
+*******************************************************************************/
 Mat Artificial::generateBlur(Mat originalImage, int blurType) {
 	int i;
 	Mat generated;
@@ -119,7 +141,9 @@ Mat Artificial::generateBlur(Mat originalImage, int blurType) {
 	}
 	return generated;
 }
-
+/*******************************************************************************
+Artificial generation: Blending
+*******************************************************************************/
 Mat Artificial::generateBlending(Mat first, Mat second){
 	double alpha, beta;
 	Mat generated;
@@ -136,27 +160,9 @@ Mat Artificial::generateBlending(Mat first, Mat second){
 	return generated;
 }
 
-Mat Artificial::generateUnsharp(Mat originalImage){
-	int unsharpLevel;
-
-	unsharpLevel = 3 + 2*(rand() % 5);
-
-	Size s = originalImage.size();
-	Mat generated(s, CV_8U, 3);
-
-	vector<Mat> imColors(3);
-	originalImage.copyTo(generated);
-
-	split(generated, imColors);
-
-	imColors[0] = unsharp(imColors[0], unsharpLevel);
-	imColors[1] = unsharp(imColors[1], unsharpLevel);
-	imColors[2] = unsharp(imColors[2], unsharpLevel);
-
-	merge(imColors, generated);
-	return generated;
-}
-
+/*******************************************************************************
+Artificial generation: Composition
+*******************************************************************************/
 Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images,
 		int total, int fator, bool option){
 
@@ -236,6 +242,9 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images,
 	return subImg;
 }
 
+/*******************************************************************************
+Artificial generation: Threshold
+*******************************************************************************/
 Mat Artificial::generateThreshold(Mat first, Mat second) {
 
 	Mat generated, bin, foreground, background;
@@ -272,6 +281,9 @@ Mat Artificial::generateThreshold(Mat first, Mat second) {
 	return generated;
 }
 
+/*******************************************************************************
+Artificial generation: Saliency
+*******************************************************************************/
 Mat Artificial::generateSaliency(Mat first, Mat second) {
 
 	GMRsaliency GMRsal;
@@ -313,6 +325,9 @@ Mat Artificial::generateSaliency(Mat first, Mat second) {
 	return generated;
 }
 
+/*******************************************************************************
+Artificial generation: visual SMOTE
+*******************************************************************************/
 Mat smoteImg(Mat first, Mat second){
 
 	int i, j;
@@ -369,7 +384,10 @@ Mat Artificial::generateSmoteImg(Mat first, Mat second){
 	return generated;
 }
 
-void Artificial::GenerateImage(vector<Mat> images, string name, int total, int generationType) {
+/*******************************************************************************
+*******************************************************************************/
+void Artificial::GenerateImage(vector<Mat> images, string name, int total,
+															int generationType) {
 	Mat generated, first, second;
 	int randomImg, randomSecondImg;
 
@@ -431,7 +449,8 @@ void Artificial::GenerateImage(vector<Mat> images, string name, int total, int g
 	}
 }
 
-string Artificial::generate(string base, string newDirectory, int whichOperation = 0){
+string Artificial::generate(string base, string newDirectory,
+														int whichOperation = 0){
 
 	int i, qtdClasses = 0, generationType, rebalanceTotal = 0;
 	int maiorClasse, rebalance, eachClass, qtdImg, maior;
@@ -441,6 +460,7 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 	DIR *dir = NULL, *minDir = NULL;
 	vector<int> totalImage, vectorRand;
 	vector<Mat> images;
+
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(2, 10);
@@ -490,7 +510,7 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 		}
 	}
 
-	for(eachClass = 0; eachClass < qtdClasses; ++eachClass) {
+	for (eachClass = 0; eachClass < qtdClasses; ++eachClass) {
 		/* Find out how many samples are needed to rebalance */
 		rebalance = totalImage[maiorClasse] - totalImage[eachClass];
 		if (rebalance > 0) {
@@ -516,7 +536,7 @@ string Artificial::generate(string base, string newDirectory, int whichOperation
 			closedir(minDir);
 
 			/* For each image needed to full rebalance*/
-			for (i = 0; i < rebalance; i++){
+			for (i = 0; i < rebalance; i++) {
 
 				/* Choose an operation
 				Case 1: All operations */

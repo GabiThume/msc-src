@@ -75,20 +75,10 @@ int main(int argc, char const *argv[]) {
     cout << "\nUsage: ./rebalanceTest (0) (1) (2) (3) (4)\n " << endl;
     cout << "\t(0) Directory to place tests\n" << endl;
     cout << "\t(1) Image Directory\n" << endl;
-    // cout << "\t(2) Features Directory\n" << endl;
-    // cout << "\t(3) Analysis Directory\n" << endl;
-    // cout << "\t(4) Descriptor Method:\n" << endl;
-    // cout << "\t./rebalanceTest Desbalanced/ Desbalanced/original/ Desbalanced/features/ Desbalanced/analysis/ 0\n" << endl;
     exit(-1);
   }
   newDir = string(argv[1]);
   baseDir = string(argv[2]);
-  // featuresDir = string(argv[3]);
-  // analysisDir = string(argv[4]);
-  // d = atoi(argv[5]);
-  // m = atoi(argv[6]);
-  // operation = atoi(argv[7]);
-  // op = argv[7];
 
   srand(time(0));
 
@@ -96,11 +86,9 @@ int main(int argc, char const *argv[]) {
   descriptorMethod: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"}
   Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
   */
-  // vector <int> descriptors {1, 2, 4, 6, 7, 8};
-  // vector <int> quant {2, 4, 4, 2, 3, 2};
+  vector <int> descriptors {1, 2, 6, 7, 8};
 
   double factor = 1.6;
-  vector <int> descriptors {1, 3, 6, 7, 8};
 
   // Check how many classes and images there are
   qtd_classes = qtdArquivos(baseDir+"/");
@@ -124,7 +112,7 @@ int main(int argc, char const *argv[]) {
   images_directory = RemoveSamples(baseDir, newDir, 0.5, factor);
 
   // For each rebalancing operation
-  for (operation = 0; operation <= 10; operation++){
+  for (operation = 1; operation <= 10; operation++){
 
     vector<String> allRebalanced;
     stringstream operationstr;

@@ -54,10 +54,6 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
   Mat synthetic;
   SMOTE s;
 
-  cout << "\n---------------------------------------------------------" << endl;
-  cout << "SMOTE generation of samples to rebalance classes" << endl;
-  cout << "---------------------------------------------------------" << endl;
-
   for (it = imbalancedData.begin(); it != imbalancedData.end(); ++it){
     if (it->fixedTrainOrTest){
       for(i = 0; i < it->trainOrTest.size().height; ++i){
@@ -93,7 +89,7 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
       //neighbors = 5;
       neighbors = (double)trainingNumber[majorityClass]/(double)trainingNumber[eachClass];
       cout << "Number of neighbors: " << neighbors << endl;
-
+      cout << "imbalancedData[eachClass].trainOrTest.size().height " << imbalancedData[eachClass].trainOrTest.size().height << endl;
       for (x = 0; x < imbalancedData[eachClass].trainOrTest.size().height; ++x){
         if (imbalancedData[eachClass].trainOrTest.at<int>(x,0) == 1){
           dataTraining.resize(numTraining+1);
@@ -112,7 +108,7 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
           numRaw++;
         }
       }
-
+      cout << dataTraining.rows << " " << dataTesting.rows << endl;
       if (dataTraining.rows > 0 && dataTesting.rows > 0) {
         if (operation != 0){
           synthetic = s.smote(dataTraining, amountSmote, neighbors);

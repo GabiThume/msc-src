@@ -51,7 +51,7 @@ void SMOTE::populate(Mat minority, Mat neighbors, Mat *synthetic, int *index,
   while (amountSmote != 0) {
     /* Choose randomly one of the nearest neighbors of i */
     /* The first is the sample itself */
-    nn = 1 + (rand() % nearestNeighbors);
+    nn = 1 + (rand() % (nearestNeighbors-1));
     if (!count(vectorRand.begin(), vectorRand.end(), nn)) {
       vectorRand.push_back(nn);
       neighbor = neighbors.at<float>(i, nn);
@@ -76,7 +76,7 @@ void SMOTE::populate(Mat minority, Mat neighbors, Mat *synthetic, int *index,
 void SMOTE::computeNeighbors(Mat minority, int nearestNeighbors,
     Mat *neighbors) {
   Size s = minority.size();
-  int i, k, max, index = 0;
+  int i, k = nearestNeighbors, max, index = 0;
   Mat classes(s.height, 1, CV_32FC1);
 
   for (i = 0; i < s.height; i++) {
@@ -85,13 +85,11 @@ void SMOTE::computeNeighbors(Mat minority, int nearestNeighbors,
   }
 
   KNearest knn(minority, classes);
-
-  k = nearestNeighbors+1;
   max = (minority.rows > knn.get_max_k() ? knn.get_max_k() : minority.rows);
   knn.find_nearest(minority, (k > max ? max : k), 0, 0, neighbors, 0);
 
   // for (i = 0; i < (*neighbors).size().height; i++){
-  //   cout << endl << "Vizinhos de i: " << i << endl;
+  //   cout << endl <<  nearestNeighbors << " vizinhos de i: " << i << endl;
   //   for (int x = 0; x < (*neighbors).size().width; x++){
   //     cout << (*neighbors).at<float>(i, x) << " ";
   //   }
@@ -109,6 +107,13 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors) {
   vector<int> vectorRand;
   Mat newMinority;
   if (amountSmote == 0) return Mat();
+
+  cout << "\n---------------------------------------------------------" << endl;
+  cout << "SMOTE generation of samples to rebalance classes" << endl;
+  cout << "---------------------------------------------------------" << endl;
+
+  // The first neighbor is the sample itself
+  nearestNeighbors =  nearestNeighbors + 1 < minority.rows ? nearestNeighbors + 1 : minority.rows;
 
   minoritySamples = amountSmote;
   newMinority.create(minoritySamples, attributes, CV_32FC1);
