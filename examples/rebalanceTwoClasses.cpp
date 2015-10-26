@@ -61,7 +61,7 @@ int main(int argc, char const *argv[]) {
   ofstream csvFile;
   stringstream globalFactor;
   int numClasses, m, d, operation, indexDescriptor, minoritySize, i, numImages;
-  int repeatRebalance = 10, repeat, count_diff, prev, qtd_classes, treino;
+  int repeatRebalance = 20, repeat, count_diff, prev, qtd_classes, treino;
   double prob = 0.5;
   string nameFile, name, nameDir, descriptorName, method, newDir, baseDir, featuresDir;
   string csvOriginal, csvSmote, csvRebalance, analysisDir, csvDesbalanced;
@@ -70,6 +70,7 @@ int main(int argc, char const *argv[]) {
   vector<Classes> imbalancedData, artificialData, originalData, rebalancedData;
   vector<int> objperClass;
   vector<vector<double> > rebalancedFscore, desbalancedFscore;
+  srand(time(NULL));
 
   if (argc != 3){
     cout << "\nUsage: ./rebalanceTest (0) (1) (2) (3) (4)\n " << endl;
@@ -80,13 +81,12 @@ int main(int argc, char const *argv[]) {
   newDir = string(argv[1]);
   baseDir = string(argv[2]);
 
-  srand(time(0));
-
   /*  Available
   descriptorMethod: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"}
   Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
   */
-  vector <int> descriptors {1, 2, 6, 7, 8};
+  vector <int> descriptors {1, 6, 7};
+  vector <int> quant {1, 3, 2};
 
   double factor = 1.6;
 
@@ -112,7 +112,7 @@ int main(int argc, char const *argv[]) {
   images_directory = RemoveSamples(baseDir, newDir, 0.5, factor);
 
   // For each rebalancing operation
-  for (operation = 1; operation <= 10; operation++){
+  for (operation = 0; operation <= 10; operation++){
 
     vector<String> allRebalanced;
     stringstream operationstr;
@@ -131,8 +131,8 @@ int main(int argc, char const *argv[]) {
 
     for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
       d = descriptors[indexDescriptor];
-      // m = quant[indexDescriptor];
-      for (m = 1; m <= 5; m++){
+      m = quant[indexDescriptor];
+      // for (m = 1; m <= 5; m++){
         csvOriginal = newDir+"/analysis/"+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvDesbalanced = newDir+"/analysis/"+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
         csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
@@ -203,7 +203,7 @@ int main(int argc, char const *argv[]) {
             artificialData.clear();
           }
         }
-      }
+      // }
     }
     allRebalanced.clear();
   }

@@ -328,31 +328,52 @@ Mat Artificial::generateSaliency(Mat first, Mat second) {
 /*******************************************************************************
 Artificial generation: visual SMOTE
 *******************************************************************************/
-Mat smoteImg(Mat first, Mat second){
+// Mat smoteImg(Mat first, Mat second){
+//
+// 	int i, j;
+// 	double diff, gap, newpixel;
+//
+// 	if (first.size() != second.size()) {
+// 		resize(second, second, first.size());
+// 	}
+// 	Mat out(first.size(), CV_8U, 1);
+//
+// 	for (i = 0; i < first.rows; i++) {
+// 		for (j = 0; j < first.cols; j++) {
+// 			/* Calculate de difference between the same pixel in different images */
+// 			diff = abs((double)second.at<uchar>(i,j) - (double)first.at<uchar>(i,j));
+// 			/* Multiply this difference with a number between 0 and 1 */
+// 			gap = rand()/static_cast<double>(RAND_MAX);
+// 			newpixel = (double)first.at<uchar>(i,j) + gap*diff;
+// 			out.at<uchar>(i,j) = saturate_cast<uchar>(newpixel);
+// 		}
+// 	}
+//
+// 	return out;
+// }
+
+Mat smoteImg(Mat first, Mat second) {
 
 	int i, j;
-	double diff, gap, newpixel;
+	double diff, gap;
 
 	if (first.size() != second.size()) {
 		resize(second, second, first.size());
 	}
-	Mat out(first.size(), CV_8U, 3);
+	Mat out(first.size(), CV_64FC1, 1);
 
 	for (i = 0; i < first.rows; i++) {
 		for (j = 0; j < first.cols; j++) {
 			/* Calculate de difference between the same pixel in different images */
-			diff = abs((double)second.at<uchar>(i,j) - (double)first.at<uchar>(i,j));
+			diff = (double)first.at<uchar>(i,j) - (double)second.at<uchar>(i,j);
 			/* Multiply this difference with a number between 0 and 1 */
 			gap = rand()/static_cast<double>(RAND_MAX);
-			newpixel = (double)first.at<uchar>(i,j) + gap*diff;
-			// if (option)
-			// 	newpixel += gap*diff;
-			// else
-			// 	newpixel += (((newpixel + gap*diff) < 0) || ((newpixel + gap*diff) > 255) ) ? -gap*diff : gap*diff;
-			out.at<uchar>(i,j) = saturate_cast<uchar>(newpixel);
+			out.at<double>(i,j) = (double)first.at<uchar>(i,j) + gap*diff;
 		}
 	}
 
+	reduceImageColors(&out, 256);
+	out.convertTo(out, CV_8U);
 	return out;
 }
 
