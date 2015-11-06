@@ -149,7 +149,7 @@ Mat GMRsaliency::GetWeight(const Mat &img,const Mat &supLab,const Mat &adj)
 						if(maxw<dist)
 							maxw=dist;
 					}
-						
+
 				}
 			}
 		}
@@ -208,7 +208,7 @@ Mat GMRsaliency::GetBdQuery(const Mat &supLab,int type)
 		printf("error");
 	}
 	return y;
-		
+
 }
 
 Mat GMRsaliency::RemoveFrame(const Mat &img,int *wcut)
@@ -276,13 +276,24 @@ Mat GMRsaliency::RemoveFrame(const Mat &img,int *wcut)
 			l=maxwidth;
 		if(r==0)
 			r=maxwidth;
-		outimg=img(Range(t,m-d),Range(l,n-r));
-		wcut[0]=m;
-		wcut[1]=n;
-		wcut[2]=t;
-		wcut[3]=m-d;
-		wcut[4]=l;
-		wcut[5]=n-r;
+		if ((m-d-t) > 1 && (n-r-l) > 1) {
+			outimg = img(Range(t,m-d),Range(l,n-r));
+			wcut[0]=m;
+			wcut[1]=n;
+			wcut[2]=t;
+			wcut[3]=m-d;
+			wcut[4]=l;
+			wcut[5]=n-r;
+		}
+		else {
+			wcut[0]=m;
+			wcut[1]=n;
+			wcut[2]=0;
+			wcut[3]=m;
+			wcut[4]=0;
+			wcut[5]=n;
+			outimg=img;
+		}
 	}
 	else
 	{
@@ -303,7 +314,6 @@ Mat GMRsaliency::GetSal(Mat &img)
 
 	int wcut[6];
 	img=RemoveFrame(img,wcut);
-
 	Mat suplabel(img.size(),CV_16U);
 	suplabel=GetSup(img);
 
