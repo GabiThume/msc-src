@@ -194,7 +194,7 @@ Requires:
 string RemoveSamples(string database, string newDir, double prob, double id) {
 
   int pos = 0, samples, imagesTraining, i, imgsInClass, x, qtdClasses;
-  int prev, count_diff, treino, num_images;
+  int prev, count_diff, treino, num_images, imagesTesting;
   vector<int> vectorRand, objperClass;
   string str, nameFile, name, nameDir, directory, dir;
   stringstream numImages, classNumber, image, globalFactor;
@@ -211,12 +211,15 @@ string RemoveSamples(string database, string newDir, double prob, double id) {
     exit(-1);
   }
   NumberImgInClass(directory, 0, &prev, &treino);
+  imagesTesting = prev;
   count_diff = 0;
   for (i = 1; i < qtdClasses; i++) {
     NumberImgInClass(database, i, &num_images, &treino);
+    if (num_images < imagesTesting) imagesTesting = num_images;
     count_diff = count_diff + abs(num_images - prev);
     prev = num_images;
   }
+  imagesTesting = imagesTesting*prob;
   if (count_diff == 0) {
     cout << "\n\n------------------------------------------------------------------------------------" << endl;
     cout << "Divide the number of original samples to create a minority class:" << endl;
@@ -261,7 +264,8 @@ string RemoveSamples(string database, string newDir, double prob, double id) {
       }
 
       /* Copy some of the originals to a training folder */
-      imagesTraining = vectorRand.size()*prob;
+      // imagesTraining = vectorRand.size()*prob;
+      imagesTraining = vectorRand.size() - imagesTesting;
       for(x = 0; x < imagesTraining; x++){
         image.str("");
         image << vectorRand[x];
@@ -287,7 +291,8 @@ string RemoveSamples(string database, string newDir, double prob, double id) {
       vectorRand.clear();
     }
     if (count_diff == 0) {
-      fator -= id/(double)qtdClasses;
+      // fator -= id/(double)qtdClasses;
+      fator -= (id/(double)qtdClasses)/2.0;
     }
   }
   return dir;
