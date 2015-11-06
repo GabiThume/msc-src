@@ -54,7 +54,6 @@ Mat Artificial::generateUnsharp(Mat originalImage){
 	int unsharpLevel;
 
 	unsharpLevel = 3 + 2*(rand() % 5);
-
 	Size s = originalImage.size();
 	Mat generated(s, CV_8U, 3);
 
@@ -291,7 +290,7 @@ Mat Artificial::generateSaliency(Mat first, Mat second) {
 
 	saliency_map = GMRsal.GetSal(first);
 	if (first.size() != saliency_map.size()) {
-		return Mat();
+		return first;
 	}
 	first.copyTo(bin);
 
