@@ -32,7 +32,6 @@ string imbalance(string database, string newDir, double prob, double id){
     int x, qtdClasses;
     string dir;
     vector<int> vectorRand, objperClass;
-    srand(time(0));
     string str, nameFile, name, nameDir, directory;
     stringstream numImages, classNumber, image, globalFactor;
     Size size;
@@ -272,6 +271,7 @@ int main(int argc, char const *argv[]){
             Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
     */
     double factor = 1.0;
+    srand(time(NULL));
 
     /* Desbalancing Data */
     cout << "\n\n------------------------------------------------------------------------------------" << endl;

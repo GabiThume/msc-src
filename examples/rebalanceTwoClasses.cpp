@@ -53,6 +53,23 @@ string description(string dir, string features, int d, int m, string id) {
     return PerformFeatureExtraction(dir, features, d, 64, 1, 0, parameters, 0, m, id);
 }
 
+vector<vector<double> > perform(string descriptorFile, int repeat, double prob, string csv) {
+  Classifier c;
+  int minoritySize, numClasses;
+  vector<vector<double> > fscore;
+  // Read the feature vectors
+  vector<Classes> data = ReadFeaturesFromFile(descriptorFile);
+  numClasses = data.size();
+  if (numClasses != 0){
+    cout << "---------------------------------------------------------------------------------------" << endl;
+    cout << "Features vectors file: " << descriptorFile.c_str() << endl;
+    cout << "---------------------------------------------------------------------------------------" << endl;
+    c.findSmallerClass(data, &minoritySize);
+    fscore = c.classify(prob, repeat, data, csv.c_str(), minoritySize);
+    data.clear();
+  }
+  return fscore;
+}
 
 int main(int argc, char const *argv[]) {
   Classifier c;
@@ -60,17 +77,17 @@ int main(int argc, char const *argv[]) {
   Artificial a;
   ofstream csvFile;
   stringstream globalFactor;
-  int numClasses, m, d, operation, indexDescriptor, minoritySize, i, numImages;
-  int repeatRebalance = 20, repeat, count_diff, prev, qtd_classes, treino;
+  int m, d, operation, indexDescriptor, i, numImages;
+  int repeatRebalance = 1, repeat, count_diff, prev, qtd_classes, treino;
   double prob = 0.5;
   string nameFile, name, nameDir, descriptorName, method, newDir, baseDir, featuresDir;
   string csvOriginal, csvSmote, csvRebalance, analysisDir, csvDesbalanced;
   string directory, str, bestDir, op, descSmote, smoteDescriptor, fileDescriptor;
-  string images_directory, originalDescriptor;
-  vector<Classes> imbalancedData, artificialData, originalData, rebalancedData;
+  string images_directory, imbalancedDescriptor, originalDescriptor;
   vector<int> objperClass;
   vector<vector<double> > rebalancedFscore, desbalancedFscore;
   srand(time(NULL));
+  vector<Classes> imbalancedData;
 
   if (argc != 3){
     cout << "\nUsage: ./rebalanceTest (0) (1) (2) (3) (4)\n " << endl;
@@ -81,12 +98,18 @@ int main(int argc, char const *argv[]) {
   newDir = string(argv[1]);
   baseDir = string(argv[2]);
 
+  analysisDir = newDir+"/analysis/";
+  featuresDir = newDir+"/features/";
+
   /*  Available
   descriptorMethod: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"}
   Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
   */
-  vector <int> descriptors {1, 6, 7};
-  vector <int> quant {1, 3, 2};
+  // vector <int> descriptors {1, 6, 7};
+  // vector <int> quant {1, 3, 2};
+
+  vector <int> descriptors {1};
+  vector <int> quant {1};
 
   double factor = 1.6;
 
@@ -118,9 +141,8 @@ int main(int argc, char const *argv[]) {
     stringstream operationstr;
     operationstr << operation;
     op = operationstr.str();
+
     /* Generate Artificial Images */
-    // string newDirectory = newDir+"/Rebalanced-"+op;
-    // string dirRebalanced = a.generate(dirImbalanced, newDirectory, operation);
     for (repeat = 0; repeat < repeatRebalance; repeat++) {
       stringstream repeatStr;
       repeatStr << repeat;
@@ -132,78 +154,36 @@ int main(int argc, char const *argv[]) {
     for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
       d = descriptors[indexDescriptor];
       m = quant[indexDescriptor];
-      // for (m = 1; m <= 5; m++){
-        csvOriginal = newDir+"/analysis/"+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-        csvDesbalanced = newDir+"/analysis/"+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-        csvSmote = newDir+"/analysis/"+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-        csvRebalance = newDir+"/analysis/"+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-        featuresDir = newDir+"/features/";
 
-        // Feature extraction from images
-        if (count_diff == 0) {
-          originalDescriptor = description(baseDir, featuresDir, d, m, "original");
-          // Read the feature vectors
-          originalData = ReadFeaturesFromFile(originalDescriptor);
-          numClasses = originalData.size();
-          if (numClasses != 0){
-            cout << "---------------------------------------------------------------------------------------" << endl;
-            cout << "Classification using original data" << endl;
-            cout << "Features vectors file: " << originalDescriptor.c_str() << endl;
-            cout << "---------------------------------------------------------------------------------------" << endl;
-            c.findSmallerClass(originalData, &minoritySize);
-            c.classify(prob, 10, originalData, csvOriginal.c_str(), minoritySize);
-            originalData.clear();
-          }
-        }
-        // Feature extraction from images
-        originalDescriptor = description(images_directory, featuresDir, d, m, "desbalanced");
-        // Read the feature vectors
-        imbalancedData = ReadFeaturesFromFile(originalDescriptor);
-        numClasses = imbalancedData.size();
-        if (numClasses != 0){
-          cout << "---------------------------------------------------------------------------------------" << endl;
-          cout << "Classification using desbalanced data" << endl;
-          cout << "Features vectors file: " << originalDescriptor.c_str() << endl;
-          cout << "---------------------------------------------------------------------------------------" << endl;
-          c.findSmallerClass(imbalancedData, &minoritySize);
-          desbalancedFscore = c.classify(prob, 1, imbalancedData, csvDesbalanced.c_str(), minoritySize);
-          imbalancedData.clear();
-        }
+      // Feature extraction from images
+      if (count_diff == 0) {
+        cout << "Classification using original data" << endl;
+        string originalDescriptor = description(baseDir, featuresDir, d, m, "original");
+        csvOriginal = analysisDir+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+        perform(originalDescriptor, 10, prob, csvOriginal);
+      }
 
-        for (i = 0; i < (int)allRebalanced.size(); i++) {
-          cout << "allRebalanced " << allRebalanced[i] << endl;
-          // Generate Synthetic SMOTE samples
-          imbalancedData = ReadFeaturesFromFile(originalDescriptor);
-          descSmote = newDir+"/features/"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-          cout << descSmote << endl;
-          smoteDescriptor = PerformSmote(imbalancedData, operation, descSmote);
-          cout << smoteDescriptor << endl;
-          rebalancedData = ReadFeaturesFromFile(smoteDescriptor);
-          if (rebalancedData.size() != 0){
-            cout << "---------------------------------------------------------------------------------------" << endl;
-            cout << "Classification using SMOTE" << endl;
-            cout << "Features vectors file: " << smoteDescriptor.c_str() << endl;
-            cout << "---------------------------------------------------------------------------------------" << endl;
-            c.findSmallerClass(rebalancedData, &minoritySize);
-            cout << csvSmote << endl;
-            c.classify(prob, 1, rebalancedData, csvSmote.c_str(), minoritySize);
-            rebalancedData.clear();
-          }
+      cout << "Classification using desbalanced data" << endl;
+      string imbalancedDescriptor = description(images_directory, featuresDir, d, m, "desbalanced");
+      csvDesbalanced = analysisDir+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+      perform(imbalancedDescriptor, 1, prob, csvDesbalanced);
 
-          featuresDir = allRebalanced[i]+"/../features/";
-          fileDescriptor = description(allRebalanced[i], featuresDir, d, m, "artificial");
-          artificialData = ReadFeaturesFromFile(fileDescriptor);
-          if (artificialData.size() != 0){
-            cout << "---------------------------------------------------------------------------------------" << endl;
-            cout << "Classification using rebalanced data" << endl;
-            cout << "Features vectors file: " << fileDescriptor.c_str() << endl;
-            cout << "---------------------------------------------------------------------------------------" << endl;
-            c.findSmallerClass(artificialData, &minoritySize);
-            rebalancedFscore = c.classify(prob, 1, artificialData, csvRebalance.c_str(), minoritySize);
-            artificialData.clear();
-          }
-        }
-      // }
+      for (i = 0; i < (int)allRebalanced.size(); i++) {
+        // Generate Synthetic SMOTE samples
+        imbalancedData = ReadFeaturesFromFile(imbalancedDescriptor);
+        descSmote = newDir+"/features/"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+        smoteDescriptor = PerformSmote(imbalancedData, operation, descSmote);
+        cout << "Classification using SMOTE" << endl;
+        csvSmote = analysisDir+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+        perform(smoteDescriptor, 1, prob, csvSmote);
+        imbalancedData.clear();
+
+        cout << "Classification using rebalanced data" << endl;
+        featuresDir = allRebalanced[i]+"/../features/";
+        string artificialDescriptor = description(allRebalanced[i], featuresDir, d, m, "artificial");
+        csvRebalance = analysisDir+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+        perform(artificialDescriptor, 1, prob, csvRebalance);
+      }
     }
     allRebalanced.clear();
   }
