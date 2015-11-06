@@ -117,7 +117,7 @@ void Classifier::printAccuracy(double id, vector<vector<double> > fScore) {
 	cout << "Total samples: " << totalTest + totalTrain << endl;
 	cout << "\tTesting samples: " << totalTest << endl;
 	cout << "\tTraining samples: " << totalTrain << endl;
-	cout <<  "Cross validation with "<< accuracy.size() <<" k-fold:" << endl;
+	cout <<  "Random cross validation with "<< accuracy.size() <<" k-fold:" << endl;
 	cout << "\tMean Accuracy: " << mean << endl;
 	if (std != 0)
 		cout << "\t\tStandard Deviation: " << std << endl;
@@ -415,33 +415,32 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 		accuracy.push_back((double)hits*100.0/(double)totalTest);
 
 		confusionMat = confusionMatrix(numClasses, labelsTesting, result, 1);
-		if (confusionMat.rows == 2){
-			minorNumber = img_by_class[0];
-			minorityClass = 0;
-			for (class_id = 0; class_id < (int) img_by_class.size(); class_id++) {
-				if (img_by_class[class_id] < minorNumber) {
-					minorNumber = img_by_class[class_id];
-					minorityClass = class_id;
-				}
-			}
-			// This only pushes the minority class fscore
-			vector<double> fscoreMinority;
-			fscoreMinority.push_back(calculateFscore(confusionMat)[minorityClass]);
-			fscore.push_back(fscoreMinority);
-		}
-		else {
-			fscoreClasses = calculateFscore(confusionMat);
-			if (fscore.size() == 0) {
-				for (i = 0; i < numClasses; i++) {
-					fscore.push_back(vector<double>()); // Add an empty row
-				}
-			}
-			for (i = 0; i < (int) fscoreClasses.size(); i++) {
-				if (fscoreClasses[i] > 0) {
-					fscore[i].push_back(fscoreClasses[i]);
-				}
+		// if (confusionMat.rows == 2){
+		// 	minorNumber = img_by_class[0];
+		// 	minorityClass = 0;
+		// 	for (class_id = 0; class_id < (int) img_by_class.size(); class_id++) {
+		// 		if (img_by_class[class_id] < minorNumber) {
+		// 			minorNumber = img_by_class[class_id];
+		// 			minorityClass = class_id;
+		// 		}
+		// 	}
+		// 	// This only pushes the minority class fscore
+		// 	vector<double> fscoreMinority;
+		// 	fscoreMinority.push_back(calculateFscore(confusionMat)[minorityClass]);
+		// }
+		// else {
+		fscoreClasses = calculateFscore(confusionMat);
+		if (fscore.size() == 0) {
+			for (i = 0; i < numClasses; i++) {
+				fscore.push_back(vector<double>()); // Add an empty row
 			}
 		}
+		for (i = 0; i < (int) fscoreClasses.size(); i++) {
+			if (fscoreClasses[i] > 0) {
+				fscore[i].push_back(fscoreClasses[i]);
+			}
+		}
+		// }
 		// precision.push_back(precisionRate/confusionMat.rows);
 		// recall.push_back(recallRate/confusionMat.rows);
 
