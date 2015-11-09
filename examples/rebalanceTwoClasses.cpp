@@ -74,22 +74,18 @@ vector<vector<double> > perform(string descriptorFile, int repeat, double prob, 
 int main(int argc, char const *argv[]) {
   Classifier c;
   Size size;
-  Artificial a;
-  ofstream csvFile;
-  stringstream globalFactor;
   int m, d, operation, indexDescriptor, i, numImages;
-  int repeatRebalance = 1, repeat, count_diff, prev, qtd_classes, treino;
+  int repeatRebalance, repeat, count_diff, prev, qtd_classes, treino;
   double prob = 0.5;
-  string nameFile, name, nameDir, descriptorName, method, newDir, baseDir, featuresDir;
-  string csvOriginal, csvSmote, csvRebalance, analysisDir, csvDesbalanced;
-  string directory, str, bestDir, op, descSmote, smoteDescriptor, fileDescriptor;
+  string name, method, newDir, baseDir, featuresDir, csvOriginal, csvSmote;
+  string csvRebalance, analysisDir, csvDesbalanced, directory, str, op;
   string images_directory, imbalancedDescriptor, originalDescriptor;
-  vector<int> objperClass;
-  vector<vector<double> > rebalancedFscore, desbalancedFscore;
-  srand(time(NULL));
+  string descSmote, smoteDescriptor;
   vector<Classes> imbalancedData;
+  Artificial a;
 
-  if (argc != 3){
+  repeatRebalance = 1;
+  if (argc < 3) {
     cout << "\nUsage: ./rebalanceTest (0) (1) (2) (3) (4)\n " << endl;
     cout << "\t(0) Directory to place tests\n" << endl;
     cout << "\t(1) Image Directory\n" << endl;
@@ -97,10 +93,12 @@ int main(int argc, char const *argv[]) {
   }
   newDir = string(argv[1]);
   baseDir = string(argv[2]);
+  if (argc == 4) repeatRebalance = atoi(argv[3]);
 
   analysisDir = newDir+"/analysis/";
   featuresDir = newDir+"/features/";
 
+  srand(time(NULL));
   /*  Available
   descriptorMethod: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"}
   Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
@@ -111,7 +109,7 @@ int main(int argc, char const *argv[]) {
   vector <int> descriptors {1};
   vector <int> quant {1};
 
-  double factor = 1.6;
+  double factor = 0.1;
 
   // Check how many classes and images there are
   qtd_classes = qtdArquivos(baseDir+"/");
@@ -132,7 +130,7 @@ int main(int argc, char const *argv[]) {
   cout << "\n\n------------------------------------------------------------------------------------" << endl;
   cout << "Divide the number of original samples to create a minority class:" << endl;
   cout << "---------------------------------------------------------------------------------------" << endl;
-  images_directory = RemoveSamples(baseDir, newDir, 0.5, factor);
+  images_directory = RemoveSamples(baseDir, newDir, prob, factor);
 
   // For each rebalancing operation
   for (operation = 0; operation <= 10; operation++){
@@ -146,7 +144,7 @@ int main(int argc, char const *argv[]) {
     for (repeat = 0; repeat < repeatRebalance; repeat++) {
       stringstream repeatStr;
       repeatStr << repeat;
-      string newDirectory = newDir+"/"+op+"-Rebalanced"+repeatStr.str();
+      string newDirectory = newDir+"/Artificial/"+op+"-Rebalanced"+repeatStr.str();
       string dirRebalanced = a.generate(images_directory, newDirectory, operation);
       allRebalanced.push_back(dirRebalanced);
     }
