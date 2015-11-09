@@ -241,7 +241,7 @@ string RemoveSamples(string database, string newDir, double prob, double id) {
       fprintf(stderr,"Error! There is no directory named %s\n", directory.c_str());
       exit(-1);
     }
-    samples = ceil(imgsInClass*fator);
+    samples = ceil((1.0 + fator)*imgsInClass*prob);
     if (samples > 0){
 
       numImages.str("");
@@ -292,7 +292,11 @@ string RemoveSamples(string database, string newDir, double prob, double id) {
     }
     if (count_diff == 0) {
       // fator -= id/(double)qtdClasses;
-      fator -= (id/(double)qtdClasses)/2.0;
+      if (id != 1.0) {
+        fator -= (1.0 - id);
+      } else {
+        fator -= 1.0/(double)qtdClasses;
+      }
     }
   }
   return dir;
