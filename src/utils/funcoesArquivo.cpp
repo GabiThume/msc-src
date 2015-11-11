@@ -185,7 +185,7 @@ Mat FindImgInClass(string database, int img_class, int img_number, int index,
 
       if (img.empty()) {
         cout << "Error: there is no image in " << directory.c_str();
-        exit(-1);
+        return Mat();
       }
     }
   }
@@ -518,26 +518,28 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
         labels.at<int>(imgTotal, 0) = i;
         // Find this image in the class and open it
         img = FindImgInClass(database, i, j, imgTotal, treino, &trainTest);
-        imgTotal++;
+        if (!img.empty()) {
 
-        // Resize the image given the input size
-        img.copyTo(newimg);
-        if (resizeFactor != 1.0) {
-          cv::resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
+          // Resize the image given the input size
+          img.copyTo(newimg);
+          if (resizeFactor != 1.0) {
+            cv::resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
+          }
+
+          // Convert the image to grayscale
+          ConvertToGrayscale(quantization, newimg, &newimg, colors);
+
+          // Call the description method
+          GetFeatureVector(method, newimg, &featureVector, colors, normalization,
+            param);
+
+          // Push the feature vector for the current image in the features vector
+          features.push_back(featureVector);
+          imgTotal++;
+          featureVector.release();
+          img.release();
+          newimg.release();
         }
-
-        // Convert the image to grayscale
-        ConvertToGrayscale(quantization, newimg, &newimg, colors);
-
-        // Call the description method
-        GetFeatureVector(method, newimg, &featureVector, colors, normalization,
-          param);
-
-        // Push the feature vector for the current image in the features vector
-        features.push_back(featureVector);
-        featureVector.release();
-        img.release();
-        newimg.release();
       }
     }
     // Normalization of Haralick and contourExtraction features by z-index
