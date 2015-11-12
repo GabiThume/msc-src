@@ -106,8 +106,8 @@ int main(int argc, char const *argv[]) {
   // vector <int> descriptors {1, 6, 7};
   // vector <int> quant {1, 3, 2};
 
-  vector <int> descriptors {1};
-  vector <int> quant {1};
+  vector <int> descriptors {7};
+  vector <int> quant {2};
 
   double factor = 0.1;
 
