@@ -98,16 +98,16 @@ int main(int argc, char const *argv[]) {
   analysisDir = newDir+"/analysis/";
   featuresDir = newDir+"/features/";
 
-  srand(time(NULL));
-  /*  Available
-  descriptorMethod: {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"}
-  Quantization quantizationMethod: {"Intensity", "Luminance", "Gleam", "MSB"}
-  */
+  srand(1);
+  //  Available methods:
+  // Description {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"}
+  // Quantization {"Intensity", "Luminance", "Gleam", "MSB", "MSB-Modified", "BGR", "HSV"}
+
   // vector <int> descriptors {1, 6, 7};
   // vector <int> quant {1, 3, 2};
 
-  vector <int> descriptors {7};
-  vector <int> quant {2};
+  vector <int> descriptors {1};
+  vector <int> quant {1};
 
   double factor = 0.1;
 

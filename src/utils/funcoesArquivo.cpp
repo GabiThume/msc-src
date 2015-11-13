@@ -73,9 +73,9 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
 
   while (getline(myFile, line)) {
     stringstream vector_features(line);
-    getline(vector_features, numImage, '\t');
-    getline(vector_features, classe, '\t');
-    getline(vector_features, trainTest, '\t');
+    getline(vector_features, numImage, ' ');
+    getline(vector_features, classe, ' ');
+    getline(vector_features, trainTest, ' ');
     actualClass = atoi(classe.c_str());
     if (previousClass != actualClass) {
       if (previousClass != -1) {
@@ -271,9 +271,9 @@ string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
   for (i = 0; i < features.rows; i++) {
     if (labels.rows > 0) {
       // Write the image number \t the referenced class \t
-      arq << i << '\t' << labels.at<int>(i, 0) << '\t';
+      arq << i << ' ' << labels.at<int>(i, 0) << ' ';
       // and if it is fixed as training or testing image
-      arq << trainTest.at<int>(i, 0) << '\t';
+      arq << trainTest.at<int>(i, 0) << ' ';
     }
     // Write the feature vector related to the current image
     for (j = 0; j < features.cols; j++) {

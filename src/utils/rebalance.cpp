@@ -171,7 +171,7 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
   arq << total << '\t' << rebalancedData.size() << '\t' << rebalancedData[0].features.size().width << endl;
   for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
     for (h = 0; h < it->features.size().height; h++){
-      arq << countImg << '\t' << it->classNumber << '\t' << it->trainOrTest.at<int>(h,0) << '\t';
+      arq << countImg << ' ' << it->classNumber << ' ' << it->trainOrTest.at<int>(h,0) << ' ';
       for (w = 0; w < it->features.size().width; w++){
         arq << it->features.at<float>(h, w) << " ";
       }
