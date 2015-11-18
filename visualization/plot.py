@@ -11,10 +11,10 @@ from bokeh.plotting import output_file, figure, show, output_server, cursession
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.lda import LDA
+from sklearn.decomposition import PCA as sklearnPCA
+from sklearn.neighbors import KNeighborsClassifier
 
 from matplotlib import pyplot as plt
-
-from sklearn.decomposition import PCA as sklearnPCA
 from bokeh.palettes import brewer
 from scipy.interpolate import interp1d
 
@@ -36,6 +36,25 @@ classes = df['Class label'].values
 sklearn_pca = sklearnPCA(n_components=2)
 X_pca = sklearn_pca.fit_transform(all_samples)
 p = figure(title = "artificial generation", x_range=[min(X_pca[:,0]), max(X_pca[:,0])], y_range=[min(X_pca[:,1]), max(X_pca[:,1])])
+
+# Plotting the decision region
+classifier = KNeighborsClassifier(n_neighbors=1)
+classifier.fit(X_pca, classes)
+
+h = 1000
+x_min, x_max = X_pca[:, 0].min() - 1, X_pca[:, 0].max() + 1
+y_min, y_max = X_pca[:, 1].min() - 1, X_pca[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                     np.arange(y_min, y_max, h))
+print len(np.arange(x_min, x_max, h))
+
+region = classifier.predict(np.c_[xx.ravel(), yy.ravel()])
+region = region.reshape(xx.shape)
+
+print region
+
+p.image(image=[region], x=[0], y=[0], dw=[1000], dh=[1000], palette="Spectral11")
+
 
 num_classes = len(np.unique(classes))
 label_dict = {0: 'Elefante', 1: 'Cavalo'}
