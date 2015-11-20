@@ -7,7 +7,7 @@ import math
 import time
 import sys
 
-from bokeh.plotting import output_file, figure, show, output_server, cursession
+from bokeh.plotting import figure, show, output_server, cursession
 from bokeh.palettes import brewer
 
 from sklearn.preprocessing import LabelEncoder
@@ -42,7 +42,6 @@ def decision_region((x, y), classes, plot_size):
         miny = y.min()-1
         maxy = y.max()+1
     else:
-        print "ELSE"
         minx, maxx, miny, maxy = plot_size
     xx, yy = np.meshgrid(np.arange(minx, maxx, h), np.arange(miny, maxy, h))
     region = classifier.predict(np.c_[xx.ravel(), yy.ravel()])
@@ -57,19 +56,19 @@ def between_point((x0, y0), (x1, y1), step):
     return x, y
 
 
-features_file = sys.argv[1]
-images_dir = sys.argv[2]
+# features_file = sys.argv[1]
+features_file = "../data/elefante-cavalo/Artificial/3-Rebalanced0/features/BIC_Intensity_64c_100r_200i_artificial.csv"
 
 output_server("animated")
-# output_file("vis.html");
+
 image_size = 300
 square_size = 10
 alpha = 0.9
 
-df = pd.io.parsers.read_csv(filepath_or_buffer = features_file, header=None, sep = ' ')
+df = pd.io.parsers.read_csv(filepath_or_buffer = features_file, header=None, sep=',', skiprows=1)
 df.dropna(how="all", inplace=True, axis=1)
-df.columns = ['Image label'] + ['Class label'] + ['Train or test'] + [l for l in range(3, df.shape[1])]
-all_samples = df[range(3, df.shape[1])].values
+df.columns = ['Image path'] + ['Class label'] + ['Train or test'] + ['Generated'] + [l for l in range(4, df.shape[1])]
+all_samples = df[range(4, df.shape[1])].values
 all_classes = df['Class label'].values
 num_classes = len(np.unique(all_classes))
 label_dict = {0: 'Elefante', 1: 'Cavalo'}
@@ -78,8 +77,8 @@ trainOrTest = df['Train or test'].values
 treino = trainOrTest == 1
 teste = trainOrTest == 2
 
-generated = (all_classes==1)*treino # todo generated set
-generated[100] = False
+generated = df['Generated'].values == True
+
 # Take only the original training samples
 original = all_samples[~generated]# * treino]
 
@@ -108,63 +107,62 @@ for label in range(num_classes):
                         label_dict[label]+" - "+status,
                         status+str(label)])
 
+x, y = pca(original)
 samples.append([[], colors[num_classes], "Artificiais", "Generated"])
 for index, color, label, name in samples:
     p.square(x = list(x[index]), y = list(y[index]), color = color,
             legend = label, size = square_size, line_dash = [6, 3], name = name)
+    p.image_url(x = list(x[index]-image_size/2), y = list(y[index]+image_size/2), url= ['../'+df['Image path'].values[~generated][index]], global_alpha = alpha, h = image_size, w = image_size)
 
 show(p)
 
-# images = [images_dir+str(label)+"/treino/"+str(i)+".png" for i in range(0,6)]
-# p.image_url(x = list(x_plot[treino[from_class]]-image_size/2), y = list(y_plot[treino[from_class]]+image_size/2), url=images, global_alpha = alpha, h = image_size, w = image_size)
-
-samples[-1][0] = len(original)
-classes = all_classes[~generated]
-for image in generated.nonzero()[0]:
-    original = np.append(original, [all_samples[image]], axis = 0)
-    classes = np.append(classes, [all_classes[image]], axis = 0)
-    x_plot, y_plot = pca(original)
-    data = p.select(name = "region")[0].data_source
-    region = decision_region((x_plot, y_plot), classes, plot_size)
-    # print "data.data['image'] ", data.data['image']
-    # print "region ", [region]
-    data.data['image'] = [region]
-    cursession().store_objects(data)
-
-    ds = []
-    for index, color, label, name in samples:
-        data = p.select(name = name)[0].data_source
-        x0 = data.data['x']
-        y0 = data.data['y']
-        if name is "Generated":
-            x1 = x_plot[index :]
-            y1 = y_plot[index :]
-
-            if len(x1) != len(x0):
-                x1 = x1[:len(x1)-1]
-                y1 = y1[:len(y1)-1]
-
-        else:
-            x1 = x_plot[index]
-            y1 = y_plot[index]
-
-        x, y = x0, y0
-        x, y = between_point ((x, y), (x1, y1), 2)
-        data.data['x'] = list(x)
-        data.data['y'] = list(y)
-        ds.append(data)
-
-        if name is "Generated":
-            data.data['x'] = list(x_plot[index :])
-            data.data['y'] = list(y_plot[index :])
-        else:
-            data.data['x'] = list(x1)
-            data.data['y'] = list(y1)
-
-        ds.append(data)
-    cursession().store_objects(*ds)
-    # img_file = [images_dir+str(label)+"/treino/"+str(image)+".png" ]
-    # print img_file
-    # p.image_url(x = X_pca[:,0][-1]-image_size/2, y = X_pca[:,1][-1]+image_size/2, url=img_file, global_alpha = alpha, h = image_size, w = image_size)
-    #
-    # time.sleep(.10)
+# samples[-1][0] = len(original)
+# classes = all_classes[~generated]
+# for image in generated.nonzero()[0]:
+#     original = np.append(original, [all_samples[image]], axis = 0)
+#     classes = np.append(classes, [all_classes[image]], axis = 0)
+#     x_plot, y_plot = pca(original)
+#     data = p.select(name = "region")[0].data_source
+#     region = decision_region((x_plot, y_plot), classes, plot_size)
+#     # print "data.data['image'] ", data.data['image']
+#     # print "region ", [region]
+#     data.data['image'] = [region]
+#     cursession().store_objects(data)
+#
+#     ds = []
+#     for index, color, label, name in samples:
+#         data = p.select(name = name)[0].data_source
+#         x0 = data.data['x']
+#         y0 = data.data['y']
+#         if name is "Generated":
+#             x1 = x_plot[index :]
+#             y1 = y_plot[index :]
+#
+#             if len(x1) != len(x0):
+#                 x1 = x1[:len(x1)-1]
+#                 y1 = y1[:len(y1)-1]
+#
+#         else:
+#             x1 = x_plot[index]
+#             y1 = y_plot[index]
+#
+#         x, y = x0, y0
+#         x, y = between_point ((x, y), (x1, y1), 2)
+#         data.data['x'] = list(x)
+#         data.data['y'] = list(y)
+#         ds.append(data)
+#
+#         if name is "Generated":
+#             data.data['x'] = list(x_plot[index :])
+#             data.data['y'] = list(y_plot[index :])
+#         else:
+#             data.data['x'] = list(x1)
+#             data.data['y'] = list(y1)
+#
+#         ds.append(data)
+#     cursession().store_objects(*ds)
+#     # img_file = [images_dir+str(label)+"/treino/"+str(image)+".png" ]
+#     # print img_file
+#     # p.image_url(x = X_pca[:,0][-1]-image_size/2, y = X_pca[:,1][-1]+image_size/2, url=img_file, global_alpha = alpha, h = image_size, w = image_size)
+#     #
+#     # time.sleep(.10)
