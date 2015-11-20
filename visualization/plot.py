@@ -19,12 +19,19 @@ from matplotlib import pyplot as plt
 from scipy.interpolate import interp1d
 
 def pca(samples):
+    '''
+    Apply pca from sklearn and return the two most important dimensions.
+    '''
     sklearn_pca = sklearnPCA(n_components=2)
     X_pca = sklearn_pca.fit_transform(samples)
 
     return (X_pca[:,0], X_pca[:,1])
 
 def decision_region((x, y), classes, plot_size):
+    '''
+    Return the decision region to plot on the figure. This region is decided
+    using the 1-knn classifier.
+    '''
     # Plotting the decision region
     h = abs(x.max() - x.min())/100
     classifier = KNeighborsClassifier(n_neighbors = 1)
@@ -35,12 +42,16 @@ def decision_region((x, y), classes, plot_size):
         miny = y.min()-1
         maxy = y.max()+1
     else:
+        print "ELSE"
         minx, maxx, miny, maxy = plot_size
     xx, yy = np.meshgrid(np.arange(minx, maxx, h), np.arange(miny, maxy, h))
     region = classifier.predict(np.c_[xx.ravel(), yy.ravel()])
     return region.reshape(xx.shape)
 
-def between_point(x0, y0, x1, y1, step):
+def between_point((x0, y0), (x1, y1), step):
+    '''
+    Return the (x,y) coordinate between the inputs coordinates.
+    '''
     x = x0*(x0<x1) + x1*(x1<x0) + abs(x1-x0)/step
     y = y0 + (y1-y0)*((x-x0)/(x1-x0))
     return x, y
@@ -115,9 +126,10 @@ for image in generated.nonzero()[0]:
     x_plot, y_plot = pca(original)
     data = p.select(name = "region")[0].data_source
     region = decision_region((x_plot, y_plot), classes, plot_size)
-    print region.shape
-    # data.data['image'] =
-    # cursession().store_objects(data)
+    # print "data.data['image'] ", data.data['image']
+    # print "region ", [region]
+    data.data['image'] = [region]
+    cursession().store_objects(data)
 
     ds = []
     for index, color, label, name in samples:
@@ -137,7 +149,7 @@ for image in generated.nonzero()[0]:
             y1 = y_plot[index]
 
         x, y = x0, y0
-        x, y = between_point (x, y, x1, y1, 2)
+        x, y = between_point ((x, y), (x1, y1), 2)
         data.data['x'] = list(x)
         data.data['y'] = list(y)
         ds.append(data)
@@ -151,7 +163,6 @@ for image in generated.nonzero()[0]:
 
         ds.append(data)
     cursession().store_objects(*ds)
-
     # img_file = [images_dir+str(label)+"/treino/"+str(image)+".png" ]
     # print img_file
     # p.image_url(x = X_pca[:,0][-1]-image_size/2, y = X_pca[:,1][-1]+image_size/2, url=img_file, global_alpha = alpha, h = image_size, w = image_size)
