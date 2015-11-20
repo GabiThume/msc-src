@@ -195,15 +195,15 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
     cout << "It is not possible to open the feature's file: " << name << endl;
     exit(-1);
   }
-  arq << total << '\t' << rebalancedData.size() << '\t' << rebalancedData[0].features.size().width << endl;
+  arq << total << ',' << rebalancedData.size() << ',' << rebalancedData[0].features.size().width << endl;
   for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
     for (h = 0; h < it->features.size().height; h++){
-      arq << it->path[h] << ' ' << it->classNumber << ' ' << it->trainOrTest.at<int>(h,0) << ' ';
-      arq << it->isGenerated.at<int>(h,0) << ' ';
-      for (w = 0; w < it->features.size().width; w++){
-        arq << it->features.at<float>(h, w) << " ";
+      arq << it->path[h] << ',' << it->classNumber << ',' << it->trainOrTest.at<int>(h,0) << ',';
+      arq << it->isGenerated.at<int>(h,0) << ',';
+      for (w = 0; w < it->features.size().width-1; w++){
+        arq << it->features.at<float>(h, w) << ",";
       }
-      arq << endl;
+      arq << it->features.at<float>(h, w) << endl;
       countImg++;
     }
   }

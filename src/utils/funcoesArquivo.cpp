@@ -46,7 +46,7 @@ Requires
 *******************************************************************************/
 vector<Classes> ReadFeaturesFromFile(string filename) {
   int j, newSize = 0, previousClass = -1, actualClass;
-  float features;
+  string features;
   size_t d;
   string line, infos, pathImage, classe, trainTest, numFeatures, numClasses;
   string objetos, generated;
@@ -65,18 +65,18 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
   getline(myFile, infos);
   if (infos == "") return Mat();
   stringstream info(infos);
-  getline(info, objetos, '\t');
-  getline(info, numClasses, '\t');
-  getline(info, numFeatures, '\t');
-
+  getline(info, objetos, ',');
+  getline(info, numClasses, ',');
+  getline(info, numFeatures, '\n');
   d = atoi(numFeatures.c_str());
 
   while (getline(myFile, line)) {
     stringstream vector_features(line);
-    getline(vector_features, pathImage, ' ');
-    getline(vector_features, classe, ' ');
-    getline(vector_features, trainTest, ' ');
-    getline(vector_features, generated, ' ');
+    getline(vector_features, pathImage, ',');
+    getline(vector_features, classe, ',');
+    getline(vector_features, trainTest, ',');
+    getline(vector_features, generated, ',');
+
     actualClass = atoi(classe.c_str());
     if (previousClass != actualClass) {
       if (previousClass != -1) {
@@ -96,11 +96,13 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
     imgClass.isGenerated.resize(newSize);
     imgClass.path.push_back(pathImage);
 
-    j = 0;
-    while (vector_features >> features) {
-      imgClass.features.at<float>(newSize-1, j) = static_cast<float>(features);
-      j++;
+    for (j = 0; j < d; j++) {
+      if (getline(vector_features, features, ',').eof()) {
+        getline(vector_features, features, '\n');
+      }
+      imgClass.features.at<float>(newSize-1, j) = stof(features);
     }
+
     imgClass.trainOrTest.at<int>(newSize-1, 0) = atoi(trainTest.c_str());
     imgClass.isGenerated.at<int>(newSize-1, 0) = atoi(generated.c_str());
     imgClass.classNumber = actualClass;
@@ -205,7 +207,7 @@ Mat FindImgInClass(string database, int img_class, int img_number, int index,
       }
     }
   }
-  (*path).push_back(directory);
+  (*path).push_back(directory + ".png");
   return img;
 }
 
@@ -285,21 +287,21 @@ string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
   }
 
   // Write the calculated features on a file to load in classification
-  // Number of images \t number of classes \t number of features per image
-  arq << features.rows << '\t' << qtdClasses << '\t' << features.cols << endl;
+  // Number of images, number of classes, number of features per image
+  arq << features.rows << ',' << qtdClasses << ',' << features.cols << endl;
   // For each image
   for (i = 0; i < features.rows; i++) {
     if (labels.rows > 0) {
       // Write the image name, the referenced class
-      arq << path[i] << ' ' << labels.at<int>(i, 0) << ' ';
+      arq << path[i] << ',' << labels.at<int>(i, 0) << ',';
       // and if it is fixed as training or testing image
-      arq << trainTest.at<int>(i, 0) << ' ' << isGenerated.at<int>(i, 0) << ' ';
+      arq << trainTest.at<int>(i, 0) << ',' << isGenerated.at<int>(i, 0) << ',';
     }
     // Write the feature vector related to the current image
-    for (j = 0; j < features.cols; j++) {
-      arq << features.at<float>(i, j) << " ";
+    for (j = 0; j < features.cols-1; j++) {
+      arq << features.at<float>(i, j) << ",";
     }
-    arq << endl;
+    arq << features.at<float>(i, j) << endl;
   }
   arq.close();
 
