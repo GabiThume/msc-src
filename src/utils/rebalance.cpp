@@ -130,9 +130,16 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
         vconcat(dataTraining, synthetic, dataRebalanced);
         vconcat(dataRebalanced, dataTesting, imgClass.features);
         imgClass.classNumber = eachClass;
+
         imgClass.trainOrTest.create(dataRebalanced.size().height, 1, CV_32S); // Training
         imgClass.trainOrTest = Scalar::all(1);
         imgClass.trainOrTest.resize(imgClass.features.size().height, Scalar::all(2)); // Testing
+
+        imgClass.isGenerated.create(dataTraining.size().height, 1, CV_32S);
+        imgClass.isGenerated = Scalar::all(0);
+        imgClass.isGenerated.resize(dataRebalanced.size().height, Scalar::all(1));
+        imgClass.isGenerated.resize(imgClass.features.size().height, Scalar::all(0));
+
         for (samples = 0; samples < dataTraining.rows; samples++) {
           imgClass.path.push_back(imbalancedData[eachClass].path[samples]);
         }
@@ -155,14 +162,21 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
         Classes imgClass;
         vconcat(imbalancedData[eachClass].features, synthetic, imgClass.features);
         imgClass.classNumber = eachClass;
+
         imgClass.trainOrTest.create(imgClass.features.size().height, 1, CV_32S);
         imgClass.trainOrTest = Scalar::all(0);
+
+        imgClass.isGenerated.create(imbalancedData[eachClass].features.size().height, 1, CV_32S);
+        imgClass.isGenerated = Scalar::all(0);
+        imgClass.isGenerated.resize(imgClass.features.size().height, Scalar::all(1));
+
         for (samples = 0; samples < imbalancedData[eachClass].features.size().height; samples++) {
           imgClass.path.push_back(imbalancedData[eachClass].path[samples]);
         }
         for (samples = 0; samples < synthetic.rows; samples++) {
           imgClass.path.push_back("smote");
         }
+
         rebalancedData.push_back(imgClass);
         total += imgClass.features.size().height;
       }
@@ -185,6 +199,7 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
   for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
     for (h = 0; h < it->features.size().height; h++){
       arq << it->path[h] << ' ' << it->classNumber << ' ' << it->trainOrTest.at<int>(h,0) << ' ';
+      arq << it->isGenerated.at<int>(h,0) << ' ';
       for (w = 0; w < it->features.size().width; w++){
         arq << it->features.at<float>(h, w) << " ";
       }

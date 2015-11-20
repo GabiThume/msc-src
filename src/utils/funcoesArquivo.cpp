@@ -49,7 +49,7 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
   float features;
   size_t d;
   string line, infos, pathImage, classe, trainTest, numFeatures, numClasses;
-  string objetos;
+  string objetos, generated;
   vector<Classes> data;
   Classes imgClass;
   ifstream myFile;
@@ -76,6 +76,7 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
     getline(vector_features, pathImage, ' ');
     getline(vector_features, classe, ' ');
     getline(vector_features, trainTest, ' ');
+    getline(vector_features, generated, ' ');
     actualClass = atoi(classe.c_str());
     if (previousClass != actualClass) {
       if (previousClass != -1) {
@@ -84,6 +85,7 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
       previousClass = actualClass;
       imgClass.features.create(0, d, CV_32FC1);
       imgClass.trainOrTest.create(0, 1, CV_32S);
+      imgClass.isGenerated.create(0, 1, CV_32S);
       imgClass.fixedTrainOrTest = false;
       imgClass.path.clear();
     }
@@ -91,6 +93,7 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
     newSize = imgClass.features.size().height+1;
     imgClass.features.resize(newSize);
     imgClass.trainOrTest.resize(newSize);
+    imgClass.isGenerated.resize(newSize);
     imgClass.path.push_back(pathImage);
 
     j = 0;
@@ -99,6 +102,7 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
       j++;
     }
     imgClass.trainOrTest.at<int>(newSize-1, 0) = atoi(trainTest.c_str());
+    imgClass.isGenerated.at<int>(newSize-1, 0) = atoi(generated.c_str());
     imgClass.classNumber = actualClass;
     if (atoi(trainTest.c_str()) != 0) {
       imgClass.fixedTrainOrTest = true;
@@ -146,6 +150,8 @@ int NumberImagesInDataset(string base, int qtdClasses, vector<int> *objClass) {
   for (i = 0; i < qtdClasses; i++) {
     directory = base + "/" + to_string(i) + "/treino/";
     currentSize = qtdArquivos(directory);
+    directory = base + "/" + to_string(i) + "/treino/generated/";
+    currentSize += qtdArquivos(directory);
     directory = base + "/" + to_string(i) + "/teste/";
     currentSize += qtdArquivos(directory);
     if (currentSize == 0) {
@@ -165,7 +171,8 @@ int NumberImagesInDataset(string base, int qtdClasses, vector<int> *objClass) {
 /*******************************************************************************
 *******************************************************************************/
 Mat FindImgInClass(string database, int img_class, int img_number, int index,
-                  int treino, Mat *trainTest, vector<string> *path) {
+                  int treino, Mat *trainTest, vector<string> *path,
+                  Mat *isGenerated) {
   string directory, dir_class = database +"/" + to_string(img_class);
   Mat img;
 
@@ -174,6 +181,7 @@ Mat FindImgInClass(string database, int img_class, int img_number, int index,
 
   // cout << directory+".png" << endl;
   (*trainTest).at<int>(index, 0) = 0;
+  (*isGenerated).at<int>(index, 0) = 0;
 
   if (img.empty()) {
     directory = dir_class + "/treino/" + to_string(img_number);
@@ -181,13 +189,19 @@ Mat FindImgInClass(string database, int img_class, int img_number, int index,
     (*trainTest).at<int>(index, 0) = 1;
 
     if (img.empty()) {
-      directory = dir_class + "/teste/" + to_string(img_number - treino);
-      img = imread(directory+".png", CV_LOAD_IMAGE_COLOR);
-      (*trainTest).at<int>(index, 0) = 2;
-
+      directory = dir_class + "/treino/generated/" + to_string(img_number);
+      img = imread(directory + ".png", CV_LOAD_IMAGE_COLOR);
       if (img.empty()) {
-        cout << "Error: there is no image in " << directory.c_str();
-        return Mat();
+        directory = dir_class + "/teste/" + to_string(img_number - treino);
+        img = imread(directory+".png", CV_LOAD_IMAGE_COLOR);
+        (*trainTest).at<int>(index, 0) = 2;
+
+        if (img.empty()) {
+          cout << "Error: there is no image in " << directory.c_str();
+          return Mat();
+        }
+      } else {
+        (*isGenerated).at<int>(index, 0) = 1;
       }
     }
   }
@@ -210,6 +224,8 @@ void NumberImgInClass(string database, int img_class, int *num_imgs,
 
   directory = database + "/" + to_string(img_class)  + "/treino/";
   (*num_imgs) = qtdArquivos(directory);
+  directory = database + "/" + to_string(img_class)  + "/treino/generated/";
+  (*num_imgs) += qtdArquivos(directory);
   (*num_train) = (*num_imgs);
 
   directory = database + "/" + to_string(img_class)  + "/teste/";
@@ -249,7 +265,7 @@ Requires
 string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
                     int colors, int normalization, int resizingFactor,
                     int qtdClasses, Mat features, Mat labels, Mat trainTest,
-                    vector<string> path, string id, bool writeDataFile) {
+                    Mat isGenerated, vector<string> path, string id, bool writeDataFile) {
 
   ofstream arq, arqVis;
   int i, j;
@@ -277,7 +293,7 @@ string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
       // Write the image name, the referenced class
       arq << path[i] << ' ' << labels.at<int>(i, 0) << ' ';
       // and if it is fixed as training or testing image
-      arq << trainTest.at<int>(i, 0) << ' ';
+      arq << trainTest.at<int>(i, 0) << ' ' << isGenerated.at<int>(i, 0) << ' ';
     }
     // Write the feature vector related to the current image
     for (j = 0; j < features.cols; j++) {
@@ -482,7 +498,7 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
   double porc;
   int resizingFactor = static_cast<int>(resizeFactor*100);
   string name, directory;
-  Mat img, featureVector, features, labels, trainTest, newimg;
+  Mat img, featureVector, features, labels, trainTest, newimg, isGenerated;
   vector<int> num_images_class;
   vector<string> path;
   clock_t begin, end;
@@ -514,6 +530,7 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
     qtdImgTotal = NumberImagesInDataset(database, qtdClasses, &num_images_class);
     labels = Mat::zeros(qtdImgTotal, 1, CV_32S);
     trainTest = Mat::zeros(qtdImgTotal, 1, CV_32S);
+    isGenerated= Mat::zeros(qtdImgTotal, 1, CV_32S);
 
 
     for (i = 0; i < qtdClasses; i++) {
@@ -523,7 +540,8 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
         // The image label is the i index
         labels.at<int>(imgTotal, 0) = i;
         // Find this image in the class and open it
-        img = FindImgInClass(database, i, j, imgTotal, treino, &trainTest, &path);
+        img = FindImgInClass(database, i, j, imgTotal, treino, &trainTest, &path,
+                            &isGenerated);
         if (!img.empty()) {
 
           // Resize the image given the input size
@@ -577,7 +595,7 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
 
   name = WriteFeaturesOnFile(featuresDir, quantization, method, colors,
     normalization, resizingFactor, qtdClasses, features, labels, trainTest,
-    path, id, false);
+    isGenerated, path, id, false);
   cout << "File: " << name << endl;
   end = clock();
   cout << endl << "Elapsed time: " << double(end-begin)/ CLOCKS_PER_SEC << endl;

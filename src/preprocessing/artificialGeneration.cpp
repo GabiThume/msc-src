@@ -475,7 +475,7 @@ string Artificial::generate(string base, string newDirectory,
 	int i, qtdClasses = 0, generationType, rebalanceTotal = 0;
 	int maiorClasse, rebalance, eachClass, qtdImg, maior;
 	Mat img, noise;
-	string imgName, classe, minorityClass, str, nameGeneratedImage;
+	string imgName, classe, minorityClass, str, nameGeneratedImage, generatedPath;
 	struct dirent *sDir = NULL;
 	DIR *dir = NULL, *minDir = NULL;
 	vector<int> totalImage, vectorRand;
@@ -555,6 +555,19 @@ string Artificial::generate(string base, string newDirectory,
 			}
 			closedir(minDir);
 
+			generatedPath = minorityClass + "/generated/";
+			minDir = opendir(generatedPath.c_str());
+			if (!minDir) {
+				str = "mkdir -p "+generatedPath+";";
+				system(str.c_str());
+				minDir = opendir(generatedPath.c_str());
+				if (!minDir) {
+					cout << "Error! Directory " << generatedPath.c_str() << " can't be created. " << endl;
+					exit(1);
+				}
+			}
+			closedir(minDir);
+
 			/* For each image needed to full rebalance*/
 			for (i = 0; i < rebalance; i++) {
 
@@ -562,7 +575,7 @@ string Artificial::generate(string base, string newDirectory,
 				Case 1: All operations */
 				generationType = (whichOperation == 1) ? dis(gen) : whichOperation;
 
-				nameGeneratedImage = minorityClass + to_string(totalImage[eachClass]+i) + ".png";
+				nameGeneratedImage = minorityClass + "/generated/" + to_string(totalImage[eachClass]+i) + ".png";
 				GenerateImage(images, nameGeneratedImage, totalImage[eachClass], generationType);
 			}
 			rebalanceTotal += rebalance;

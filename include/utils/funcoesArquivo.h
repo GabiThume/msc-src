@@ -25,6 +25,7 @@ struct Classes {
 	bool fixedTrainOrTest;
 	Mat trainOrTest;
 	vector<string> path;
+	Mat isGenerated;
 };
 
 vector<Classes> ReadFeaturesFromFile(string filename);
