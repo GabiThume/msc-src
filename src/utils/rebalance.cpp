@@ -46,6 +46,7 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
 
   int majority = -1, majorityClass = -1, eachClass, amountSmote, countImg = 0;
   int numTraining = 0, numTesting = 0, i, x, neighbors, pos, total, h, w, numRaw;
+  int samples, index;
   vector<int> trainingNumber(imbalancedData.size(), 0);
   std::vector<Classes>::iterator it;
   vector<Classes> rebalancedData;
@@ -132,6 +133,15 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
         imgClass.trainOrTest.create(dataRebalanced.size().height, 1, CV_32S); // Training
         imgClass.trainOrTest = Scalar::all(1);
         imgClass.trainOrTest.resize(imgClass.features.size().height, Scalar::all(2)); // Testing
+        for (samples = 0; samples < dataTraining.rows; samples++) {
+          imgClass.path.push_back(imbalancedData[eachClass].path[samples]);
+        }
+        for (index = 0; index < synthetic.rows; index++) {
+          imgClass.path.push_back("smote");
+        }
+        for (index = 0; index < dataTesting.rows; samples++, index++) {
+          imgClass.path.push_back(imbalancedData[eachClass].path[samples]);
+        }
 
         rebalancedData.push_back(imgClass);
         total += imgClass.features.size().height;
@@ -147,6 +157,12 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
         imgClass.classNumber = eachClass;
         imgClass.trainOrTest.create(imgClass.features.size().height, 1, CV_32S);
         imgClass.trainOrTest = Scalar::all(0);
+        for (samples = 0; samples < imbalancedData[eachClass].features.size().height; samples++) {
+          imgClass.path.push_back(imbalancedData[eachClass].path[samples]);
+        }
+        for (samples = 0; samples < synthetic.rows; samples++) {
+          imgClass.path.push_back("smote");
+        }
         rebalancedData.push_back(imgClass);
         total += imgClass.features.size().height;
       }
@@ -165,13 +181,10 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
     cout << "It is not possible to open the feature's file: " << name << endl;
     exit(-1);
   }
-  cout << "---------------------------------------------------------------------------------------" << endl;
-  cout << "Wrote on data file named " << name << endl;
-  cout << "---------------------------------------------------------------------------------------" << endl;
   arq << total << '\t' << rebalancedData.size() << '\t' << rebalancedData[0].features.size().width << endl;
   for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
     for (h = 0; h < it->features.size().height; h++){
-      arq << countImg << ' ' << it->classNumber << ' ' << it->trainOrTest.at<int>(h,0) << ' ';
+      arq << it->path[h] << ' ' << it->classNumber << ' ' << it->trainOrTest.at<int>(h,0) << ' ';
       for (w = 0; w < it->features.size().width; w++){
         arq << it->features.at<float>(h, w) << " ";
       }
@@ -180,6 +193,9 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
     }
   }
   arq.close();
+  cout << "---------------------------------------------------------------------------------------" << endl;
+  cout << "Wrote on data file named " << name << endl;
+  cout << "---------------------------------------------------------------------------------------" << endl;
   return name;
 }
 

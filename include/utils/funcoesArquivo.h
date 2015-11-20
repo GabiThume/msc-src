@@ -24,6 +24,7 @@ struct Classes {
 	Mat features;
 	bool fixedTrainOrTest;
 	Mat trainOrTest;
+	vector<string> path;
 };
 
 vector<Classes> ReadFeaturesFromFile(string filename);

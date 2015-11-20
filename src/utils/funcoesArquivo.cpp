@@ -48,7 +48,7 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
   int j, newSize = 0, previousClass = -1, actualClass;
   float features;
   size_t d;
-  string line, infos, numImage, classe, trainTest, numFeatures, numClasses;
+  string line, infos, pathImage, classe, trainTest, numFeatures, numClasses;
   string objetos;
   vector<Classes> data;
   Classes imgClass;
@@ -73,7 +73,7 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
 
   while (getline(myFile, line)) {
     stringstream vector_features(line);
-    getline(vector_features, numImage, ' ');
+    getline(vector_features, pathImage, ' ');
     getline(vector_features, classe, ' ');
     getline(vector_features, trainTest, ' ');
     actualClass = atoi(classe.c_str());
@@ -85,11 +85,13 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
       imgClass.features.create(0, d, CV_32FC1);
       imgClass.trainOrTest.create(0, 1, CV_32S);
       imgClass.fixedTrainOrTest = false;
+      imgClass.path.clear();
     }
 
     newSize = imgClass.features.size().height+1;
     imgClass.features.resize(newSize);
     imgClass.trainOrTest.resize(newSize);
+    imgClass.path.push_back(pathImage);
 
     j = 0;
     while (vector_features >> features) {
@@ -163,7 +165,7 @@ int NumberImagesInDataset(string base, int qtdClasses, vector<int> *objClass) {
 /*******************************************************************************
 *******************************************************************************/
 Mat FindImgInClass(string database, int img_class, int img_number, int index,
-                  int treino, Mat *trainTest) {
+                  int treino, Mat *trainTest, vector<string> *path) {
   string directory, dir_class = database +"/" + to_string(img_class);
   Mat img;
 
@@ -189,6 +191,7 @@ Mat FindImgInClass(string database, int img_class, int img_number, int index,
       }
     }
   }
+  (*path).push_back(directory);
   return img;
 }
 
@@ -239,13 +242,14 @@ Requires
 - Mat of features, one row for each image
 - Mat of labels, one row for each image
 - Mat indicating if the image in each row is fixed for training or testing
+- vector of strings indicating the image path
 - string id to add in the end of file (requested for static rebalance)
 - bool indicates if it is necessary to write a data file
 *******************************************************************************/
 string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
                     int colors, int normalization, int resizingFactor,
                     int qtdClasses, Mat features, Mat labels, Mat trainTest,
-                    string id, bool writeDataFile) {
+                    vector<string> path, string id, bool writeDataFile) {
 
   ofstream arq, arqVis;
   int i, j;
@@ -270,8 +274,8 @@ string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
   // For each image
   for (i = 0; i < features.rows; i++) {
     if (labels.rows > 0) {
-      // Write the image number \t the referenced class \t
-      arq << i << ' ' << labels.at<int>(i, 0) << ' ';
+      // Write the image name, the referenced class
+      arq << path[i] << ' ' << labels.at<int>(i, 0) << ' ';
       // and if it is fixed as training or testing image
       arq << trainTest.at<int>(i, 0) << ' ';
     }
@@ -480,6 +484,7 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
   string name, directory;
   Mat img, featureVector, features, labels, trainTest, newimg;
   vector<int> num_images_class;
+  vector<string> path;
   clock_t begin, end;
 
   cout << "\n---------------------------------------------------------" << endl;
@@ -510,6 +515,7 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
     labels = Mat::zeros(qtdImgTotal, 1, CV_32S);
     trainTest = Mat::zeros(qtdImgTotal, 1, CV_32S);
 
+
     for (i = 0; i < qtdClasses; i++) {
       NumberImgInClass(database, i, &numImages, &treino);
 
@@ -517,7 +523,7 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
         // The image label is the i index
         labels.at<int>(imgTotal, 0) = i;
         // Find this image in the class and open it
-        img = FindImgInClass(database, i, j, imgTotal, treino, &trainTest);
+        img = FindImgInClass(database, i, j, imgTotal, treino, &trainTest, &path);
         if (!img.empty()) {
 
           // Resize the image given the input size
@@ -571,7 +577,7 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
 
   name = WriteFeaturesOnFile(featuresDir, quantization, method, colors,
     normalization, resizingFactor, qtdClasses, features, labels, trainTest,
-    id, false);
+    path, id, false);
   cout << "File: " << name << endl;
   end = clock();
   cout << endl << "Elapsed time: " << double(end-begin)/ CLOCKS_PER_SEC << endl;
