@@ -67,6 +67,13 @@ class plot(object):
                 "teste"
                 ])
 
+        self.samples.append([
+            [],
+            self.colors[self.num_classes],
+            "Artificiais",
+            "Generated",
+            "treino"
+            ])
 
     def pca(self, samples):
         '''
@@ -75,17 +82,19 @@ class plot(object):
         sklearn_pca = sklearnPCA(n_components=2)
         X_pca = sklearn_pca.fit_transform(samples)
 
-        return (X_pca[:,0], X_pca[:,1])
+        return X_pca
 
-    def decision_region(self, (x, y), classes):
+    def decision_region(self, features, classes):
         '''
         Return the decision region to plot on the figure. This region is decided
         using the 1-knn classifier.
         '''
         # Plotting the decision region
-        h = abs(x.max() - x.min())/100
-        classifier = KNeighborsClassifier(n_neighbors = 1)
-        classifier.fit( np.concatenate(([x], [y]), axis = 0).T, classes)
+        # h = abs(x.max() - x.min())/300
+        h = 100
+        classifier = KNeighborsClassifier(n_neighbors = 1, weights = "distance")
+        classifier.fit(features, classes)
+        x, y = features[:,0], features[:,1]
         if len(self.plot_size) != 4:
             minx = x.min()-1
             maxx = x.max()+1
@@ -108,32 +117,30 @@ class plot(object):
     def animate(self, p):
         current_samples = self.all_samples[self.original]
         curent_classes = self.all_classes[self.original]
-        self.samples.append([
-            [len(current_samples)],
-            self.colors[self.num_classes],
-            "Artificiais",
-            "Generated",
-            "treino"
-            ])
+        index_generation = len(current_samples)
         for image in self.generated.nonzero()[0]:
             current_samples = np.append(current_samples, [self.all_samples[image]], axis = 0)
             curent_classes = np.append(curent_classes, [self.all_classes[image]], axis = 0)
 
-            x_plot, y_plot = self.pca(current_samples)
-            data = p.select(name = "region")[0].data_source
-            region = self.decision_region((x_plot, y_plot), curent_classes)
-            data.data['image'] = [region]
-            cursession().store_objects(data)
-
             ds = []
+            pca = self.pca(current_samples)
+            x_plot, y_plot = (pca[:,0], pca[:,1])
+            data = p.select(name = "region")[0].data_source
+            region = self.decision_region(pca, curent_classes)
+            data.data['image'] = [region]
+            ds.append(data)
+            # cursession().store_objects(data)
+
             for index, color, label, name, status in self.samples:
                 if p.select(name = name) != []:
                     data = p.select(name = name)[0].data_source
                     x0 = data.data['x']
                     y0 = data.data['y']
+
                     if name is "Generated":
-                        x1 = x_plot[index :]
-                        y1 = y_plot[index :]
+                        print index
+                        x1 = x_plot[index_generation :]
+                        y1 = y_plot[index_generation :]
 
                         if len(x1) != len(x0):
                             x1 = x1[:len(x1)-1]
@@ -143,15 +150,15 @@ class plot(object):
                         x1 = x_plot[index[generated_plot.original]]
                         y1 = y_plot[index[generated_plot.original]]
 
-                    x, y = x0, y0
-                    x, y = self.between_point ((x, y), (x1, y1), 2)
-                    data.data['x'] = list(x)
-                    data.data['y'] = list(y)
-                    ds.append(data)
+                    # x, y = x0, y0
+                    # x, y = self.between_point ((x, y), (x1, y1), 2)
+                    # data.data['x'] = list(x)
+                    # data.data['y'] = list(y)
+                    # ds.append(data)
 
                     if name is "Generated":
-                        data.data['x'] = list(x_plot[index :])
-                        data.data['y'] = list(y_plot[index :])
+                        data.data['x'] = list(x_plot[index_generation :])
+                        data.data['y'] = list(y_plot[index_generation :])
                     else:
                         data.data['x'] = list(x1)
                         data.data['y'] = list(y1)
@@ -166,31 +173,80 @@ class plot(object):
 
 
 
-def visualization(generated_plot, title):
+def visualization_original(generated_plot, title):
     # Initial setting using all samples less the generated ones
-    x, y = generated_plot.pca(generated_plot.all_samples[~generated_plot.generated])
+    # pca = generated_plot.pca(generated_plot.all_samples[~generated_plot.generated])
+    # x, y = (pca[:,0], pca[:,1])
+
+    # Use only original samples - not testing neither generated samples
+    pca = generated_plot.pca(generated_plot.all_samples[generated_plot.original])
+    x, y = (pca[:,0], pca[:,1])
+
     # TOOLS = 'box_zoom,box_select,crosshair,resize,reset'
     p = figure(title = title, x_range=[min(x), max(x)], y_range=[min(y), max(y)])
     # p.border_fill = "whitesmoke"
     p.legend.orientation = "bottom_right"
     # p.toolbar_location = "below"
-    region = generated_plot.decision_region((x, y), generated_plot.all_classes[~generated_plot.generated])
-    p.image(image=[region], x=[min(x)], y=[min(y)], dw=[abs(max(x)-min(x))], dh=[abs(max(y)-min(y))], palette="Greys3", alpha = 0.1, name = "region")
+    region = generated_plot.decision_region(pca, generated_plot.all_classes[generated_plot.original])
+    p.image(image=[region], x=[min(x)], y=[min(y)], dw=[abs(max(x)-min(x))], dh=[abs(max(y)-min(y))], palette="Greys4", alpha = 0.1, name = "region")
     plot_size = region.shape
 
-    # Use only original samples - not testing neither generated samples
-    x, y = generated_plot.pca(generated_plot.all_samples[generated_plot.original])
 
     for index, color, label, name, status in generated_plot.samples:
         print len(index), len(x), label, name
         if status is "treino":
-            print len(x), index[generated_plot.original]
-            p.square(x = list(x[index[generated_plot.original]]), y = list(y[index[generated_plot.original]]), color = color,
+            if name is "Generated":
+                x_plot = []
+                y_plot = []
+
+            else:
+                x_plot = list(x[index[generated_plot.original]])
+                y_plot = list(y[index[generated_plot.original]])
+            # p.square(x = x_plot, y = y_plot , color = color,
+            #         legend = label, size = square_size, line_dash = [6, 3], name = name)
+            p.scatter(x = x_plot, y = y_plot , marker = "circle", color = color,
                     legend = label, size = square_size, line_dash = [6, 3], name = name)
             # p.image_url(x = list(x[index]-image_size/2), y = list(y[index]+image_size/2), url= ['../'+df['Image path'].values[~generated][index]], global_alpha = alpha, h = image_size, w = image_size)
 
     return p
 
+
+def visualization_all(generated_plot, title):
+    # Initial setting using all samples less the generated ones
+    # pca = generated_plot.pca(generated_plot.all_samples[~generated_plot.generated])
+    # x, y = (pca[:,0], pca[:,1])
+
+    # Use only original samples - not testing neither generated samples
+    pca = generated_plot.pca(generated_plot.all_samples[generated_plot.treino])
+    x, y = (pca[:,0], pca[:,1])
+
+    # TOOLS = 'box_zoom,box_select,crosshair,resize,reset'
+    p = figure(title = title, x_range=[min(x), max(x)], y_range=[min(y), max(y)])
+    # p.border_fill = "whitesmoke"
+    p.legend.orientation = "bottom_right"
+    # p.toolbar_location = "below"
+    region = generated_plot.decision_region(pca, generated_plot.all_classes[generated_plot.treino])
+    p.image(image=[region], x=[min(x)], y=[min(y)], dw=[abs(max(x)-min(x))], dh=[abs(max(y)-min(y))], palette="Greys4", alpha = 0.1, name = "region")
+    plot_size = region.shape
+
+
+    for index, color, label, name, status in generated_plot.samples:
+        print len(index), len(x), label, name
+        if status is "treino":
+            if name is "Generated":
+                x_plot = list(x[generated_plot.generated[generated_plot.treino]])
+                y_plot = list(y[generated_plot.generated[generated_plot.treino]])
+
+            else:
+                x_plot = list(x[index[generated_plot.original]])
+                y_plot = list(y[index[generated_plot.original]])
+            # p.square(x = x_plot, y = y_plot , color = color,
+            #         legend = label, size = square_size, line_dash = [6, 3], name = name)
+            p.scatter(x = x_plot, y = y_plot , marker = "circle", color = color,
+                    legend = label, size = square_size, line_dash = [6, 3], name = name)
+            # p.image_url(x = list(x[index]-image_size/2), y = list(y[index]+image_size/2), url= ['../'+df['Image path'].values[~generated][index]], global_alpha = alpha, h = image_size, w = image_size)
+
+    return p
 
 output_server("animated")
 image_size = 300
@@ -200,17 +256,21 @@ alpha = 0.9
 # features_file = sys.argv[1]
 features_file = "../data/elefante-cavalo/Artificial/3-Rebalanced0/features/BIC_Intensity_64c_100r_200i_artificial.csv"
 generated_plot = plot(features_file, {0: 'Elefante', 1: 'Cavalo'})
-p1 = visualization(generated_plot, "Geracao Artificial de Imagens")
+p = visualization_original(generated_plot, "Original")
+
+features_file = "../data/elefante-cavalo/Artificial/3-Rebalanced0/features/BIC_Intensity_64c_100r_200i_artificial.csv"
+generated_plot = plot(features_file, {0: 'Elefante', 1: 'Cavalo'})
+p1 = visualization_all(generated_plot, "Geracao Artificial de Imagens")
 
 features_file = "../data/elefante-cavalo/features/BIC_Intensity_200i_smote.csv"
 smote_plot = plot(features_file, {0: 'Elefante', 1: 'Cavalo'})
-p2 = visualization(smote_plot, "SMOTE")
+p2 = visualization_all(smote_plot, "SMOTE")
 
-show(hplot(p1, p2))
+show(hplot(p, p1, p2))
 
 # show(p1)
-generated_plot.animate(p1)
-smote_plot.animate(p2)
+# generated_plot.animate(p1)
+# smote_plot.animate(p2)
 
 
 # button = Button(label="Foo", type="success")
