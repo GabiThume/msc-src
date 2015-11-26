@@ -13,9 +13,9 @@ from bokeh.palettes import brewer
 from bokeh.models.widgets import Button, Tabs, Panel
 from bokeh.properties import Instance
 
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, normalize
 from sklearn.lda import LDA
-from sklearn.decomposition import PCA as sklearnPCA, TruncatedSVD
+from sklearn.decomposition import PCA as sklearnPCA
 from sklearn.neighbors import KNeighborsClassifier
 
 from matplotlib import pyplot as plt
@@ -33,6 +33,7 @@ class plot(object):
         df.dropna(how="all", inplace=True, axis=1)
         df.columns = ['Image path'] + ['Class label'] + ['Train or test'] + ['Generated'] + [l for l in range(4, df.shape[1])]
         self.all_samples = df[range(4, df.shape[1])].values
+
         self.all_classes = df['Class label'].values
         self.num_classes = len(np.unique(self.all_classes))
         self.images = df['Image path'].values
@@ -60,37 +61,37 @@ class plot(object):
                 self.colors[label],
                 self.label_dict[label]+" - treino",
                 "treino"+str(label),
-                "treino"
+                "treino",
+                "circle"
                 ])
             self.samples.append([
-                (self.all_classes == label) * self.teste * ~self.generated,
+                (self.all_classes == label) * self.teste,
                 self.colors[label],
                 self.label_dict[label]+" - teste",
                 "teste"+str(label),
-                "teste"
+                "teste",
+                "asterisk"
                 ])
 
         self.samples.append([
-            [],
+            self.generated,
             self.colors[self.num_classes],
             "Artificiais",
             "Generated",
-            "treino"
+            "treino",
+            "circle"
             ])
 
     def pca(self, samples):
         '''
-        Apply pca from sklearn and return the two most important dimensions.
+        Apply pca from sklearn.
         '''
-        # sklearn_pca = sklearnPCA(n_components=2)
-        # # TruncatedSVD, whiten
-        # X_pca = sklearn_pca.fit_transform(samples)
-        #
-        samples_mean = samples.mean(0)
-        samples_center = samples - samples_mean
-        eigenvectors, eigenvalues, vt = np.linalg.svd(samples_center)
-        dataReduced = np.dot(np.transpose(eigenvectors), samples_center)
-        return dataReduced
+        sklearn_pca = sklearnPCA(n_components=2)
+        # Fit the model with samples
+        fit = sklearn_pca.fit(samples)
+        # Apply the dimensionality reduction on samples
+        pca = fit.transform(samples)
+        return pca
 
     def decision_region(self, features, classes):
         '''
@@ -98,8 +99,6 @@ class plot(object):
         using the 1-knn classifier.
         '''
         # Plotting the decision region
-        # h = abs(x.max() - x.min())/300
-        h = 100
         classifier = KNeighborsClassifier(n_neighbors = 1, weights = "distance")
         classifier.fit(features, classes)
         x, y = features[:,0], features[:,1]
@@ -110,6 +109,7 @@ class plot(object):
             maxy = y.max()+1
         else:
             minx, maxx, miny, maxy = self.plot_size
+        h = abs(x.max() - x.min())/100
         xx, yy = np.meshgrid(np.arange(minx, maxx, h), np.arange(miny, maxy, h))
         region = classifier.predict(np.c_[xx.ravel(), yy.ravel()])
         return region.reshape(xx.shape)
@@ -134,12 +134,8 @@ class plot(object):
             ds = []
             pca = self.pca(current_samples)
             x_plot, y_plot = (pca[:,0], pca[:,1])
-            # data = p.select(name = "region")[0].data_source
-            # region = self.decision_region(pca, curent_classes)
-            # data.data['image'] = [region]
-            # ds.append(data)
 
-            for index, color, label, name, status in self.samples:
+            for index, color, label, name, status, marker in self.samples:
                 if p.select(name = name) != []:
                     data = p.select(name = name)[0].data_source
                     x0 = data.data['x']
@@ -173,134 +169,172 @@ class plot(object):
                     ds.append(data)
             new_data.append(ds)
         return new_data
-        # img_file = [images_dir+str(label)+"/treino/"+str(image)+".png" ]
-        # print img_file
-        # p.image_url(x = X_pca[:,0][-1]-image_size/2, y = X_pca[:,1][-1]+image_size/2, url=img_file, global_alpha = alpha, h = image_size, w = image_size)
-        #
 
+def visualization(samples, index, title, which, plot_region, plot_image):
+    '''
+        If which == 1: only trained and not generated samples
+        If which == 2: only trained, testing and not generated samples
+        If which == 3: only trained and generated samples
+        If which == 4: only testing samples
+        If which == 5: all samples
+    '''
 
-def visualization_original(generated_plot, title):
-    # Initial setting using all samples less the generated ones
-    # pca = generated_plot.pca(generated_plot.all_samples[~generated_plot.generated])
-    # x, y = (pca[:,0], pca[:,1])
-
-    # Use only original samples - not testing neither generated samples
-    pca = generated_plot.pca(generated_plot.all_samples[generated_plot.original])
+    sklearn_pca = sklearnPCA(n_components=2,  whiten=False)
+    # Data normalization
+    data = samples.all_samples
+    # data = normalize(samples.all_samples.astype(np.float64))
+    # Fit the model with samples
+    fit = sklearn_pca.fit(data[index])
+    # Apply the dimensionality reduction on samples
+    pca = fit.transform(data)
     x, y = (pca[:,0], pca[:,1])
 
     # TOOLS = 'box_zoom,box_select,crosshair,resize,reset'
     p = figure(title = title, x_range=[min(x), max(x)], y_range=[min(y), max(y)])
     # p.border_fill = "whitesmoke"
     p.legend.orientation = "bottom_right"
-    # p.toolbar_location = "below"
-    # region = generated_plot.decision_region(pca, generated_plot.all_classes[generated_plot.original])
-    # p.image(image=[region], x=[min(x)], y=[min(y)], dw=[abs(max(x)-min(x))], dh=[abs(max(y)-min(y))], palette="Greys3", alpha = 0.1, name = "region")
-    # plot_size = region.shape
 
+    if plot_region:
+        region = samples.decision_region(pca[index], samples.all_classes[index])
+        p.image(image=[region], x=[min(x)], y=[min(y)], dw=[abs(max(x)-min(x))], dh=[abs(max(y)-min(y))], palette="Greys4", alpha = 0.1, name = "region")
+        # plot_size = region.shape
 
-    for index, color, label, name, status in generated_plot.samples:
-        if status is "treino":
-            if name is "Generated":
-                x_plot = []
-                y_plot = []
+    for index, color, label, name, status, marker in samples.samples:
+        if (which == 1 or which == 3) and status is "teste":
+            continue
+        if which == 4 and status is "treino":
+            continue
+        if which == 1 or which == 2 or which == 4:
+            index = [] if name is "Generated" else index
+        if plot_image:
+            images = samples.images[index]
+            if images != []:
+                if images[0] != 'smote':
+                    p.scatter(x = x[index], y = y[index] , marker = "square", color = color,
+                            legend = label, size = square_size, name = name)
 
-            else:
-                print
-                print len([index[generated_plot.original]])
-                x_plot = x[index[generated_plot.original]]
-                y_plot = y[index[generated_plot.original]]
-            p.scatter(x = x_plot, y = y_plot , marker = "circle", color = color,
-                    legend = label, size = square_size, line_dash = [6, 3], name = name)
-            # p.image_url(x = list(x[index]-image_size/2), y = list(y[index]+image_size/2), url= ['../'+df['Image path'].values[~generated][index]], global_alpha = alpha, h = image_size, w = image_size)
+                    p.image_url(x = list(x[index]-wimage/2), y = list(y[index]+himage/2), url= "../"+images, global_alpha = 0.9, h = himage, w = wimage)
+        else:
+            p.scatter(x = x[index], y = y[index] , marker = marker, color = color,
+                    legend = label, size = square_size,name = name)
 
-    return p
-
-
-def visualization_all(generated_plot, title):
-    # Initial setting using all samples less the generated ones
-    # pca = generated_plot.pca(generated_plot.all_samples[~generated_plot.generated])
-    # x, y = (pca[:,0], pca[:,1])
-
-    # Use only original samples - not testing neither generated samples
-    pca = generated_plot.pca(generated_plot.all_samples[generated_plot.treino])
-    x, y = (pca[:,0], pca[:,1])
-
-    # TOOLS = 'box_zoom,box_select,crosshair,resize,reset'
-    p = figure(title = title, x_range=[min(x), max(x)], y_range=[min(y), max(y)])
-    # p.border_fill = "whitesmoke"
-    p.legend.orientation = "bottom_right"
-    # p.toolbar_location = "below"
-    # region = generated_plot.decision_region(pca, generated_plot.all_classes[generated_plot.treino])
-    # p.image(image=[region], x=[min(x)], y=[min(y)], dw=[abs(max(x)-min(x))], dh=[abs(max(y)-min(y))], palette="Greys4", alpha = 0.1, name = "region")
-    # plot_size = region.shape
-
-
-    for index, color, label, name, status in generated_plot.samples:
-        print len(index), len(x), label, name
-        if status is "treino":
-            if name is "Generated":
-                x_plot = x[generated_plot.generated[generated_plot.treino]]
-                y_plot = y[generated_plot.generated[generated_plot.treino]]
-                images = generated_plot.images[generated_plot.generated]
-
-            else:
-                x_plot = x[index[generated_plot.original]]
-                y_plot = y[index[generated_plot.original]]
-                images = generated_plot.images[index]
-            p.scatter(x = x_plot, y = y_plot , marker = "circle", color = color,
-                    legend = label, size = square_size, line_dash = [6, 3], name = name)
-            # p.image_url(x = list(x_plot-image_size/2), y = list(y_plot+image_size/2), url= "0.png", global_alpha = 1, h = 1000, w = 1000)
 
     return p
 
 output_server("animated")
-# output_file("animated.html")
-image_size = 300
-square_size = 10
+square_size = 20
 alpha = 0.9
 
+wimage = 384*4
+himage = 256*4
+
 # features_file = sys.argv[1]
+original_file = "../data/elefante-cavalo/features/BIC_Intensity_64c_100r_200i_original.csv"
+artificial_file = "../data/elefante-cavalo/Artificial/3-Rebalanced0/features/BIC_Intensity_64c_100r_200i_artificial.csv"
+smote_file = "../data/elefante-cavalo/features/BIC_Intensity_200i_smote.csv"
+original_plot = plot(original_file, {0: 'Elefante', 1: 'Cavalo'})
+generated_plot = plot(artificial_file, {0: 'Elefante', 1: 'Cavalo'})
+smote_plot = plot(smote_file, {0: 'Elefante', 1: 'Cavalo'})
+
 # Plot original balanced class
-features_file = "../data/elefante-cavalo/features/BIC_Intensity_64c_100r_200i_original.csv"
-original_plot = plot(features_file, {0: 'Elefante', 1: 'Cavalo'})
-original = visualization_original(original_plot, "Original")
+original = visualization(original_plot, original_plot.original, "Original", 1, False, False)
 
 # Plot desbalanced class
-features_file = "../data/elefante-cavalo/Artificial/3-Rebalanced0/features/BIC_Intensity_64c_100r_200i_artificial.csv"
-unbalanced_plot = plot(features_file, {0: 'Elefante', 1: 'Cavalo'})
-unbalanced = visualization_original(unbalanced_plot, "Desbalanceado")
+unbalanced = visualization(generated_plot, generated_plot.original, "Desbalanceado", 2, False, False)
+unbalanced_training = visualization(generated_plot, generated_plot.original, "Desbalanceado - Treino", 1, False, False)
+unbalanced_testing = visualization(generated_plot, generated_plot.original, "Desbalanceado - Teste", 4, False, False)
 
 # Plot after images generation
-features_file = "../data/elefante-cavalo/Artificial/3-Rebalanced0/features/BIC_Intensity_64c_100r_200i_artificial.csv"
-generated_plot = plot(features_file, {0: 'Elefante', 1: 'Cavalo'})
-generated = visualization_all(generated_plot, "Geracao Artificial de Imagens")
+generated_training = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Treino", 3, False, False)
+# Plot images generation testing images
+generated_testing = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Teste", 4, False, False)
+# Plot images generation images
+generated = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens", 5, False, False)
 
 # Plot after smote
-features_file = "../data/elefante-cavalo/features/BIC_Intensity_200i_smote.csv"
-smote_plot = plot(features_file, {0: 'Elefante', 1: 'Cavalo'})
-smote = visualization_all(smote_plot, "SMOTE")
-
-# Plot images generation testing images
-features_file = "../data/elefante-cavalo/Artificial/3-Rebalanced0/features/BIC_Intensity_64c_100r_200i_artificial.csv"
-generated_plot = plot(features_file, {0: 'Elefante', 1: 'Cavalo'})
-generated_testing = visualization_all(generated_plot, "Geracao Artificial de Imagens")
-
+smote_training = visualization(smote_plot, smote_plot.treino, "SMOTE - Treino", 3, False, False)
 # Plot smote testing images
-features_file = "../data/elefante-cavalo/features/BIC_Intensity_200i_smote.csv"
-smote_plot = plot(features_file, {0: 'Elefante', 1: 'Cavalo'})
-smote_testing = visualization_all(smote_plot, "SMOTE")
+smote_testing = visualization(smote_plot, smote_plot.treino, "SMOTE - Teste", 4, False, False)
+# Plot smote images
+smote = visualization(smote_plot, smote_plot.treino, "SMOTE", 5, False, False)
 
-plot = gridplot([[original, unbalanced], [generated, smote], [generated_testing, smote_testing]], toolbar_location="above")
+scatter = gridplot([
+    # [original, generated, smote],
+    [unbalanced, unbalanced_training, unbalanced_testing],
+    [generated, generated_training, generated_testing],
+    [smote, smote_training, smote_testing]],
+    toolbar_location="above")
 
-show(plot)
+# Plot desbalanced class
+unbalanced = visualization(generated_plot, generated_plot.original, "Desbalanceado", 2, True, False)
+unbalanced_training = visualization(generated_plot, generated_plot.original, "Desbalanceado - Treino", 1, True, False)
+unbalanced_testing = visualization(generated_plot, generated_plot.original, "Desbalanceado - Teste", 4, True, False)
 
-# tab1 = Panel(child=p, title="Scatter")
-# tab2 = Panel(child=p, title="Images")
-# tabs1 = Tabs(tabs = [tab1, tab2])
+# Plot after images generation
+generated_training = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Treino", 3, True, False)
+# Plot images generation testing images
+generated_testing = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Teste", 4, True, False)
+# Plot images generation images
+generated = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens", 5, True, False)
+
+# Plot after smote
+smote_training = visualization(smote_plot, smote_plot.treino, "SMOTE - Treino", 3, True, False)
+# Plot smote testing images
+smote_testing = visualization(smote_plot, smote_plot.treino, "SMOTE - Teste", 4, True, False)
+# Plot smote images
+smote = visualization(smote_plot, smote_plot.treino, "SMOTE", 5, True, False)
+
+region = gridplot([
+    # [original, generated, smote],
+    [unbalanced, unbalanced_training, unbalanced_testing],
+    [generated, generated_training, generated_testing],
+    [smote, smote_training, smote_testing]],
+    toolbar_location="above")
+
+# Plot desbalanced class
+unbalanced = visualization(generated_plot, generated_plot.original, "Desbalanceado", 2, False, True)
+unbalanced_training = visualization(generated_plot, generated_plot.original, "Desbalanceado - Treino", 1, False, True)
+unbalanced_testing = visualization(generated_plot, generated_plot.original, "Desbalanceado - Teste", 4, False, True)
+
+# Plot after images generation
+generated_training = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Treino", 3, False, True)
+# Plot images generation testing images
+generated_testing = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Teste", 4, False, True)
+# Plot images generation images
+generated = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens", 5, False, True)
+
+# Plot after smote
+smote_training = visualization(smote_plot, smote_plot.treino, "SMOTE - Treino", 3, False, True)
+# Plot smote testing images
+smote_testing = visualization(smote_plot, smote_plot.treino, "SMOTE - Teste", 4, False, True)
+# Plot smote images
+smote = visualization(smote_plot, smote_plot.treino, "SMOTE", 5, False, True)
+
+plot_images = gridplot([
+    # [original, generated, smote],
+    [unbalanced, unbalanced_training, unbalanced_testing],
+    [generated, generated_training, generated_testing],
+    [smote, smote_training, smote_testing]],
+    toolbar_location="above")
+
+tab1 = Panel(child=original, title="Original")
+tab2 = Panel(child=scatter, title="Scatter")
+tab3 = Panel(child=region, title="Decision region")
+tab4 = Panel(child=plot_images, title="Images")
+tabs = Tabs(tabs = [tab1, tab2, tab3, tab4])
+show(tabs)
+
+
+
 # Animate artificial and smote generation
-# generated_data = generated_plot.animate(generated)
-# smote_data = smote_plot.animate(smote)
-# for item in range(len(generated_data)):
-#     cursession().store_objects(*generated_data[item])
-#     cursession().store_objects(*smote_data[item])
-#     time.sleep(.10)
+generated_animation = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Treino", 1, False, False)
+smote_animation = visualization(smote_plot, smote_plot.treino, "SMOTE - Treino", 1, False, False)
+generated_data = generated_plot.animate(generated_animation)
+smote_data = smote_plot.animate(smote_animation)
+
+original = hplot(original, generated_animation, smote_animation)
+
+for item in range(len(generated_data)):
+    cursession().store_objects(*generated_data[item])
+    cursession().store_objects(*smote_data[item])
+    time.sleep(.10)
