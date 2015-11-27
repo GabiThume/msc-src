@@ -93,7 +93,7 @@ class plot(object):
         pca = fit.transform(samples)
         return pca
 
-    def decision_region(self, features, classes):
+    def decision_region(self, features, classes, x, y):
         '''
         Return the decision region to plot on the figure. This region is decided
         using the 1-knn classifier.
@@ -101,15 +101,11 @@ class plot(object):
         # Plotting the decision region
         classifier = KNeighborsClassifier(n_neighbors = 1, weights = "distance")
         classifier.fit(features, classes)
-        x, y = features[:,0], features[:,1]
-        if len(self.plot_size) != 4:
-            minx = x.min()-1
-            maxx = x.max()+1
-            miny = y.min()-1
-            maxy = y.max()+1
-        else:
-            minx, maxx, miny, maxy = self.plot_size
-        h = abs(x.max() - x.min())/100
+        minx = x.min()-1
+        maxx = x.max()+1
+        miny = y.min()-1
+        maxy = y.max()+1
+        h = abs(x.max() - x.min())/300
         xx, yy = np.meshgrid(np.arange(minx, maxx, h), np.arange(miny, maxy, h))
         region = classifier.predict(np.c_[xx.ravel(), yy.ravel()])
         return region.reshape(xx.shape)
@@ -182,7 +178,6 @@ def visualization(samples, index, title, which, plot_region, plot_image):
     sklearn_pca = sklearnPCA(n_components=2,  whiten=False)
     # Data normalization
     data = samples.all_samples
-    # data = normalize(samples.all_samples.astype(np.float64))
     # Fit the model with samples
     fit = sklearn_pca.fit(data[index])
     # Apply the dimensionality reduction on samples
@@ -191,13 +186,12 @@ def visualization(samples, index, title, which, plot_region, plot_image):
 
     # TOOLS = 'box_zoom,box_select,crosshair,resize,reset'
     p = figure(title = title, x_range=[min(x), max(x)], y_range=[min(y), max(y)])
-    # p.border_fill = "whitesmoke"
     p.legend.orientation = "bottom_right"
 
     if plot_region:
-        region = samples.decision_region(pca[index], samples.all_classes[index])
+        pca_training = fit.transform(data[index])
+        region = samples.decision_region(pca_training, samples.all_classes[index], x, y)
         p.image(image=[region], x=[min(x)], y=[min(y)], dw=[abs(max(x)-min(x))], dh=[abs(max(y)-min(y))], palette="Greys4", alpha = 0.1, name = "region")
-        # plot_size = region.shape
 
     for index, color, label, name, status, marker in samples.samples:
         if (which == 1 or which == 3) and status is "teste":
@@ -222,13 +216,19 @@ def visualization(samples, index, title, which, plot_region, plot_image):
     return p
 
 output_server("animated")
-square_size = 20
+output_file("animated.html")
+square_size = 10
 alpha = 0.9
 
 wimage = 384*4
 himage = 256*4
 
 # features_file = sys.argv[1]
+
+# original_file = "../../data/elefante-cavalo/features/BIC_Intensity_64c_100r_200i_original.csv"
+# artificial_file = "../../data/elefante-cavalo/Artificial/3-Rebalanced0/features/BIC_Intensity_64c_100r_200i_artificial.csv"
+# smote_file = "../../data/elefante-cavalo/features/3_BIC_Intensity_200i_smote.csv"
+
 original_file = "../data/elefante-cavalo/features/BIC_Intensity_64c_100r_200i_original.csv"
 artificial_file = "../data/elefante-cavalo/Artificial/3-Rebalanced0/features/BIC_Intensity_64c_100r_200i_artificial.csv"
 smote_file = "../data/elefante-cavalo/features/BIC_Intensity_200i_smote.csv"
@@ -324,17 +324,15 @@ tab4 = Panel(child=plot_images, title="Images")
 tabs = Tabs(tabs = [tab1, tab2, tab3, tab4])
 show(tabs)
 
-
-
-# Animate artificial and smote generation
-generated_animation = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Treino", 1, False, False)
-smote_animation = visualization(smote_plot, smote_plot.treino, "SMOTE - Treino", 1, False, False)
-generated_data = generated_plot.animate(generated_animation)
-smote_data = smote_plot.animate(smote_animation)
-
-original = hplot(original, generated_animation, smote_animation)
-
-for item in range(len(generated_data)):
-    cursession().store_objects(*generated_data[item])
-    cursession().store_objects(*smote_data[item])
-    time.sleep(.10)
+# # Animate artificial and smote generation
+# generated_animation = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Treino", 1, False, False)
+# smote_animation = visualization(smote_plot, smote_plot.treino, "SMOTE - Treino", 1, False, False)
+# generated_data = generated_plot.animate(generated_animation)
+# smote_data = smote_plot.animate(smote_animation)
+#
+# original = hplot(original, generated_animation, smote_animation)
+#
+# for item in range(len(generated_data)):
+#     cursession().store_objects(*generated_data[item])
+#     cursession().store_objects(*smote_data[item])
+#     time.sleep(.10)
