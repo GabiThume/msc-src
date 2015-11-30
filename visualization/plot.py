@@ -71,7 +71,7 @@ class plot(object):
                 self.label_dict[label]+" - teste",
                 "teste"+str(label),
                 "teste",
-                "asterisk"
+                "cross"
                 ])
 
         self.samples.append([
@@ -170,7 +170,7 @@ class plot(object):
             new_data.append(ds)
         return new_data
 
-def visualization(samples, index, title, which, plot_region, plot_image):
+def visualization(samples, index, title, which, plot_region, plot_image, original_result = []):
     '''
         If which == 1: only trained and not generated samples
         If which == 2: only trained, testing and not generated samples
@@ -180,13 +180,15 @@ def visualization(samples, index, title, which, plot_region, plot_image):
     '''
 
     sklearn_pca = sklearnPCA(n_components=2,  whiten=False)
-    # Data normalization
     data = samples.all_samples
     # Fit the model with samples
     fit = sklearn_pca.fit(data[index])
     # Apply the dimensionality reduction on samples
     pca = fit.transform(data)
     x, y = (pca[:,0], pca[:,1])
+
+    classifier = KNeighborsClassifier(n_neighbors = 1, weights = "distance")
+    classifier.fit(samples.all_samples[index], samples.all_classes[index])
 
     # TOOLS = 'box_zoom,box_select,crosshair,resize,reset'
     p = figure(title = title)
@@ -195,7 +197,7 @@ def visualization(samples, index, title, which, plot_region, plot_image):
     if plot_region:
         pca_training = fit.transform(data[index])
         region = samples.decision_region(pca_training, samples.all_classes[index], x, y)
-        p.image(image=[region], x=[min(x)], y=[min(y)], dw=[abs(max(x)-min(x))], dh=[abs(max(y)-min(y))], palette="Greys4", alpha = 0.1, name = "region")
+        p.image(image=[region], x=[min(x)], y=[min(y)], dw=[abs(max(x)-min(x))], dh=[abs(max(y)-min(y))], palette= brewer["Greys"][3][::-1], alpha = 0.1, name = "region")
 
     for index, color, label, name, status, marker in samples.samples:
         if (which == 1 or which == 3) and status is "teste":
@@ -213,9 +215,23 @@ def visualization(samples, index, title, which, plot_region, plot_image):
 
                     p.image_url(x = list(x[index]-wimage/2), y = list(y[index]+himage/2), url= "../"+images, global_alpha = 0.9, h = himage, w = wimage)
         else:
-            p.scatter(x = x[index], y = y[index] , marker = marker, color = color,
-                    legend = label, size = square_size,name = name)
-
+            if status is "teste" and original_result != []:
+                result = classifier.predict(samples.all_samples[index])
+                for prediction in range(len(result)):
+                    changed_color = color
+                    changed_label = label
+                    real_class = samples.all_classes[index][prediction]
+                    if result[prediction] != original_result[index][prediction]:
+                        if result[prediction] == real_class:
+                            changed_color = brewer["Spectral"][11][0]
+                            changed_label = "Melhor predito"
+                        else:
+                            changed_color = brewer["Spectral"][11][-1]
+                            changed_label = "Pior predito"
+                    p.scatter(x = x[index][prediction], y = y[index][prediction], marker = marker, color = changed_color, legend = changed_label, size = square_size, name = name, alpha=1)
+            else:
+                p.scatter(x = x[index], y = y[index], marker = marker, color = color,
+                    legend = label, size = square_size, name = name, alpha=0.8)
 
     return p
 
@@ -248,17 +264,21 @@ unbalanced = visualization(generated_plot, generated_plot.original, "Desbalancea
 unbalanced_training = visualization(generated_plot, generated_plot.original, "Desbalanceado - Treino", 1, False, False)
 unbalanced_testing = visualization(generated_plot, generated_plot.original, "Desbalanceado - Teste", 4, False, False)
 
+classifier = KNeighborsClassifier(n_neighbors = 1, weights = "distance")
+classifier.fit(generated_plot.all_samples[generated_plot.original], generated_plot.all_classes[generated_plot.original])
+original_result = classifier.predict(generated_plot.all_samples)
+
 # Plot after images generation
 generated_training = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Treino", 3, False, False)
 # Plot images generation testing images
-generated_testing = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Teste", 4, False, False)
+generated_testing = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Teste", 4, False, False, original_result)
 # Plot images generation images
 generated = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens", 5, False, False)
 
 # Plot after smote
 smote_training = visualization(smote_plot, smote_plot.treino, "SMOTE - Treino", 3, False, False)
 # Plot smote testing images
-smote_testing = visualization(smote_plot, smote_plot.treino, "SMOTE - Teste", 4, False, False)
+smote_testing = visualization(smote_plot, smote_plot.treino, "SMOTE - Teste", 4, False, False, original_result)
 # Plot smote images
 smote = visualization(smote_plot, smote_plot.treino, "SMOTE", 5, False, False)
 
