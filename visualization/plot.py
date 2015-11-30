@@ -6,6 +6,7 @@ import csv
 import math
 import time
 import sys
+import copy
 
 from bokeh.io import hplot, vform
 from bokeh.plotting import figure, show, output_server, cursession, gridplot, output_file
@@ -129,7 +130,10 @@ class plot(object):
 
             ds = []
             pca = self.pca(current_samples)
+
             x_plot, y_plot = (pca[:,0], pca[:,1])
+            #p.x_range = [min(x_plot), max(x_plot)]
+            #p.y_range = [min(y_plot), max(y_plot)]
 
             for index, color, label, name, status, marker in self.samples:
                 if p.select(name = name) != []:
@@ -162,7 +166,7 @@ class plot(object):
                         data.data['x'] = list(x1)
                         data.data['y'] = list(y1)
 
-                    ds.append(data)
+                    ds.append(copy.deepcopy(data))
             new_data.append(ds)
         return new_data
 
@@ -185,7 +189,7 @@ def visualization(samples, index, title, which, plot_region, plot_image):
     x, y = (pca[:,0], pca[:,1])
 
     # TOOLS = 'box_zoom,box_select,crosshair,resize,reset'
-    p = figure(title = title, x_range=[min(x), max(x)], y_range=[min(y), max(y)])
+    p = figure(title = title)
     p.legend.orientation = "bottom_right"
 
     if plot_region:
@@ -216,7 +220,6 @@ def visualization(samples, index, title, which, plot_region, plot_image):
     return p
 
 output_server("animated")
-output_file("animated.html")
 square_size = 10
 alpha = 0.9
 
@@ -239,6 +242,7 @@ smote_plot = plot(smote_file, {0: 'Elefante', 1: 'Cavalo'})
 # Plot original balanced class
 original = visualization(original_plot, original_plot.original, "Original", 1, False, False)
 
+output_file("animated.html")
 # Plot desbalanced class
 unbalanced = visualization(generated_plot, generated_plot.original, "Desbalanceado", 2, False, False)
 unbalanced_training = visualization(generated_plot, generated_plot.original, "Desbalanceado - Treino", 1, False, False)
@@ -323,16 +327,21 @@ tab3 = Panel(child=region, title="Decision region")
 tab4 = Panel(child=plot_images, title="Images")
 tabs = Tabs(tabs = [tab1, tab2, tab3, tab4])
 show(tabs)
+"""
+# Animate artificial and smote generation
+generated_animation = visualization(generated_plot, generated_plot.original, "Geracao Artificial de Imagens - Treino", 1, False, False)
+smote_animation = visualization(smote_plot, smote_plot.original, "SMOTE - Treino", 1, False, False)
 
-# # Animate artificial and smote generation
-# generated_animation = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Treino", 1, False, False)
-# smote_animation = visualization(smote_plot, smote_plot.treino, "SMOTE - Treino", 1, False, False)
-# generated_data = generated_plot.animate(generated_animation)
-# smote_data = smote_plot.animate(smote_animation)
-#
-# original = hplot(original, generated_animation, smote_animation)
-#
-# for item in range(len(generated_data)):
-#     cursession().store_objects(*generated_data[item])
-#     cursession().store_objects(*smote_data[item])
-#     time.sleep(.10)
+original = hplot(original, generated_animation, smote_animation)
+show(original)
+time.sleep(30)
+
+generated_data = generated_plot.animate(generated_animation)
+smote_data = smote_plot.animate(smote_animation)
+#print generated_data, '\n'
+
+for item in range(len(generated_data)):
+    cursession().store_objects(*(generated_data[item]))
+    cursession().store_objects(*(smote_data[item]))
+    time.sleep(.5)
+"""
