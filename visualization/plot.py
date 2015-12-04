@@ -345,23 +345,23 @@ region = gridplot([
     toolbar_location="above")
 
 # Plot desbalanced class
-unbalanced = visualization(generated_plot, generated_plot.original, "Desbalanceado", 2, plot_image = True)
-unbalanced_training = visualization(generated_plot, generated_plot.original, "Desbalanceado - Treino", 1, plot_image = True)
-unbalanced_testing = visualization(generated_plot, generated_plot.original, "Desbalanceado - Teste", 4, plot_image = True)
+unbalanced = visualization(generated_plot, generated_plot.original, "Desbalanceado", 2, plot_image = True, original_plane = plane)
+unbalanced_training = visualization(generated_plot, generated_plot.original, "Desbalanceado - Treino", 1, plot_image = True, original_plane = plane)
+unbalanced_testing = visualization(generated_plot, generated_plot.original, "Desbalanceado - Teste", 4, plot_image = True, original_plane = plane)
 
 # Plot after images generation
-generated_training = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Treino", 3, plot_image = True)
+generated_training = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Treino", 3, plot_image = True, original_plane = plane)
 # Plot images generation testing images
-generated_testing = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Teste", 4, plot_image = True)
+generated_testing = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens - Teste", 4, plot_image = True, original_plane = plane)
 # Plot images generation images
-generated = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens", 5, plot_image = True)
+generated = visualization(generated_plot, generated_plot.treino, "Geracao Artificial de Imagens", 5, plot_image = True, original_plane = plane)
 
 # Plot after smote
-smote_training = visualization(smote_plot, smote_plot.treino, "SMOTE - Treino", 3, plot_image = True)
+smote_training = visualization(smote_plot, smote_plot.treino, "SMOTE - Treino", 3, plot_image = True, original_plane = plane)
 # Plot smote testing images
-smote_testing = visualization(smote_plot, smote_plot.treino, "SMOTE - Teste", 4, plot_image = True)
+smote_testing = visualization(smote_plot, smote_plot.treino, "SMOTE - Teste", 4, plot_image = True, original_plane = plane)
 # Plot smote images
-smote = visualization(smote_plot, smote_plot.treino, "SMOTE", 5, plot_image = True)
+smote = visualization(smote_plot, smote_plot.treino, "SMOTE", 5, plot_image = True, original_plane = plane)
 
 plot_images = gridplot([
     # [original, generated, smote],
@@ -371,10 +371,10 @@ plot_images = gridplot([
     toolbar_location="above")
 
 tab1 = Panel(child=original, title="Original")
-tab2 = Panel(child=scatter, title="Fixed Scatter")
-tab3 = Panel(child=scatterChange, title="Scatter")
-tab4 = Panel(child=region, title="Decision region")
-tab5 = Panel(child=plot_images, title="Images")
+tab2 = Panel(child=scatter, title="Scatter plot in original plane")
+tab3 = Panel(child=region, title="Decision region")
+tab4 = Panel(child=plot_images, title="Images")
+tab5 = Panel(child=scatterChange, title="Scatter of best subspace")
 tabs = Tabs(tabs = [tab1, tab2, tab3, tab4, tab5])
 show(tabs)
 """
