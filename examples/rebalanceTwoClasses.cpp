@@ -41,8 +41,6 @@ string description(string dir, string features, int d, int m, string id) {
 
   vector<int> paramCCV = {25}, paramACC = {1, 3, 5, 7}, parameters;
 
-  // string descriptorMethod[8] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"};
-  // string quantizationMethod[4] = {"Intensity", "Luminance", "Gleam", "MSB"};
   /* If descriptor ==  CCV, threshold is required */
   if (d == 3)
     return PerformFeatureExtraction(dir, features, d, 64, 1, 0, paramCCV, 0, m, id);
@@ -69,6 +67,83 @@ vector<vector<double> > perform(string descriptorFile, int repeat, double prob, 
     data.clear();
   }
   return fscore;
+}
+
+
+void ShufflePaths(vector< vector<string>> *pathsForEachClass){
+
+  int i, j, k, numImages;
+  string aux;
+
+  for (i = 0; i < (*pathsForEachClass).size(); i++) {
+    numImages = (*pathsForEachClass)[i].size();
+    for (j = numImages-1; j < 1; j--) {
+      k = rand()%j;
+      // Swap with k position
+      aux = (*pathsForEachClass)[i][j];
+      (*pathsForEachClass)[i][j] = (*pathsForEachClass)[i][k];
+      (*pathsForEachClass)[i][k] = aux;
+    }
+  }
+}
+
+
+// Arrange original images in k folds each, creating k fold_i.txt files
+vector< vector< vector<string>>> SeparateInFolds(string images_directory, int k) {
+
+  vector< vector<string>> pathsForEachClass;
+  vector<string> pathsInThisClass;
+  vector< vector< vector<string>>> foldsForEachClass;
+  vector< vector<string>> foldsInThisClass;
+  vector<string> auxFold;
+  vector<int> numFoldsInThisClass, num_images_class;
+
+  int i, j, fold, qtdImgTotal, numClasses, numImages, treino;
+  int resto, imgsInThisFold, imgTotal;
+  Mat labels, trainTest, isGenerated, img;
+
+  numClasses = qtdArquivos(images_directory);
+  qtdImgTotal = NumberImagesInDataset(images_directory, numClasses, &num_images_class);
+  trainTest = Mat::zeros(qtdImgTotal, 1, CV_32S);
+  isGenerated= Mat::zeros(qtdImgTotal, 1, CV_32S);
+
+  for (i = 0; i < numClasses; i++) {
+    NumberImgInClass(images_directory, i, &numImages, &treino);
+    imgTotal = 0;
+    for (j = 0; j < numImages; j++) {
+      // Find this image in the class and save the path
+      img = FindImgInClass(images_directory, i, j, imgTotal, treino, &trainTest,  &pathsInThisClass, &isGenerated);
+      if (!img.empty()) {
+        imgTotal++;
+      }
+    }
+    pathsForEachClass.push_back(pathsInThisClass);
+    pathsInThisClass.clear();
+    numFoldsInThisClass[i] = numImages/k;
+  }
+
+  ShufflePaths(&pathsForEachClass);
+  for (i = 0; i < numClasses; i++) {
+    resto = 0;
+
+    for (fold = 0; fold < k; fold++) {
+
+      if (num_images_class[i] % k > resto) {
+        numFoldsInThisClass[i] = numFoldsInThisClass[i]+1;
+        resto++;
+      }
+      imgsInThisFold = numFoldsInThisClass[i];
+      for (j = 0; j < imgsInThisFold; j++) {
+        auxFold.push_back(pathsForEachClass[i][j]);
+      }
+      foldsInThisClass.push_back(auxFold);
+      auxFold.clear();
+    }
+    foldsForEachClass.push_back(foldsInThisClass);
+    foldsInThisClass.clear();
+  }
+
+  return foldsForEachClass;
 }
 
 int main(int argc, char const *argv[]) {
@@ -125,6 +200,9 @@ int main(int argc, char const *argv[]) {
     count_diff = count_diff + abs(numImages - prev);
     prev = numImages;
   }
+
+  // Arrange original images in k folds each, creating k fold_i.txt files
+  SeparateInFolds(baseDir+"/", 10);
 
   /* Desbalancing Data */
   cout << "\n\n------------------------------------------------------------------------------------" << endl;

@@ -41,4 +41,7 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
 	int colors, double resizeFactor, int normalization, vector<int> param,
 	int deleteNull, int quantization, string id = "");
 
+Mat FindImgInClass(string database, int img_class, int img_number, int index,
+	int treino, Mat *trainTest, vector<string> *path,
+	Mat *isGenerated);
 #endif

@@ -134,14 +134,14 @@ void Classifier::printAccuracy(double id, vector<vector<double> > fScore) {
 		cout << "---------------------------------------------------------" << endl;
 
 		outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), ios::out | ios::app);
-		outputFile << id << "," << balancedMean << "\n";
+		outputFile << balancedMean << "\n";
 		outputFile.close();
 
 		outputFile.open((outputName+"FScore.csv").c_str(), ios::out | ios::app);
-		outputFile << id << "," << fscoreMean << "\n";
+		outputFile << fscoreMean << "\n";
 		// outputFile << fscoreMean << "\n";
 		// for (i = 0; i < (int) fscores.size(); i++){
-		// 	outputFile << i << "," << fscores[i] << "\n";
+		// 	outputFile << fscores[i] << "\n";
 		// }
 		outputFile.close();
 	}
