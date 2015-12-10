@@ -53,6 +53,7 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
   vector<Classes> data;
   Classes imgClass;
   ifstream myFile;
+  Image img;
 
   myFile.open(filename.c_str(), ios::in);
   if (!myFile.is_open()) {
@@ -81,37 +82,33 @@ vector<Classes> ReadFeaturesFromFile(string filename) {
     if (previousClass != actualClass) {
       if (previousClass != -1) {
         data.push_back(imgClass);
+        imgClass.images.clear();
       }
       previousClass = actualClass;
-      imgClass.features.create(0, d, CV_32FC1);
-      imgClass.trainOrTest.create(0, 1, CV_32S);
-      imgClass.isGenerated.create(0, 1, CV_32S);
-      imgClass.fixedTrainOrTest = false;
-      imgClass.path.clear();
     }
 
-    newSize = imgClass.features.size().height+1;
-    imgClass.features.resize(newSize);
-    imgClass.trainOrTest.resize(newSize);
-    imgClass.isGenerated.resize(newSize);
-    imgClass.path.push_back(pathImage);
+    imgClass.classNumber = actualClass;
+    imgClass.fixedTrainOrTest = false;
+
+  	img.path = pathImage;
+  	img.isGenerated = atoi(generated.c_str());
+  	img.isFreeTrainOrTest = atoi(trainTest.c_str());
+    if (atoi(trainTest.c_str()) != 0) {
+      imgClass.fixedTrainOrTest = true;
+    }
 
     for (j = 0; j < d; j++) {
       if (getline(vector_features, features, ',').eof()) {
         getline(vector_features, features, '\n');
       }
-      imgClass.features.at<float>(newSize-1, j) = stof(features);
+      img.features.push_back(stof(features));
     }
-
-    imgClass.trainOrTest.at<int>(newSize-1, 0) = atoi(trainTest.c_str());
-    imgClass.isGenerated.at<int>(newSize-1, 0) = atoi(generated.c_str());
-    imgClass.classNumber = actualClass;
-    if (atoi(trainTest.c_str()) != 0) {
-      imgClass.fixedTrainOrTest = true;
-    }
+    imgClass.images.push_back(img);
+    img.features.clear();
   }
   if (previousClass != -1) {
     data.push_back(imgClass);
+    imgClass.images.clear();
   }
 
   myFile.close();

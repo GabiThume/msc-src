@@ -19,13 +19,21 @@
 using namespace cv;
 using namespace std;
 
+struct Image {
+	vector<float> features;
+	string path;
+	bool isGenerated;
+	int isFreeTrainOrTest;
+};
+
 struct Classes {
 	int classNumber;
-	Mat features;
+	vector<Image> images;
+	// Mat features;
 	bool fixedTrainOrTest;
-	Mat trainOrTest;
-	vector<string> path;
-	Mat isGenerated;
+	// Mat trainOrTest;
+	// vector<string> path;
+	// Mat isGenerated;
 };
 
 vector<Classes> ReadFeaturesFromFile(string filename);

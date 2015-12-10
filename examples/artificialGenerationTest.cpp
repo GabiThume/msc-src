@@ -42,7 +42,7 @@ void classifica(string base, string features, string outfileName){
                 id << "_";
                 id << minoritySize;
 
-                c.classify(prob, 20, data, outfileName+id.str(), data[smallerClass].features.size().height);
+                c.classify(prob, 20, data, outfileName+id.str(), data[smallerClass].images.size());
             }
         }
     }

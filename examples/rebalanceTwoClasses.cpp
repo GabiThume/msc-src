@@ -77,7 +77,7 @@ void ShufflePaths(vector< vector<string>> *pathsForEachClass){
 
   for (i = 0; i < (*pathsForEachClass).size(); i++) {
     numImages = (*pathsForEachClass)[i].size();
-    for (j = numImages-1; j < 1; j--) {
+    for (j = numImages-1; j > 1; j--) {
       k = rand()%j;
       // Swap with k position
       aux = (*pathsForEachClass)[i][j];
@@ -99,7 +99,7 @@ vector< vector< vector<string>>> SeparateInFolds(string images_directory, int k)
   vector<int> numFoldsInThisClass, num_images_class;
 
   int i, j, fold, qtdImgTotal, numClasses, numImages, treino;
-  int resto, imgsInThisFold, imgTotal;
+  int resto, imgsInThisFold, imgTotal, next;
   Mat labels, trainTest, isGenerated, img;
 
   numClasses = qtdArquivos(images_directory);
@@ -119,12 +119,13 @@ vector< vector< vector<string>>> SeparateInFolds(string images_directory, int k)
     }
     pathsForEachClass.push_back(pathsInThisClass);
     pathsInThisClass.clear();
-    numFoldsInThisClass[i] = numImages/k;
+    numFoldsInThisClass.push_back(numImages/k);
   }
 
   ShufflePaths(&pathsForEachClass);
   for (i = 0; i < numClasses; i++) {
     resto = 0;
+    next = 0;
 
     for (fold = 0; fold < k; fold++) {
 
@@ -134,7 +135,8 @@ vector< vector< vector<string>>> SeparateInFolds(string images_directory, int k)
       }
       imgsInThisFold = numFoldsInThisClass[i];
       for (j = 0; j < imgsInThisFold; j++) {
-        auxFold.push_back(pathsForEachClass[i][j]);
+        auxFold.push_back(pathsForEachClass[i][next]);
+        next++;
       }
       foldsInThisClass.push_back(auxFold);
       auxFold.clear();
@@ -202,16 +204,42 @@ int main(int argc, char const *argv[]) {
   }
 
   // Arrange original images in k folds each, creating k fold_i.txt files
-  SeparateInFolds(baseDir+"/", 10);
+  vector< vector< vector<string>>> folds;
+  folds = SeparateInFolds(baseDir+"/", 10);
+  for (i = 0; i < folds.size(); i++) {
+    cout << "Classe " << i << endl;
+    for (int x = 0; x < folds[i].size(); x++) {
+      cout << "\tFold " << x << endl;
+      for (int j = 0; j < folds[i][x].size(); j++) {
+        cout << "\t\t " << folds[i][x][j] << endl;
+      }
+    }
+  }
 
-  /* Desbalancing Data */
+  // int testing_fold, training_fold;
+  // for (i = 0; i < folds.size(); i++) {
+  //   cout << "Classe " << i << endl;
+  //   for (testing_fold = 0; testing_fold < folds[i].size(); testing_fold++) {
+  //     cout << "testing_fold " << testing_fold << endl;
+  //
+  //     for (training_fold = 0; training_fold < folds[i].size(); training_fold++) {
+  //       if (training_fold != testing_fold) {
+  //         cout << "training_fold "<< training_fold << endl;
+  //         // for (int j = 0; j < folds[i][x].size(); j++) {
+  //         //   cout << "\t\t " << folds[i][x][j] << endl;
+  //         // }
+  //       }
+  //     }
+  //   }
+  // }
+
   cout << "\n\n------------------------------------------------------------------------------------" << endl;
-  cout << "Divide the number of original samples to create a minority class:" << endl;
+  cout << "Select a single fold to train the  minority class:" << endl;
   cout << "---------------------------------------------------------------------------------------" << endl;
   images_directory = RemoveSamples(baseDir, newDir, prob, factor);
 
   // For each rebalancing operation
-  for (operation = 0; operation <= 10; operation++){
+  for (operation = 0; operation <= 0; operation++){
 
     vector<String> allRebalanced;
     stringstream operationstr;
@@ -219,6 +247,7 @@ int main(int argc, char const *argv[]) {
     op = operationstr.str();
 
     /* Generate Artificial Images */
+    repeatRebalance = 1;
     for (repeat = 0; repeat < repeatRebalance; repeat++) {
       stringstream repeatStr;
       repeatStr << repeat;

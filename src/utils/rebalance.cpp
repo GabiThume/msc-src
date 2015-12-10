@@ -57,13 +57,13 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
 
   for (it = imbalancedData.begin(); it != imbalancedData.end(); ++it){
     if (it->fixedTrainOrTest){
-      for(i = 0; i < it->trainOrTest.size().height; ++i){
-        if (it->trainOrTest.at<int>(i,0) == 1)
+      for(i = 0; i < it->images.size(); ++i){
+        if (it->images[i].isFreeTrainOrTest == 1)
           trainingNumber[it->classNumber]++;
       }
     }
     else {
-      trainingNumber[it->classNumber] = it->trainOrTest.size().height/2.0;
+      trainingNumber[it->classNumber] = it->images.size()/2.0;
     }
     if (trainingNumber[it->classNumber] > majority){
       majorityClass = it->classNumber;
@@ -74,9 +74,9 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
   total = 0;
   for (eachClass = 0; eachClass < (int) imbalancedData.size(); ++eachClass) {
 
-    Mat dataTraining(0, imbalancedData[eachClass].features.size().width, CV_32FC1);
-    Mat dataTesting(0, imbalancedData[eachClass].features.size().width, CV_32FC1);
-    Mat dataRaw(0, imbalancedData[eachClass].features.size().width, CV_32FC1);
+    Mat dataTraining(0, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
+    Mat dataTesting(0, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
+    Mat dataRaw(0, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
 
     numTraining = 0;
     numTesting = 0;
@@ -90,22 +90,25 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
       //neighbors = 5;
       neighbors = (double)trainingNumber[majorityClass]/(double)trainingNumber[eachClass];
       cout << "Number of neighbors: " << neighbors << endl;
-      cout << "imbalancedData[eachClass].trainOrTest.size().height " << imbalancedData[eachClass].trainOrTest.size().height << endl;
-      for (x = 0; x < imbalancedData[eachClass].trainOrTest.size().height; ++x){
-        if (imbalancedData[eachClass].trainOrTest.at<int>(x,0) == 1){
+      cout << "imbalancedData[eachClass].images.size() " << imbalancedData[eachClass].images.size() << endl;
+      for (x = 0; x < imbalancedData[eachClass].images.size(); ++x){
+        if (imbalancedData[eachClass].images[x].isFreeTrainOrTest == 1){
           dataTraining.resize(numTraining+1);
           Mat tmp = dataTraining.row(numTraining);
-          imbalancedData[eachClass].features.row(x).copyTo(tmp);
+          Mat features(imbalancedData[eachClass].images[x].features, false);
+          features.copyTo(tmp);
           numTraining++;
-        } else if (imbalancedData[eachClass].trainOrTest.at<int>(x,0) == 2){
+        } else if (imbalancedData[eachClass].images[x].isFreeTrainOrTest == 2){
           dataTesting.resize(numTesting+1);
           Mat tmp = dataTesting.row(numTesting);
-          imbalancedData[eachClass].features.row(x).copyTo(tmp);
+          Mat features(imbalancedData[eachClass].images[x].features, false);
+          features.copyTo(tmp);
           numTesting++;
         } else {
           dataRaw.resize(numRaw+1);
           Mat tmp = dataRaw.row(numRaw);
-          imbalancedData[eachClass].features.row(x).copyTo(tmp);
+          Mat features(imbalancedData[eachClass].images[x].features, false);
+          features.copyTo(tmp);
           numRaw++;
         }
       }
@@ -114,7 +117,7 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
         if (operation != 0){
           synthetic = s.smote(dataTraining, amountSmote, neighbors);
         } else {
-          synthetic.create(amountSmote, imbalancedData[eachClass].features.size().width, CV_32FC1);
+          synthetic.create(amountSmote, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
           for (x = 0; x < amountSmote; x++){
             pos = rand() % (dataTraining.size().height);
             Mat tmp = synthetic.row(x);
@@ -126,63 +129,72 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
 
         /* Concatenate original with synthetic data*/
         Classes imgClass;
-        Mat dataRebalanced;
-        vconcat(dataTraining, synthetic, dataRebalanced);
-        vconcat(dataRebalanced, dataTesting, imgClass.features);
+        Image img;
         imgClass.classNumber = eachClass;
 
-        imgClass.trainOrTest.create(dataRebalanced.size().height, 1, CV_32S); // Training
-        imgClass.trainOrTest = Scalar::all(1);
-        imgClass.trainOrTest.resize(imgClass.features.size().height, Scalar::all(2)); // Testing
-
-        imgClass.isGenerated.create(dataTraining.size().height, 1, CV_32S);
-        imgClass.isGenerated = Scalar::all(0);
-        imgClass.isGenerated.resize(dataRebalanced.size().height, Scalar::all(1));
-        imgClass.isGenerated.resize(imgClass.features.size().height, Scalar::all(0));
-
+        // Training
         for (samples = 0; samples < dataTraining.rows; samples++) {
-          imgClass.path.push_back(imbalancedData[eachClass].path[samples]);
+          dataTraining.row(samples).copyTo(img.features);
+          img.isFreeTrainOrTest = 1;
+          img.isGenerated = 0;
+          img.path = imbalancedData[eachClass].images[samples].path;
+          imgClass.images.push_back(img);
         }
+        // New synthethic examples
         for (index = 0; index < synthetic.rows; index++) {
-          imgClass.path.push_back("smote");
+          synthetic.row(index).copyTo(img.features);
+          img.isFreeTrainOrTest = 2;
+          img.isGenerated = 1;
+          img.path = "smote";
+          imgClass.images.push_back(img);
         }
+        // Testing
         for (index = 0; index < dataTesting.rows; samples++, index++) {
-          imgClass.path.push_back(imbalancedData[eachClass].path[samples]);
+          dataTesting.row(index).copyTo(img.features);
+          img.isFreeTrainOrTest = 2;
+          img.isGenerated = 1;
+          img.path = imbalancedData[eachClass].images[samples].path;
+          imgClass.images.push_back(img);
         }
 
         rebalancedData.push_back(imgClass);
-        total += imgClass.features.size().height;
+        total += imgClass.images.size();
         dataTraining.release();
         synthetic.release();
-        dataRebalanced.release();
         dataTesting.release();
       } else if (dataRaw.rows > 0) {
-        synthetic = s.smote(imbalancedData[eachClass].features, amountSmote, neighbors);
+        Mat data(0, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
+        for (samples = 0; samples < imbalancedData[eachClass].images.size(); samples++) {
+          data.push_back(imbalancedData[eachClass].images[samples].features);
+        }
+
+        synthetic = s.smote(data, amountSmote, neighbors);
         cout << "SMOTE generated " << synthetic.rows << " new synthetic samples" << endl;
         Classes imgClass;
-        vconcat(imbalancedData[eachClass].features, synthetic, imgClass.features);
+        Image img;
+
         imgClass.classNumber = eachClass;
-
-        imgClass.trainOrTest.create(imgClass.features.size().height, 1, CV_32S);
-        imgClass.trainOrTest = Scalar::all(0);
-
-        imgClass.isGenerated.create(imbalancedData[eachClass].features.size().height, 1, CV_32S);
-        imgClass.isGenerated = Scalar::all(0);
-        imgClass.isGenerated.resize(imgClass.features.size().height, Scalar::all(1));
-
-        for (samples = 0; samples < imbalancedData[eachClass].features.size().height; samples++) {
-          imgClass.path.push_back(imbalancedData[eachClass].path[samples]);
+        for (samples = 0; samples < imbalancedData[eachClass].images.size(); samples++) {
+          img.features = imbalancedData[eachClass].images[samples].features;
+          img.isFreeTrainOrTest = 0;
+          img.isGenerated = 0;
+          img.path = imbalancedData[eachClass].images[samples].path;
+          imgClass.images.push_back(img);
         }
         for (samples = 0; samples < synthetic.rows; samples++) {
-          imgClass.path.push_back("smote");
+          synthetic.row(samples).copyTo(img.features);
+          img.isFreeTrainOrTest = 0;
+          img.isGenerated = 1;
+          img.path = "smote";
+          imgClass.images.push_back(img);
         }
 
         rebalancedData.push_back(imgClass);
-        total += imgClass.features.size().height;
+        total += imgClass.images.size();
       }
     } else {
       rebalancedData.push_back(imbalancedData[eachClass]);
-      total += imbalancedData[eachClass].features.size().height;
+      total += imbalancedData[eachClass].images.size();
     }
   }
 
@@ -195,15 +207,15 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
     cout << "It is not possible to open the feature's file: " << name << endl;
     exit(-1);
   }
-  arq << total << ',' << rebalancedData.size() << ',' << rebalancedData[0].features.size().width << endl;
+  arq << total << ',' << rebalancedData.size() << ',' << rebalancedData[0].images[0].features.size() << endl;
   for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
-    for (h = 0; h < it->features.size().height; h++){
-      arq << it->path[h] << ',' << it->classNumber << ',' << it->trainOrTest.at<int>(h,0) << ',';
-      arq << it->isGenerated.at<int>(h,0) << ',';
-      for (w = 0; w < it->features.size().width-1; w++){
-        arq << it->features.at<float>(h, w) << ",";
+    for (h = 0; h < it->images.size(); h++){
+      arq << it->images[h].path << ',' << it->classNumber << ',' << it->images[h].isFreeTrainOrTest << ',';
+      arq << it->images[h].isGenerated << ',';
+      for (w = 0; w < it->images[0].features.size()-1; w++){
+        arq << it->images[h].features[w] << ",";
       }
-      arq << it->features.at<float>(h, w) << endl;
+      arq << it->images[h].features[w] << endl;
       countImg++;
     }
   }

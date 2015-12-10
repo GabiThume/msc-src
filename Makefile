@@ -18,7 +18,9 @@ UTILS = $(SRC_DIR)/utils
 EXAMPLES = examples
 OBJS = funcoesArquivo.o description.o funcoesAux.o quantization.o classifier.o smote.o rebalance.o artificialGeneration.o
 
-all: clean descriptorTest artificialGenerationTest rebalanceTest smoteTest rebalanceTwoClasses rebalanceMultiClasses staticRebalance classifierTest cleanLink
+# all: clean descriptorTest artificialGenerationTest rebalanceTest smoteTest rebalanceTwoClasses rebalanceMultiClasses staticRebalance classifierTest cleanLink
+
+all: clean rebalanceTwoClasses
 
 # run: run-desbalanced
 #

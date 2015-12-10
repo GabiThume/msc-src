@@ -141,8 +141,8 @@ vector<Classes> performSmote(vector<Classes> imbalancedData, int operation, int 
     (*total) = 0;
     for (eachClass = 0; eachClass < (int) imbalancedData.size(); ++eachClass){
 
-        Mat dataTraining(0, imbalancedData[eachClass].features.size().width, CV_64FC1);
-        Mat dataTesting(0, imbalancedData[eachClass].features.size().width, CV_64FC1);
+        Mat dataTraining(0, imbalancedData[eachClass].images[0].size(), CV_64FC1);
+        Mat dataTesting(0, imbalancedData[eachClass].images[0].size(), CV_64FC1);
 
         numTraining = 0;
         numTesting = 0;

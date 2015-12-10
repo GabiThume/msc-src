@@ -152,11 +152,14 @@ int Classifier::findSmallerClass(vector<Classes> imageClasses,
 		int *minoritySize) {
 	int class_id = 0, minorityClass;
 	std::vector<Classes>::iterator it;
-	(*minoritySize) = imageClasses[0].features.size().height;
+	// Number of images in the first class
+	(*minoritySize) = imageClasses[0].images.size();
 
+	// For each class
 	for(it = imageClasses.begin(); it != imageClasses.end(); ++it) {
-		if (it->features.size().height < (*minoritySize)){
-			(*minoritySize) = it->features.size().height;
+		// If the number of images in it is less than the minority number
+		if (it->images.size() < (*minoritySize)) {
+			(*minoritySize) = it->images.size();
 			minorityClass = class_id;
 		}
 		class_id++;
@@ -313,14 +316,14 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 
 	/* If training and testing set are fixed */
 	for (it = imageClasses.begin(); it != imageClasses.end(); ++it) {
-		img_by_class[it->classNumber] = it->features.size().height;
-		num_features = it->features.size().width;
-		for (i = 0; i < it->trainOrTest.size().height; i++) {
+		img_by_class[it->classNumber] = it->images.size();
+		for (i = 0; i < it->images.size(); i++) {
+			num_features = it->images[i].features.size();
 			fixedSet[it->classNumber] = 0;
-			if (it->trainOrTest.at<int>(i,0) == 1) {
+			if (it->images[i].isFreeTrainOrTest == 1) {
 				trainingNumber[it->classNumber]++;
 				fixedSet[it->classNumber] = 1;
-			} else if (it->trainOrTest.at<int>(i,0) == 2) {
+			} else if (it->images[i].isFreeTrainOrTest == 1) {
 				testingNumber[it->classNumber]++;
 				fixedSet[it->classNumber] = 1;
 			}
@@ -358,10 +361,11 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 
 		for (it = imageClasses.begin(); it != imageClasses.end(); ++it) {
 			if (fixedSet[it->classNumber]) {
-				for (x = 0; x < it->trainOrTest.size().height; x++) {
-					if (it->trainOrTest.at<int>(x,0) == 1) {
+				for (x = 0; x < it->images.size(); x++) {
+					if (it->images[i].isFreeTrainOrTest == 1) {
+						Mat features(it->images[x].features, false);
 						Mat tmp = dataTraining.row(count_training);
-						it->features.row(x).copyTo(tmp);
+						features.copyTo(tmp);
 						labelsTraining.at<int>(count_training, 0) = it->classNumber;
 						count_training++;
 						vectorRand.push_back(x);
@@ -374,8 +378,9 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 				while (rand_training < trainingNumber[it->classNumber]) {
 					pos = rand() % img_by_class[it->classNumber];
 					if (!count(vectorRand.begin(), vectorRand.end(), pos)) {
+						Mat features(it->images[x].features, false);
 						Mat tmp = dataTraining.row(count_training);
-						it->features.row(pos).copyTo(tmp);
+						features.copyTo(tmp);
 						labelsTraining.at<int>(count_training, 0) = it->classNumber;
 						rand_training++;
 						count_training++;
@@ -385,10 +390,11 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 			}
 			// After selecting the training set, the testing set it is going to be
 			// the rest of the whole set
-			for (i = 0; i < it->features.size().height; i++) {
+			for (i = 0; i < it->images.size(); i++) {
 				if (!count(vectorRand.begin(), vectorRand.end(), i)) {
+					Mat features(it->images[x].features, false);
 					Mat tmp = dataTesting.row(count_testing);
-					it->features.row(i).copyTo(tmp);
+					features.copyTo(tmp);
 					labelsTesting.at<int>(count_testing, 0) = it->classNumber;
 					count_testing++;
 				}
