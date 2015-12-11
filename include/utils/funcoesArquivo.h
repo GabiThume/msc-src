@@ -24,16 +24,14 @@ struct Image {
 	string path;
 	bool isGenerated;
 	int isFreeTrainOrTest;
+	int fold;
 };
 
 struct Classes {
 	int classNumber;
 	vector<Image> images;
-	// Mat features;
 	bool fixedTrainOrTest;
-	// Mat trainOrTest;
-	// vector<string> path;
-	// Mat isGenerated;
+	vector<int> training_fold, testing_fold;
 };
 
 vector<Classes> ReadFeaturesFromFile(string filename);

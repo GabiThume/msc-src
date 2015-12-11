@@ -70,82 +70,49 @@ vector<vector<double> > perform(string descriptorFile, int repeat, double prob, 
 }
 
 
-void ShufflePaths(vector< vector<string>> *pathsForEachClass){
+void ShuffleImages(vector<Image> *img){
 
-  int i, j, k, numImages;
-  string aux;
+  int i, k, numImages;
+  Image aux;
 
-  for (i = 0; i < (*pathsForEachClass).size(); i++) {
-    numImages = (*pathsForEachClass)[i].size();
-    for (j = numImages-1; j > 1; j--) {
-      k = rand()%j;
-      // Swap with k position
-      aux = (*pathsForEachClass)[i][j];
-      (*pathsForEachClass)[i][j] = (*pathsForEachClass)[i][k];
-      (*pathsForEachClass)[i][k] = aux;
-    }
+  numImages = (*img).size();
+  for (i = numImages-1; i > 1; i--) {
+    k = rand()%i;
+    // Swap with k position
+    aux = (*img)[i];
+    (*img)[i] = (*img)[k];
+    (*img)[k] = aux;
   }
 }
 
 
 // Arrange original images in k folds each, creating k fold_i.txt files
-vector< vector< vector<string>>> SeparateInFolds(string images_directory, int k) {
+void SeparateInFolds(vector<Classes> *original_data, int k) {
 
-  vector< vector<string>> pathsForEachClass;
-  vector<string> pathsInThisClass;
-  vector< vector< vector<string>>> foldsForEachClass;
-  vector< vector<string>> foldsInThisClass;
-  vector<string> auxFold;
-  vector<int> numFoldsInThisClass, num_images_class;
-
-  int i, j, fold, qtdImgTotal, numClasses, numImages, treino;
-  int resto, imgsInThisFold, imgTotal, next;
+  int i, j, fold, numClasses, numImages, resto, imgsInThisFold, imgTotal, next;
   Mat labels, trainTest, isGenerated, img;
 
-  numClasses = qtdArquivos(images_directory);
-  qtdImgTotal = NumberImagesInDataset(images_directory, numClasses, &num_images_class);
-  trainTest = Mat::zeros(qtdImgTotal, 1, CV_32S);
-  isGenerated= Mat::zeros(qtdImgTotal, 1, CV_32S);
-
+  numClasses = (*original_data).size();
   for (i = 0; i < numClasses; i++) {
-    NumberImgInClass(images_directory, i, &numImages, &treino);
-    imgTotal = 0;
-    for (j = 0; j < numImages; j++) {
-      // Find this image in the class and save the path
-      img = FindImgInClass(images_directory, i, j, imgTotal, treino, &trainTest,  &pathsInThisClass, &isGenerated);
-      if (!img.empty()) {
-        imgTotal++;
-      }
-    }
-    pathsForEachClass.push_back(pathsInThisClass);
-    pathsInThisClass.clear();
-    numFoldsInThisClass.push_back(numImages/k);
-  }
+    resto = 0; next = 0;
 
-  ShufflePaths(&pathsForEachClass);
-  for (i = 0; i < numClasses; i++) {
-    resto = 0;
-    next = 0;
+    ShuffleImages(&(*original_data)[i].images);
 
+    numImages = (*original_data)[i].images.size();
     for (fold = 0; fold < k; fold++) {
-
-      if (num_images_class[i] % k > resto) {
-        numFoldsInThisClass[i] = numFoldsInThisClass[i]+1;
+      // If the number of images per fold is less than the total, increase each extra image in a fold
+      imgsInThisFold = floor(numImages/k);
+      if (numImages % k > resto) {
+        imgsInThisFold++;
         resto++;
       }
-      imgsInThisFold = numFoldsInThisClass[i];
+      // For each image requested for this fold, add the fold indication
       for (j = 0; j < imgsInThisFold; j++) {
-        auxFold.push_back(pathsForEachClass[i][next]);
+        (*original_data)[i].images[next].fold = fold;
         next++;
       }
-      foldsInThisClass.push_back(auxFold);
-      auxFold.clear();
     }
-    foldsForEachClass.push_back(foldsInThisClass);
-    foldsInThisClass.clear();
   }
-
-  return foldsForEachClass;
 }
 
 int main(int argc, char const *argv[]) {
@@ -160,7 +127,10 @@ int main(int argc, char const *argv[]) {
   string descSmote, smoteDescriptor;
   vector<Classes> imbalancedData;
   Artificial a;
+  int minorityClass = 1, thisClass, j, x;
+  vector<int> testing_fold, majority_fold, minority_fold;
 
+  int k = 10;
   repeatRebalance = 1;
   if (argc < 3) {
     cout << "\nUsage: ./rebalanceTest (0) (1) (2) (3) (4)\n " << endl;
@@ -203,95 +173,98 @@ int main(int argc, char const *argv[]) {
     prev = numImages;
   }
 
+  d = 1; m = 1;
+
+  cout << "Classification using original data" << endl;
+  originalDescriptor = description(baseDir, featuresDir, d, m, "original");
+  csvOriginal = analysisDir+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+  // perform(originalDescriptor, 10, prob, csvOriginal);
+  vector<Classes> data = ReadFeaturesFromFile(originalDescriptor);
+
   // Arrange original images in k folds each, creating k fold_i.txt files
-  vector< vector< vector<string>>> folds;
-  folds = SeparateInFolds(baseDir+"/", 10);
-  for (i = 0; i < folds.size(); i++) {
-    cout << "Classe " << i << endl;
-    for (int x = 0; x < folds[i].size(); x++) {
-      cout << "\tFold " << x << endl;
-      for (int j = 0; j < folds[i][x].size(); j++) {
-        cout << "\t\t " << folds[i][x][j] << endl;
+  SeparateInFolds(&data, k);
+
+  for (i = 0; i < k; i++) {
+    for (j = 0; j < k; j++) {
+      if (j != i) {
+        for (thisClass = 0; thisClass < data.size(); thisClass++) {
+          data[thisClass].testing_fold.push_back(i);
+          if (thisClass == minorityClass) {
+            data[thisClass].training_fold.push_back(j);
+          }
+          else {
+            for (x = 0; x < k; x++) {
+              if (x != i) {
+                data[thisClass].training_fold.push_back(x);
+              }
+            }
+          }
+        }
+        string dirRebalanced = a.generateImagesFromData(data, newDir+"/Artificial/", operation);
+        exit(1);
       }
     }
   }
 
-  // int testing_fold, training_fold;
-  // for (i = 0; i < folds.size(); i++) {
-  //   cout << "Classe " << i << endl;
-  //   for (testing_fold = 0; testing_fold < folds[i].size(); testing_fold++) {
-  //     cout << "testing_fold " << testing_fold << endl;
+  // cout << "\n\n------------------------------------------------------------------------------------" << endl;
+  // cout << "Select a single fold to train the  minority class:" << endl;
+  // cout << "---------------------------------------------------------------------------------------" << endl;
+  // images_directory = RemoveSamples(baseDir, newDir, prob, factor);
+
+  // // For each rebalancing operation
+  // for (operation = 0; operation <= 0; operation++){
   //
-  //     for (training_fold = 0; training_fold < folds[i].size(); training_fold++) {
-  //       if (training_fold != testing_fold) {
-  //         cout << "training_fold "<< training_fold << endl;
-  //         // for (int j = 0; j < folds[i][x].size(); j++) {
-  //         //   cout << "\t\t " << folds[i][x][j] << endl;
-  //         // }
-  //       }
+  //   vector<String> allRebalanced;
+  //   stringstream operationstr;
+  //   operationstr << operation;
+  //   op = operationstr.str();
+  //
+  //   /* Generate Artificial Images */
+  //   repeatRebalance = 1;
+  //   for (repeat = 0; repeat < repeatRebalance; repeat++) {
+  //     stringstream repeatStr;
+  //     repeatStr << repeat;
+  //     string newDirectory = newDir+"/Artificial/"+op+"-Rebalanced"+repeatStr.str();
+  //     string dirRebalanced = a.generate(images_directory, newDirectory, operation);
+  //     allRebalanced.push_back(dirRebalanced);
+  //   }
+  //
+  //   for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
+  //     d = descriptors[indexDescriptor];
+  //     m = quant[indexDescriptor];
+  //
+  //     // Feature extraction from images
+  //     if (count_diff == 0) {
+  //       cout << "Classification using original data" << endl;
+  //       string originalDescriptor = description(baseDir, featuresDir, d, m, "original");
+  //       csvOriginal = analysisDir+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+  //       perform(originalDescriptor, 10, prob, csvOriginal);
+  //     }
+  //
+  //     cout << "Classification using desbalanced data" << endl;
+  //     string imbalancedDescriptor = description(images_directory, featuresDir, d, m, "desbalanced");
+  //     csvDesbalanced = analysisDir+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+  //     perform(imbalancedDescriptor, 1, prob, csvDesbalanced);
+  //
+  //     for (i = 0; i < (int)allRebalanced.size(); i++) {
+  //       // Generate Synthetic SMOTE samples
+  //       imbalancedData = ReadFeaturesFromFile(imbalancedDescriptor);
+  //       descSmote = newDir+"/features/"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+  //       smoteDescriptor = PerformSmote(imbalancedData, operation, descSmote);
+  //       cout << "Classification using SMOTE" << endl;
+  //       csvSmote = analysisDir+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+  //       perform(smoteDescriptor, 1, prob, csvSmote);
+  //       imbalancedData.clear();
+  //
+  //       cout << "Classification using rebalanced data" << endl;
+  //       featuresDir = allRebalanced[i]+"/../features/";
+  //       string artificialDescriptor = description(allRebalanced[i], featuresDir, d, m, "artificial");
+  //       csvRebalance = analysisDir+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+  //       perform(artificialDescriptor, 1, prob, csvRebalance);
   //     }
   //   }
+  //   allRebalanced.clear();
   // }
-
-  cout << "\n\n------------------------------------------------------------------------------------" << endl;
-  cout << "Select a single fold to train the  minority class:" << endl;
-  cout << "---------------------------------------------------------------------------------------" << endl;
-  images_directory = RemoveSamples(baseDir, newDir, prob, factor);
-
-  // For each rebalancing operation
-  for (operation = 0; operation <= 0; operation++){
-
-    vector<String> allRebalanced;
-    stringstream operationstr;
-    operationstr << operation;
-    op = operationstr.str();
-
-    /* Generate Artificial Images */
-    repeatRebalance = 1;
-    for (repeat = 0; repeat < repeatRebalance; repeat++) {
-      stringstream repeatStr;
-      repeatStr << repeat;
-      string newDirectory = newDir+"/Artificial/"+op+"-Rebalanced"+repeatStr.str();
-      string dirRebalanced = a.generate(images_directory, newDirectory, operation);
-      allRebalanced.push_back(dirRebalanced);
-    }
-
-    for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
-      d = descriptors[indexDescriptor];
-      m = quant[indexDescriptor];
-
-      // Feature extraction from images
-      if (count_diff == 0) {
-        cout << "Classification using original data" << endl;
-        string originalDescriptor = description(baseDir, featuresDir, d, m, "original");
-        csvOriginal = analysisDir+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-        perform(originalDescriptor, 10, prob, csvOriginal);
-      }
-
-      cout << "Classification using desbalanced data" << endl;
-      string imbalancedDescriptor = description(images_directory, featuresDir, d, m, "desbalanced");
-      csvDesbalanced = analysisDir+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-      perform(imbalancedDescriptor, 1, prob, csvDesbalanced);
-
-      for (i = 0; i < (int)allRebalanced.size(); i++) {
-        // Generate Synthetic SMOTE samples
-        imbalancedData = ReadFeaturesFromFile(imbalancedDescriptor);
-        descSmote = newDir+"/features/"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-        smoteDescriptor = PerformSmote(imbalancedData, operation, descSmote);
-        cout << "Classification using SMOTE" << endl;
-        csvSmote = analysisDir+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-        perform(smoteDescriptor, 1, prob, csvSmote);
-        imbalancedData.clear();
-
-        cout << "Classification using rebalanced data" << endl;
-        featuresDir = allRebalanced[i]+"/../features/";
-        string artificialDescriptor = description(allRebalanced[i], featuresDir, d, m, "artificial");
-        csvRebalance = analysisDir+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-        perform(artificialDescriptor, 1, prob, csvRebalance);
-      }
-    }
-    allRebalanced.clear();
-  }
 
   cout << "Done." << endl;
   return 0;

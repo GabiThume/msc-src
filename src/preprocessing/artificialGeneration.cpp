@@ -469,6 +469,119 @@ void Artificial::GenerateImage(vector<Mat> images, string name, int total,
 	}
 }
 
+string Artificial::generateImagesFromData(vector<Classes> original_data,
+																					string newDirectory,
+																					int whichOperation){
+
+	int i, qtdClasses = 0, generationType, rebalanceTotal = 0;
+	int maiorClasse, rebalance, eachClass, qtdImg, maior, j, training_fold;
+	Mat img, noise;
+	string imgName, classe, minorityClass, str, nameGeneratedImage, generatedPath;
+	struct dirent *sDir = NULL;
+	DIR *dir = NULL, *minDir = NULL;
+	vector<int> totalImage, vectorRand;
+	vector<Mat> images;
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(2, 10);
+
+	str = "rm -f -r "+newDirectory+"/*;";
+	str += "mkdir -p "+newDirectory+";";
+	str += "mkdir -p "+newDirectory+"/original/;";
+	// str += "cp -R "+base+"/* "+newDirectory+"/original/;";
+	system(str.c_str());
+	str = "rm -f -r "+newDirectory+"/features/;";
+	str += "mkdir -p "+newDirectory+"/features/;";
+	system(str.c_str());
+
+	newDirectory += "/original/";
+	dir = opendir(newDirectory.c_str());;
+	if (!dir) {
+		cout << "Error! Directory " << newDirectory << " doesn't exist. " << endl;
+		exit(1);
+	}
+	closedir(dir);
+
+	cout << "\n---------------------------------------------------------" << endl;
+	cout << "Artifical generation of images to rebalance classes" << endl;
+	cout << "-----------------------------------------------------------" << endl;
+
+	qtdClasses = original_data.size();
+	cout << "Number of classes: " << qtdClasses << endl;
+	/* Count how many files there are in classes and which is the majority */
+	maior = -1;
+	for(i = 0; i < qtdClasses; i++) {
+		qtdImg = 0;
+		for(j = 0; j < original_data[i].images.size(); j++) {
+			for (training_fold = 0; training_fold < original_data[i].training_fold.size(); training_fold++) {
+				if (original_data[i].images[j].fold == training_fold) {
+					qtdImg++;
+				}
+			}
+		}
+		totalImage.push_back(qtdImg);
+		if (qtdImg > maior){
+			maiorClasse = i;
+			maior = qtdImg;
+		}
+	}
+
+	for (eachClass = 0; eachClass < qtdClasses; ++eachClass) {
+		/* Find out how many samples are needed to rebalance */
+		rebalance = totalImage[maiorClasse] - totalImage[eachClass];
+		if (rebalance > 0) {
+
+			/* Add all minority images in vector<Mat>images */
+			for(j = 0; j < original_data[eachClass].images.size(); j++) {
+				for (training_fold = 0; training_fold < original_data[eachClass].training_fold.size(); training_fold++) {
+					if (original_data[eachClass].images[j].fold == training_fold) {
+						imgName = original_data[eachClass].images[j].path;
+						img = imread(imgName, CV_LOAD_IMAGE_COLOR);
+						if (!img.data) continue;
+						images.push_back(img);
+					}
+				}
+			}
+
+			if (images.size() == 0) {
+				cout << "The class " << eachClass << " could't be read" << endl;
+				exit(-1);
+			}
+			closedir(minDir);
+
+			generatedPath = newDirectory + "/generated/";
+			minDir = opendir(generatedPath.c_str());
+			if (!minDir) {
+				str = "mkdir -p "+generatedPath+";";
+				system(str.c_str());
+				minDir = opendir(generatedPath.c_str());
+				if (!minDir) {
+					cout << "Error! Directory " << generatedPath.c_str() << " can't be created. " << endl;
+					exit(1);
+				}
+			}
+			closedir(minDir);
+
+			/* For each image needed to full rebalance*/
+			for (i = 0; i < rebalance; i++) {
+
+				/* Choose an operation
+				Case 1: All operations */
+				generationType = (whichOperation == 1) ? dis(gen) : whichOperation;
+
+				nameGeneratedImage = generatedPath + to_string(totalImage[eachClass]+i) + ".png";
+				GenerateImage(images, nameGeneratedImage, totalImage[eachClass], generationType);
+			}
+			rebalanceTotal += rebalance;
+			cout << rebalance << " images were generated and this is now balanced." << endl;
+			cout << "-------------------------------------------------------" << endl;
+			images.clear();
+		}
+	}
+	return newDirectory;
+}
+
 string Artificial::generate(string base, string newDirectory,
 														int whichOperation = 0){
 

@@ -35,6 +35,9 @@ class Artificial{
     Mat generateThreshold(Mat first, Mat second);
     Mat generateSaliency(Mat first, Mat second);
     Mat generateSmoteImg(Mat first, Mat second);
+    string generateImagesFromData(vector<Classes> original_data,
+			string newDirectory,
+			int whichOperation);
 };
 
 #endif
