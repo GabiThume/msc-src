@@ -469,7 +469,7 @@ void Artificial::GenerateImage(vector<Mat> images, string name, int total,
 	}
 }
 
-string Artificial::generateImagesFromData(vector<Classes> original_data,
+vector<Classes> Artificial::generateImagesFromData(vector<Classes> original_data,
 																					string newDirectory,
 																					int whichOperation){
 
@@ -481,35 +481,40 @@ string Artificial::generateImagesFromData(vector<Classes> original_data,
 	DIR *dir = NULL, *minDir = NULL;
 	vector<int> totalImage, vectorRand;
 	vector<Mat> images;
-
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dis(2, 10);
-
-	str = "rm -f -r "+newDirectory+"/*;";
-	str += "mkdir -p "+newDirectory+";";
-	str += "mkdir -p "+newDirectory+"/original/;";
-	// str += "cp -R "+base+"/* "+newDirectory+"/original/;";
-	system(str.c_str());
-	str = "rm -f -r "+newDirectory+"/features/;";
-	str += "mkdir -p "+newDirectory+"/features/;";
-	system(str.c_str());
-
-	newDirectory += "/original/";
-	dir = opendir(newDirectory.c_str());;
-	if (!dir) {
-		cout << "Error! Directory " << newDirectory << " doesn't exist. " << endl;
-		exit(1);
-	}
-	closedir(dir);
+	vector<Classes> generatedData;
+	Classes thisClass;
+	Image newImage;
 
 	cout << "\n---------------------------------------------------------" << endl;
 	cout << "Artifical generation of images to rebalance classes" << endl;
 	cout << "-----------------------------------------------------------" << endl;
 
+	str = "rm -f -r "+newDirectory+"/*;";
+	str += "mkdir -p "+newDirectory+";";
+	system(str.c_str());
+	dir = opendir(newDirectory.c_str());;
+	if (!dir) {
+		cout << "Error! Directory " << newDirectory << " can't be created. " << endl;
+		exit(1);
+	}
+	closedir(dir);
+
+	// str += "mkdir -p "+newDirectory+"/original/;";
+	// str += "cp -R "+base+"/* "+newDirectory+"/original/;";
+	str = "rm -f -r "+newDirectory+"/features/;";
+	str += "mkdir -p "+newDirectory+"/features/;";
+	system(str.c_str());
+	dir = opendir((newDirectory+"/features/").c_str());;
+	if (!dir) {
+		cout << "Error! Directory " << newDirectory << " can't be created. " << endl;
+		exit(1);
+	}
+	closedir(dir);
+
 	qtdClasses = original_data.size();
 	cout << "Number of classes: " << qtdClasses << endl;
-	/* Count how many files there are in classes and which is the majority */
+
+	/* Count how many files exist and which class is the majority */
 	maior = -1;
 	for(i = 0; i < qtdClasses; i++) {
 		qtdImg = 0;
@@ -548,20 +553,31 @@ string Artificial::generateImagesFromData(vector<Classes> original_data,
 				cout << "The class " << eachClass << " could't be read" << endl;
 				exit(-1);
 			}
-			closedir(minDir);
 
-			generatedPath = newDirectory + "/generated/";
+			stringstream generatedClass;
+		 	generatedClass << eachClass;
+			generatedPath = newDirectory + generatedClass.str() + "/";
 			minDir = opendir(generatedPath.c_str());
 			if (!minDir) {
 				str = "mkdir -p "+generatedPath+";";
 				system(str.c_str());
 				minDir = opendir(generatedPath.c_str());
 				if (!minDir) {
-					cout << "Error! Directory " << generatedPath.c_str() << " can't be created. " << endl;
+					cout << "Error! Directory " << generatedPath.c_str() << " can't be created." << endl;
 					exit(1);
 				}
 			}
 			closedir(minDir);
+
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_int_distribution<> dis(2, 10);
+
+			thisClass.classNumber = eachClass;
+			thisClass.images.clear();
+			thisClass.fixedTrainOrTest = 1;
+			thisClass.training_fold.clear();
+			thisClass.testing_fold.clear();
 
 			/* For each image needed to full rebalance*/
 			for (i = 0; i < rebalance; i++) {
@@ -571,15 +587,25 @@ string Artificial::generateImagesFromData(vector<Classes> original_data,
 				generationType = (whichOperation == 1) ? dis(gen) : whichOperation;
 
 				nameGeneratedImage = generatedPath + to_string(totalImage[eachClass]+i) + ".png";
+
 				GenerateImage(images, nameGeneratedImage, totalImage[eachClass], generationType);
+
+				newImage.features.clear();
+				newImage.isGenerated = true;
+				newImage.isFreeTrainOrTest = 1;
+				newImage.fold = -1;
+				newImage.path = nameGeneratedImage;
+				thisClass.images.push_back(newImage);
 			}
 			rebalanceTotal += rebalance;
 			cout << rebalance << " images were generated and this is now balanced." << endl;
 			cout << "-------------------------------------------------------" << endl;
 			images.clear();
+
+			generatedData.push_back(thisClass);
 		}
 	}
-	return newDirectory;
+	return generatedData;
 }
 
 string Artificial::generate(string base, string newDirectory,

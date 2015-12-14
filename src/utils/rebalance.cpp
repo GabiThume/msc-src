@@ -45,7 +45,7 @@ Requires:
 string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmote) {
 
   int majority = -1, majorityClass = -1, eachClass, amountSmote, countImg = 0;
-  int numTraining = 0, numTesting = 0, i, x, neighbors, pos, total, h, w, numRaw;
+  int i, x, neighbors, pos, total, h, w;
   int samples, index;
   vector<int> trainingNumber(imbalancedData.size(), 0);
   std::vector<Classes>::iterator it;
@@ -78,10 +78,6 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
     Mat dataTesting(0, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
     Mat dataRaw(0, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
 
-    numTraining = 0;
-    numTesting = 0;
-    numRaw = 0;
-
     cout << "In class " << eachClass << " were found " << trainingNumber[eachClass] << " original training images"<< endl;
     /* Find out how many samples are needed to rebalance */
     amountSmote = trainingNumber[majorityClass] - trainingNumber[eachClass];
@@ -93,25 +89,14 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
       cout << "imbalancedData[eachClass].images.size() " << imbalancedData[eachClass].images.size() << endl;
       for (x = 0; x < imbalancedData[eachClass].images.size(); ++x){
         if (imbalancedData[eachClass].images[x].isFreeTrainOrTest == 1){
-          dataTraining.resize(numTraining+1);
-          Mat tmp = dataTraining.row(numTraining);
-          Mat features(imbalancedData[eachClass].images[x].features, false);
-          features.copyTo(tmp);
-          numTraining++;
+          dataTraining.push_back(imbalancedData[eachClass].images[x].features);
         } else if (imbalancedData[eachClass].images[x].isFreeTrainOrTest == 2){
-          dataTesting.resize(numTesting+1);
-          Mat tmp = dataTesting.row(numTesting);
-          Mat features(imbalancedData[eachClass].images[x].features, false);
-          features.copyTo(tmp);
-          numTesting++;
+          dataTesting.push_back(imbalancedData[eachClass].images[x].features);
         } else {
-          dataRaw.resize(numRaw+1);
-          Mat tmp = dataRaw.row(numRaw);
-          Mat features(imbalancedData[eachClass].images[x].features, false);
-          features.copyTo(tmp);
-          numRaw++;
+          dataRaw.push_back(imbalancedData[eachClass].images[x].features);
         }
       }
+
       cout << dataTraining.rows << " " << dataTesting.rows << endl;
       if (dataTraining.rows > 0 && dataTesting.rows > 0) {
         if (operation != 0){
@@ -163,12 +148,12 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
         synthetic.release();
         dataTesting.release();
       } else if (dataRaw.rows > 0) {
-        Mat data(0, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
-        for (samples = 0; samples < imbalancedData[eachClass].images.size(); samples++) {
-          data.push_back(imbalancedData[eachClass].images[samples].features);
-        }
+        // Mat data(0, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
+        // for (samples = 0; samples < imbalancedData[eachClass].images.size(); samples++) {
+        //   data.push_back(imbalancedData[eachClass].images[samples].features);
+        // }
 
-        synthetic = s.smote(data, amountSmote, neighbors);
+        synthetic = s.smote(dataRaw, amountSmote, neighbors);
         cout << "SMOTE generated " << synthetic.rows << " new synthetic samples" << endl;
         Classes imgClass;
         Image img;
@@ -212,7 +197,7 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
     for (h = 0; h < it->images.size(); h++){
       arq << it->images[h].path << ',' << it->classNumber << ',' << it->images[h].isFreeTrainOrTest << ',';
       arq << it->images[h].isGenerated << ',';
-      for (w = 0; w < it->images[0].features.size()-1; w++){
+      for (w = 0; w < it->images[0].features.cols-1; w++){
         arq << it->images[h].features[w] << ",";
       }
       arq << it->images[h].features[w] << endl;

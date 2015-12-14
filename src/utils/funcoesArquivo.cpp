@@ -39,83 +39,6 @@ Master's thesis in Computer Science
 #include "utils/funcoesArquivo.h"
 
 /*******************************************************************************
-Read the features from the input file and save them in a vector of classes
-
-Requires
-- string name of input file
-*******************************************************************************/
-vector<Classes> ReadFeaturesFromFile(string filename) {
-  int j, newSize = 0, previousClass = -1, actualClass;
-  string features;
-  size_t d;
-  string line, infos, pathImage, classe, trainTest, numFeatures, numClasses;
-  string objetos, generated;
-  vector<Classes> data;
-  Classes imgClass;
-  ifstream myFile;
-  Image img;
-
-  myFile.open(filename.c_str(), ios::in);
-  if (!myFile.is_open()) {
-    cout << "It is not possible to open the feature's file: " << filename << endl;
-    exit(-1);
-  }
-
-  /* Read the first line, which contains the number of objects,
-  classes and features */
-  getline(myFile, infos);
-  if (infos == "") return Mat();
-  stringstream info(infos);
-  getline(info, objetos, ',');
-  getline(info, numClasses, ',');
-  getline(info, numFeatures, '\n');
-  d = atoi(numFeatures.c_str());
-
-  while (getline(myFile, line)) {
-    stringstream vector_features(line);
-    getline(vector_features, pathImage, ',');
-    getline(vector_features, classe, ',');
-    getline(vector_features, trainTest, ',');
-    getline(vector_features, generated, ',');
-
-    actualClass = atoi(classe.c_str());
-    if (previousClass != actualClass) {
-      if (previousClass != -1) {
-        data.push_back(imgClass);
-        imgClass.images.clear();
-      }
-      previousClass = actualClass;
-    }
-
-    imgClass.classNumber = actualClass;
-    imgClass.fixedTrainOrTest = false;
-
-  	img.path = pathImage;
-  	img.isGenerated = atoi(generated.c_str());
-  	img.isFreeTrainOrTest = atoi(trainTest.c_str());
-    if (atoi(trainTest.c_str()) != 0) {
-      imgClass.fixedTrainOrTest = true;
-    }
-
-    for (j = 0; j < d; j++) {
-      if (getline(vector_features, features, ',').eof()) {
-        getline(vector_features, features, '\n');
-      }
-      img.features.push_back(stof(features));
-    }
-    imgClass.images.push_back(img);
-    img.features.clear();
-  }
-  if (previousClass != -1) {
-    data.push_back(imgClass);
-    imgClass.images.clear();
-  }
-
-  myFile.close();
-  return data;
-}
-
-/*******************************************************************************
 *******************************************************************************/
 int qtdArquivos(string directory) {
   int count = 0;
@@ -241,88 +164,6 @@ void NumberImgInClass(string database, int img_class, int *num_imgs,
   }
   cout << "class " << img_class << ": " << database + "/" + to_string(img_class);
   cout << " has " << (*num_imgs) << " images" << endl;
-}
-
-/*******************************************************************************
-Write the features of Mat features in a csv file
-
-Requires
-- string directory where to write the csv file
-- int quantization method
-- int description method
-- int number of colors wanted in the image
-- int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
-- int factor for resizing
-- int number of classes
-- Mat of features, one row for each image
-- Mat of labels, one row for each image
-- Mat indicating if the image in each row is fixed for training or testing
-- vector of strings indicating the image path
-- string id to add in the end of file (requested for static rebalance)
-- bool indicates if it is necessary to write a data file
-*******************************************************************************/
-string WriteFeaturesOnFile(string featuresDir, int quantization, int method,
-                    int colors, int normalization, int resizingFactor,
-                    int qtdClasses, Mat features, Mat labels, Mat trainTest,
-                    Mat isGenerated, vector<string> path, string id, bool writeDataFile) {
-
-  ofstream arq, arqVis;
-  int i, j;
-  string name;
-
-  // Decide the features file's name
-  name = featuresDir + descriptorMethod[method-1] + "_";
-  name += quantizationMethod[quantization-1] + "_" + to_string(colors);
-  name += "c_" + to_string(resizingFactor) + "r_";
-  name += to_string(features.rows) + "i_" + id + ".csv";
-
-  // Open file to write features
-  arq.open(name.c_str(), ios::out);
-  if (!arq.is_open()) {
-    cout << "It is not possible to open the feature's file: " << name << endl;
-    exit(-1);
-  }
-
-  // Write the calculated features on a file to load in classification
-  // Number of images, number of classes, number of features per image
-  arq << features.rows << ',' << qtdClasses << ',' << features.cols << endl;
-  // For each image
-  for (i = 0; i < features.rows; i++) {
-    if (labels.rows > 0) {
-      // Write the image name, the referenced class
-      arq << path[i] << ',' << labels.at<int>(i, 0) << ',';
-      // and if it is fixed as training or testing image
-      arq << trainTest.at<int>(i, 0) << ',' << isGenerated.at<int>(i, 0) << ',';
-    }
-    // Write the feature vector related to the current image
-    for (j = 0; j < features.cols-1; j++) {
-      arq << features.at<float>(i, j) << ",";
-    }
-    arq << features.at<float>(i, j) << endl;
-  }
-  arq.close();
-
-  // Write a DATA file if requested (expected in some visualizations tools)
-  if (writeDataFile) {
-    arqVis.open((name+"data").c_str(), ios::in);
-    arqVis << "DY\n" << labels.size().height << '\n';
-    arqVis << features.size().width << '\n';
-    for (i = 0; i < features.size().width-1; i++) {
-      arqVis << "attr" << i << ";";
-    }
-    arqVis << "attr" << i << "\n";
-    for (i = 0; i < labels.size().height; i++) {
-      arqVis << i << ".png";
-      for (j = 0; j < features.size().width; j++) {
-        arqVis << features.at<float>(i, j) << ";";
-      }
-      int numeroimg = labels.at<int>(i, 0);
-      arqVis << numeroimg << endl;
-    }
-    arqVis.close();
-  }
-
-  return name;
 }
 
 /*******************************************************************************
@@ -600,4 +441,42 @@ string PerformFeatureExtraction(string database, string featuresDir, int method,
   cout << endl << "Elapsed time: " << double(end-begin)/ CLOCKS_PER_SEC << endl;
 
   return name;
+}
+
+
+void PerformFeatureExtractionFromData(vector<Classes> *data, int method,
+    int colors, double resizeFactor, int normalization, vector<int> param,
+    int deleteNull, int quantization){
+
+  int dataClass, image;
+  int resizingFactor = static_cast<int>(resizeFactor*100);
+  Mat img, newimg;
+
+  cout << "\n---------------------------------------------------------" << endl;
+  cout << "Image feature extraction using " << descriptorMethod[method-1];
+  cout << " and " << quantizationMethod[quantization-1] << endl;
+  cout << "-----------------------------------------------------------" << endl;
+
+  for (dataClass = 0; dataClass < (*data).size(); dataClass++) {
+    for (image = 0; image < (*data)[dataClass].images.size(); image++) {
+
+      img = imread((*data)[dataClass].images[image].path, CV_LOAD_IMAGE_COLOR);
+      if (!img.empty() and !(*data)[dataClass].images[image].features.empty()) {
+
+        img.copyTo(newimg);
+        if (resizeFactor != 1.0) {
+          // Resize the image given the input factor
+          cv::resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
+        }
+
+        // Convert the image to grayscale
+        ConvertToGrayscale(quantization, newimg, &newimg, colors);
+
+        // Call the description method
+        GetFeatureVector(method, newimg, &(*data)[dataClass].images[image].features, colors, normalization, param);
+
+        img.release();
+        newimg.release();
+      }
+  }
 }

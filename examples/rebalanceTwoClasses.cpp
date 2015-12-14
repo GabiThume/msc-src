@@ -124,7 +124,7 @@ int main(int argc, char const *argv[]) {
   string name, method, newDir, baseDir, featuresDir, csvOriginal, csvSmote;
   string csvRebalance, analysisDir, csvDesbalanced, directory, str, op;
   string images_directory, imbalancedDescriptor, originalDescriptor;
-  string descSmote, smoteDescriptor;
+  string descSmote, smoteDescriptor, dirRebalanced, artificialDescriptor;
   vector<Classes> imbalancedData;
   Artificial a;
   int minorityClass = 1, thisClass, j, x;
@@ -174,6 +174,7 @@ int main(int argc, char const *argv[]) {
   }
 
   d = 1; m = 1;
+  operation = 1;
 
   cout << "Classification using original data" << endl;
   originalDescriptor = description(baseDir, featuresDir, d, m, "original");
@@ -200,7 +201,13 @@ int main(int argc, char const *argv[]) {
             }
           }
         }
-        string dirRebalanced = a.generateImagesFromData(data, newDir+"/Artificial/", operation);
+        vector<Classes> generated = a.generateImagesFromData(data, newDir+"/Artificial/", operation);
+        featuresDir = newDir+"/Artificial/"+"/features/";
+        artificialDescriptor = PerformFeatureExtraction(generated, featuresDir, d, 64, 1, 0, paramCCV, 0, m, "artificial");
+        // artificialDescriptor = description(dirRebalanced, featuresDir, d, m, "artificial");
+        // csvRebalance = analysisDir+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+        // perform(artificialDescriptor, 1, prob, csvRebalance);
+
         exit(1);
       }
     }
