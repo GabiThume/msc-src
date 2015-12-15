@@ -15,7 +15,7 @@
 #include <cstdio>
 
 #include "../lib/Saliency/GMRsaliency.h"
-#include "utils/funcoesArquivo.h"
+#include "utils/data.h"
 #include "classification/classifier.h"
 
 using namespace cv;
@@ -35,7 +35,7 @@ class Artificial{
     Mat generateThreshold(Mat first, Mat second);
     Mat generateSaliency(Mat first, Mat second);
     Mat generateSmoteImg(Mat first, Mat second);
-    vector<Classes> generateImagesFromData(vector<Classes> original_data,
+    vector<ImageClass> generateImagesFromData(vector<ImageClass> original_data,
 			string newDirectory,
 			int whichOperation);
 };

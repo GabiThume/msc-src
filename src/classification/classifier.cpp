@@ -148,10 +148,10 @@ void Classifier::printAccuracy(double id, vector<vector<double> > fScore) {
 }
 
 /* Find which is the smaller class */
-int Classifier::findSmallerClass(vector<Classes> imageClasses,
+int Classifier::findSmallerClass(vector<ImageClass> imageClasses,
 		int *minoritySize) {
 	int class_id = 0, minorityClass;
-	std::vector<Classes>::iterator it;
+	std::vector<ImageClass>::iterator it;
 	// Number of images in the first class
 	(*minoritySize) = imageClasses[0].images.size();
 
@@ -167,7 +167,7 @@ int Classifier::findSmallerClass(vector<Classes> imageClasses,
 	return minorityClass;
 }
 
-double calculateBalancedAccuracy(Mat confusionMat) {
+double Classifier::calculateBalancedAccuracy(Mat confusionMat) {
 	double balancedAccuracyMean, truePositive, falseNegative, falsePositive;
 	double trueNegative, specificity, sensitivity, positive, negative;
 	int class_id, i, j;
@@ -208,7 +208,7 @@ double calculateBalancedAccuracy(Mat confusionMat) {
 Positive: minority class
 Negative: majority class
 *******************************************************************************/
-vector<double> calculateFscore(Mat confusionMat){
+vector<double> Classifier::calculateFscore(Mat confusionMat){
 	double fscore, truePositive, falseNegative, falsePositive;
 	double trueNegative, precisionRate, recallRate, positive;
 	vector<double> fScore;
@@ -255,7 +255,9 @@ Confusion Matrix
 actual class   truePositive   | falseNegative
                falsePositive  | trueNegative
 *******************************************************************************/
-Mat confusionMatrix(int numClasses, Mat labelsTesting, Mat result, int print) {
+Mat Classifier::confusionMatrix(int numClasses, Mat labelsTesting, Mat result,
+	int print) {
+
 	int i, rightClass, guessedClass;
 	Mat confusionMat = Mat::zeros(numClasses, numClasses, CV_32S);
 
@@ -300,108 +302,74 @@ Mat confusionMatrix(int numClasses, Mat labelsTesting, Mat result, int print) {
 }
 
 vector< vector<double> > Classifier::classify(double trainingRatio,
-	int numRepetition, vector<Classes> imageClasses, string name, double id) {
+	int numRepetition, vector<ImageClass> data, string name, double id) {
 
 	Mat result, confusionMat;
-	int i, hits, num_features, rand_training, count_training, count_testing;
-	int minorNumber, class_id, imgs_training, imgs_testing, pos, repetition, x;
-	int minorityClass;
-	std::vector<Classes>::iterator it;
-	numClasses = imageClasses.size();
-	vector<int> vectorRand, img_by_class(numClasses, 0), fixedSet(numClasses, 0);
-	vector<int> trainingNumber(numClasses, 0), testingNumber(numClasses, 0);
+	int i, hits, numFeatures, numClasses, rep;
 	vector <vector<double> > fscore;
 	vector<double> fscoreClasses;
 	outputName = name;
+	std::vector<ImageClass>::iterator it;
+	std::vector<Image>::iterator itImage;
 
-	/* If training and testing set are fixed */
-	for (it = imageClasses.begin(); it != imageClasses.end(); ++it) {
-		img_by_class[it->classNumber] = it->images.size();
-		for (i = 0; i < it->images.size(); i++) {
-			num_features = it->images[i].features.size();
-			fixedSet[it->classNumber] = 0;
-			if (it->images[i].isFreeTrainOrTest == 1) {
-				trainingNumber[it->classNumber]++;
-				fixedSet[it->classNumber] = 1;
-			} else if (it->images[i].isFreeTrainOrTest == 1) {
-				testingNumber[it->classNumber]++;
-				fixedSet[it->classNumber] = 1;
-			}
-		}
-	}
+	numClasses = data.numClasses();
+	numFeatures = data.numFeatures();
 
-	/* For each class we need to calculate the size of both training and testing sets, given a ratio */
-	imgs_training = 0;
-	imgs_testing = 0;
-	for (i = 0; i < numClasses; i++) {
-		if (trainingNumber[i] == 0) {
-			trainingNumber[i] = ceil(img_by_class[i] * trainingRatio);
-			testingNumber[i] = img_by_class[i] - trainingNumber[i];
-		}
-		imgs_testing += testingNumber[i];
-		imgs_training += trainingNumber[i];
-	}
+	Mat dataTraining(0, numFeatures, CV_32FC1);
+	Mat labelsTraining(0, 1, CV_32S);
+	Mat dataTesting(0, numFeatures, CV_32FC1);
+	Mat labelsTesting(0, 1, CV_32S);
 
-	for (i = 0; i < numClasses; i++) {
-    cout << "Number of images in class " << i << ": " << img_by_class[i] << endl;
-    cout << "\tTraining: " << trainingNumber[i] << endl;
-    cout << "\tTesting: " << testingNumber[i] << endl;
-	}
+	for (rep = 0; rep <= numRepetition; ++rep) {
 
-	/* Repeated random sub-sampling validation */
-	for (repetition = 0; repetition < numRepetition; repetition++) {
-		Mat dataTraining(imgs_training, num_features, CV_32FC1);
-		Mat labelsTraining(imgs_training, 1, CV_32S);
-		Mat dataTesting(imgs_testing, num_features, CV_32FC1);
-		Mat labelsTesting(imgs_testing, 1, CV_32S);
-		count_training = 0;
-		count_testing = 0;
-
-		vectorRand.clear();
-
-		for (it = imageClasses.begin(); it != imageClasses.end(); ++it) {
-			if (fixedSet[it->classNumber]) {
-				for (x = 0; x < it->images.size(); x++) {
-					if (it->images[i].isFreeTrainOrTest == 1) {
-						Mat features(it->images[x].features, false);
-						Mat tmp = dataTraining.row(count_training);
-						features.copyTo(tmp);
-						labelsTraining.at<int>(count_training, 0) = it->classNumber;
-						count_training++;
-						vectorRand.push_back(x);
-					}
+		for (it = data.begin(); it != data.end(); ++it) {
+			for (itImage = it->images.begin();
+					itImage != it->images.end();
+					++itImage) {
+				if (data.isTraining(itImage->fold)) {
+					dataTraining.push_back(itImage->features);
+					labelsTraining.at<int>(dataTraining.rows-1, 0) = it->id;
+				}
+				else if (data.isTesting(itImage->fold)) {
+					dataTesting.push_back(itImage->features);
+					labelsTesting.at<int>(dataTesting.rows-1, 0) = it->id;
 				}
 			}
-			else {
+		}
+
+		if (dataTraining.rows == 0) {
+			for (it = data.begin(); it != data.end(); ++it) {
+
+				numImages = it->images.size();
+				numTraining = ceil(numImages * trainingRatio);
+
 				/* Generate a random position for each training data */
 				rand_training = 0;
-				while (rand_training < trainingNumber[it->classNumber]) {
-					pos = rand() % img_by_class[it->classNumber];
+				while (rand_training < numTraining) {
+					pos = rand() % numImages;
 					if (!count(vectorRand.begin(), vectorRand.end(), pos)) {
-						Mat features(it->images[x].features, false);
-						Mat tmp = dataTraining.row(count_training);
-						features.copyTo(tmp);
-						labelsTraining.at<int>(count_training, 0) = it->classNumber;
+						dataTraining.push_back(it->images[pos].features);
+						labelsTraining.at<int>(dataTraining.rows-1, 0) = it->id;
 						rand_training++;
-						count_training++;
 						vectorRand.push_back(pos);
 					}
 				}
-			}
-			// After selecting the training set, the testing set it is going to be
-			// the rest of the whole set
-			for (i = 0; i < it->images.size(); i++) {
-				if (!count(vectorRand.begin(), vectorRand.end(), i)) {
-					Mat features(it->images[x].features, false);
-					Mat tmp = dataTesting.row(count_testing);
-					features.copyTo(tmp);
-					labelsTesting.at<int>(count_testing, 0) = it->classNumber;
-					count_testing++;
+				// After selecting the training set, the testing set it is going to be
+				// the rest of the whole set
+				for (i = 0; i < it->images.size(); i++) {
+					if (!count(vectorRand.begin(), vectorRand.end(), i)) {
+						dataTesting.push_back(it->images[pos].features);
+						labelsTesting.at<int>(dataTesting.rows-1, 0) = it->id;
+					}
 				}
+				vectorRand.clear();
 			}
-			vectorRand.clear();
 		}
 
+		for (i = 0; i < numClasses; i++) {
+	    cout << "\tTraining: " << dataTraining.rows << endl;
+	    cout << "\tTesting: " << dataTesting.rows << endl;
+		}
 
 		/* Train and predict using the Normal Bayes classifier */
 		//Classifier::bayesClassifier(dataTraining, labelsTraining, dataTesting, result);
@@ -421,20 +389,7 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 		accuracy.push_back((double)hits*100.0/(double)totalTest);
 
 		confusionMat = confusionMatrix(numClasses, labelsTesting, result, 1);
-		// if (confusionMat.rows == 2){
-		// 	minorNumber = img_by_class[0];
-		// 	minorityClass = 0;
-		// 	for (class_id = 0; class_id < (int) img_by_class.size(); class_id++) {
-		// 		if (img_by_class[class_id] < minorNumber) {
-		// 			minorNumber = img_by_class[class_id];
-		// 			minorityClass = class_id;
-		// 		}
-		// 	}
-		// 	// This only pushes the minority class fscore
-		// 	vector<double> fscoreMinority;
-		// 	fscoreMinority.push_back(calculateFscore(confusionMat)[minorityClass]);
-		// }
-		// else {
+
 		fscoreClasses = calculateFscore(confusionMat);
 		if (fscore.size() == 0) {
 			for (i = 0; i < numClasses; i++) {

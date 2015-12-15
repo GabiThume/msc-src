@@ -35,74 +35,149 @@ Master's thesis in Computer Science
 
 #include "utils/rebalance.h"
 
-/*******************************************************************************
-Generate a imbalanced class
-Requires:
-- vector<Classes>
-- int
-- string
-*******************************************************************************/
-string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmote) {
+void Rebalance::ShuffleImages(vector<Image> *img){
 
-  int majority = -1, majorityClass = -1, eachClass, amountSmote, countImg = 0;
-  int i, x, neighbors, pos, total, h, w;
-  int samples, index;
-  vector<int> trainingNumber(imbalancedData.size(), 0);
-  std::vector<Classes>::iterator it;
-  vector<Classes> rebalancedData;
-  stringstream numberOfImages;
-  ofstream arq;
-  Mat synthetic;
-  SMOTE s;
+  int i, k, numImages;
+  Image aux;
 
-  for (it = imbalancedData.begin(); it != imbalancedData.end(); ++it){
-    if (it->fixedTrainOrTest){
-      for(i = 0; i < it->images.size(); ++i){
-        if (it->images[i].isFreeTrainOrTest == 1)
-          trainingNumber[it->classNumber]++;
+  numImages = (*img).size();
+  for (i = numImages-1; i > 1; i--) {
+    k = rand()%i;
+    // Swap with k position
+    aux = (*img)[i];
+    (*img)[i] = (*img)[k];
+    (*img)[k] = aux;
+  }
+}
+
+// Arrange original images in k folds each, creating k fold_i.txt files
+void Rebalance::SeparateInFolds(vector<ImageClass> *original_data, int k) {
+
+  int i, j, fold, numClasses, numImages, resto, imgsInThisFold, imgTotal, next;
+  Mat labels, trainTest, isGenerated, img;
+
+  numClasses = (*original_data).size();
+  for (i = 0; i < numClasses; i++) {
+    resto = 0; next = 0;
+
+    ShuffleImages(&(*original_data)[i].images);
+
+    numImages = (*original_data)[i].images.size();
+    for (fold = 0; fold < k; fold++) {
+      // If the number of images per fold is less than the total, increase each extra image in a fold
+      imgsInThisFold = floor(numImages/k);
+      if (numImages % k > resto) {
+        imgsInThisFold++;
+        resto++;
+      }
+      // For each image requested for this fold, add the fold indication
+      for (j = 0; j < imgsInThisFold; j++) {
+        (*original_data)[i].images[next].fold = fold;
+        next++;
       }
     }
-    else {
-      trainingNumber[it->classNumber] = it->images.size()/2.0;
-    }
-    if (trainingNumber[it->classNumber] > majority){
-      majorityClass = it->classNumber;
-      majority = trainingNumber[it->classNumber];
-    }
   }
+}
 
-  total = 0;
-  for (eachClass = 0; eachClass < (int) imbalancedData.size(); ++eachClass) {
+vector<vector<double> > Rebalance::classify(string descriptorFile, int repeat, double prob, string csv) {
+  Classifier c;
+  int minoritySize, numClasses;
+  vector<vector<double> > fscore;
+  // Read the feature vectors
+  vector<ImageClass> data = ReadFeaturesFromFile(descriptorFile);
+  numClasses = data.size();
+  if (numClasses != 0){
+    cout << "---------------------------------------------------------------------------------------" << endl;
+    cout << "Features vectors file: " << descriptorFile.c_str() << endl;
+    cout << "---------------------------------------------------------------------------------------" << endl;
+    c.findSmallerClass(data, &minoritySize);
+    fscore = c.classify(prob, repeat, data, csv.c_str(), minoritySize);
+    data.clear();
+  }
+  return fscore;
+}
 
-    Mat dataTraining(0, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
-    Mat dataTesting(0, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
-    Mat dataRaw(0, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
+void Rebalance::performFeatureExtraction(vector<ImageClass> *data, int extractMethod, int grayMethod) {
 
-    cout << "In class " << eachClass << " were found " << trainingNumber[eachClass] << " original training images"<< endl;
+  int dataClass, image;
+  Mat img, newimg;
+
+  cout << "\n---------------------------------------------------------" << endl;
+  cout << "Image feature extraction using " << extractor.getName(extractMethod-1);
+  cout << " and " << quantization.getName(grayMethod-1) << endl;
+  cout << "-----------------------------------------------------------" << endl;
+
+  for (dataClass = 0; dataClass < (*data).size(); dataClass++) {
+    for (image = 0; image < (*data)[dataClass].images.size(); image++) {
+
+      img = imread((*data)[dataClass].images[image].path, CV_LOAD_IMAGE_COLOR);
+      if (!img.empty()) {
+
+        img.copyTo(newimg);
+        if (resizeFactor != 1.0) {
+          // Resize the image given the input factor
+          cv::resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
+        }
+
+        // Convert the image to grayscale
+        quantization.convert(quantization, newimg, &newimg);
+
+        // Call the description method
+        extractor.extract(method, newimg, &(*data)[dataClass].images[image].features);
+        if ((*data)[dataClass].images[image].features.cols == 0) {
+          cout << "Error: the feature vector is null" << endl;
+          exit(1);
+        }
+
+        img.release();
+        newimg.release();
+      }
+  }
+}
+
+string Rebalance::PerformSmote(vector<ImageClass> imbalancedData, int operation) {
+
+  int biggestTraining, trainingInThisClass, amountSmote, numFeatures;
+  int neighbors;
+  std::vector<ImageClass>::iterator it;
+  Mat synthetic;
+  SMOTE s;
+  string name;
+
+  biggestTraining = imbalancedData.numTrainingImages(imbalancedData.biggestTrainingClass());
+
+  for (itClass = imbalancedData.begin(); itClass != imbalancedData.end(); ++itClass) {
+
     /* Find out how many samples are needed to rebalance */
-    amountSmote = trainingNumber[majorityClass] - trainingNumber[eachClass];
+    trainingInThisClass = imbalancedData.numTrainingImages(itClass->id);
+    cout << "In class " << itClass->id << " were found " << trainingInThisClass << " original training images"<< endl;
+    amountSmote = biggestTraining - trainingInThisClass;
     cout << "Amount to smote: " << amountSmote << " samples" << endl;
-    if (amountSmote > 0){
+    numFeatures = imbalancedData.numFeatures(itClass->id);
+
+    if (amountSmote > 0) {
+      Mat dataTraining(0, numFeatures, CV_32FC1);
+
       //neighbors = 5;
-      neighbors = (double)trainingNumber[majorityClass]/(double)trainingNumber[eachClass];
+      neighbors = (double)biggestTraining/(double)trainingInThisClass;
       cout << "Number of neighbors: " << neighbors << endl;
-      cout << "imbalancedData[eachClass].images.size() " << imbalancedData[eachClass].images.size() << endl;
-      for (x = 0; x < imbalancedData[eachClass].images.size(); ++x){
-        if (imbalancedData[eachClass].images[x].isFreeTrainOrTest == 1){
-          dataTraining.push_back(imbalancedData[eachClass].images[x].features);
-        } else if (imbalancedData[eachClass].images[x].isFreeTrainOrTest == 2){
-          dataTesting.push_back(imbalancedData[eachClass].images[x].features);
-        } else {
-          dataRaw.push_back(imbalancedData[eachClass].images[x].features);
+      cout << "Number of images in class: " << itClass->images.size() << endl;
+
+      for (itImage = imbalancedData[eachClass].images.begin();
+          itImage != imbalancedData[eachClass].images.end();
+          ++itImage){
+        if (imbalancedData.isTraining(imbalancedData[eachClass].id, itImage->fold)) {
+          dataTraining.push_back(itImage->features);
         }
       }
 
-      cout << dataTraining.rows << " " << dataTesting.rows << endl;
-      if (dataTraining.rows > 0 && dataTesting.rows > 0) {
+      cout << "Number of training in class: " << dataTraining.size() << endl;
+      if (dataTraining.rows > 0) {
         if (operation != 0){
           synthetic = s.smote(dataTraining, amountSmote, neighbors);
-        } else {
-          synthetic.create(amountSmote, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
+        }
+        else {
+          synthetic.create(amountSmote, numFeatures, CV_32FC1);
           for (x = 0; x < amountSmote; x++){
             pos = rand() % (dataTraining.size().height);
             Mat tmp = synthetic.row(x);
@@ -112,220 +187,23 @@ string PerformSmote(vector<Classes> imbalancedData, int operation, string csvSmo
 
         cout << "SMOTE generated " << amountSmote << " new synthetic samples" << endl;
 
+        Image newSample;
         /* Concatenate original with synthetic data*/
-        Classes imgClass;
-        Image img;
-        imgClass.classNumber = eachClass;
-
-        // Training
-        for (samples = 0; samples < dataTraining.rows; samples++) {
-          dataTraining.row(samples).copyTo(img.features);
-          img.isFreeTrainOrTest = 1;
-          img.isGenerated = 0;
-          img.path = imbalancedData[eachClass].images[samples].path;
-          imgClass.images.push_back(img);
-        }
-        // New synthethic examples
         for (index = 0; index < synthetic.rows; index++) {
-          synthetic.row(index).copyTo(img.features);
-          img.isFreeTrainOrTest = 2;
-          img.isGenerated = 1;
-          img.path = "smote";
-          imgClass.images.push_back(img);
+          synthetic.row(index).copyTo(newSample.features);
+          newSample.isFreeTrainOrTest = 1;
+          newSample.isGenerated = true;
+          newSample.path = "smote";
+          itClass->images.push_back(newSample);
         }
-        // Testing
-        for (index = 0; index < dataTesting.rows; samples++, index++) {
-          dataTesting.row(index).copyTo(img.features);
-          img.isFreeTrainOrTest = 2;
-          img.isGenerated = 1;
-          img.path = imbalancedData[eachClass].images[samples].path;
-          imgClass.images.push_back(img);
-        }
-
-        rebalancedData.push_back(imgClass);
-        total += imgClass.images.size();
+        total += imgClass.images.size(); //??
         dataTraining.release();
         synthetic.release();
-        dataTesting.release();
-      } else if (dataRaw.rows > 0) {
-        // Mat data(0, imbalancedData[eachClass].images[0].features.size(), CV_32FC1);
-        // for (samples = 0; samples < imbalancedData[eachClass].images.size(); samples++) {
-        //   data.push_back(imbalancedData[eachClass].images[samples].features);
-        // }
-
-        synthetic = s.smote(dataRaw, amountSmote, neighbors);
-        cout << "SMOTE generated " << synthetic.rows << " new synthetic samples" << endl;
-        Classes imgClass;
-        Image img;
-
-        imgClass.classNumber = eachClass;
-        for (samples = 0; samples < imbalancedData[eachClass].images.size(); samples++) {
-          img.features = imbalancedData[eachClass].images[samples].features;
-          img.isFreeTrainOrTest = 0;
-          img.isGenerated = 0;
-          img.path = imbalancedData[eachClass].images[samples].path;
-          imgClass.images.push_back(img);
-        }
-        for (samples = 0; samples < synthetic.rows; samples++) {
-          synthetic.row(samples).copyTo(img.features);
-          img.isFreeTrainOrTest = 0;
-          img.isGenerated = 1;
-          img.path = "smote";
-          imgClass.images.push_back(img);
-        }
-
-        rebalancedData.push_back(imgClass);
-        total += imgClass.images.size();
       }
-    } else {
-      rebalancedData.push_back(imbalancedData[eachClass]);
-      total += imbalancedData[eachClass].images.size();
     }
   }
 
-  numberOfImages.str("");
-  numberOfImages << total;
+  name = imbalancedData.writeFeatures("smote");
 
-  string name = csvSmote + numberOfImages.str()+"i_smote.csv";
-  arq.open(name.c_str(), ios::out);
-  if (!arq.is_open()) {
-    cout << "It is not possible to open the feature's file: " << name << endl;
-    exit(-1);
-  }
-  arq << total << ',' << rebalancedData.size() << ',' << rebalancedData[0].images[0].features.size() << endl;
-  for(std::vector<Classes>::iterator it = rebalancedData.begin(); it != rebalancedData.end(); ++it) {
-    for (h = 0; h < it->images.size(); h++){
-      arq << it->images[h].path << ',' << it->classNumber << ',' << it->images[h].isFreeTrainOrTest << ',';
-      arq << it->images[h].isGenerated << ',';
-      for (w = 0; w < it->images[0].features.cols-1; w++){
-        arq << it->images[h].features[w] << ",";
-      }
-      arq << it->images[h].features[w] << endl;
-      countImg++;
-    }
-  }
-  arq.close();
-  cout << "---------------------------------------------------------------------------------------" << endl;
-  cout << "Wrote on data file named " << name << endl;
-  cout << "---------------------------------------------------------------------------------------" << endl;
   return name;
-}
-
-/*******************************************************************************
-Generate a imbalanced class
-Requires:
-- string
-- string
-- double
-- double
-*******************************************************************************/
-string RemoveSamples(string database, string newDir, double prob, double id) {
-
-  int pos = 0, samples, imagesTraining, i, imgsInClass, x, qtdClasses;
-  int prev, count_diff, treino, num_images, imagesTesting;
-  vector<int> vectorRand, objperClass;
-  string str, nameFile, name, nameDir, directory, dir;
-  stringstream numImages, classNumber, image, globalFactor;
-  Size size;
-  ifstream myFile;
-  Mat data, classes;
-  double fator = 1.0;
-
-  // Check how many classes and images there are
-  directory = database+"/";
-  qtdClasses = qtdArquivos(directory);
-  if (qtdClasses < 2) {
-    cout << "Error. There is less than two classes in " << directory << endl;
-    exit(-1);
-  }
-  NumberImgInClass(directory, 0, &prev, &treino);
-  imagesTesting = prev;
-  count_diff = 0;
-  for (i = 1; i < qtdClasses; i++) {
-    NumberImgInClass(database, i, &num_images, &treino);
-    if (num_images < imagesTesting) imagesTesting = num_images;
-    count_diff = count_diff + abs(num_images - prev);
-    prev = num_images;
-  }
-  imagesTesting = imagesTesting*prob;
-  if (count_diff == 0) {
-    cout << "\n\n------------------------------------------------------------------------------------" << endl;
-    cout << "Divide the number of original samples to create a minority class:" << endl;
-    cout << "---------------------------------------------------------------------------------------" << endl;
-  }
-
-  globalFactor << id;
-  dir = newDir+"/Imbalance-"+globalFactor.str()+"/";
-  str = "rm -f -r "+dir+"*;"+"mkdir -p "+dir+";";
-  str += "cp -r "+database+"* "+dir+";";
-  system(str.c_str());
-
-  for(i = 0; i < qtdClasses; i++) {
-    classNumber.str("");
-    classNumber << i;
-    directory = database + "/" + classNumber.str()  + "/";
-    imgsInClass = qtdArquivos(directory);
-    if (imgsInClass == 0){
-      fprintf(stderr,"Error! There is no directory named %s\n", directory.c_str());
-      exit(-1);
-    }
-    samples = ceil((1.0 + fator)*imgsInClass*prob);
-    if (samples > 0){
-
-      numImages.str("");
-      numImages << vectorRand.size();
-
-      //str = "rm "+dir+classNumber.str()+"/*;";
-      str = "rm -f -r "+dir+classNumber.str()+"/*;";
-      str += "mkdir -p "+dir+classNumber.str()+"/treino/;";
-      str += "mkdir -p "+dir+classNumber.str()+"/teste/;";
-
-      //cout << " Executa " << str.c_str() << endl;
-      system(str.c_str());
-
-      /* Generate a random position to select samples to create the minority class */
-      while ((int)vectorRand.size() < samples) {
-        pos = rand() % imgsInClass;
-        if (!count(vectorRand.begin(), vectorRand.end(), pos)){
-          vectorRand.push_back(pos);
-        }
-      }
-
-      /* Copy some of the originals to a training folder */
-      // imagesTraining = vectorRand.size()*prob;
-      imagesTraining = vectorRand.size() - imagesTesting;
-      for(x = 0; x < imagesTraining; x++){
-        image.str("");
-        image << vectorRand[x];
-        str = "cp "+database+classNumber.str()+"/"+image.str()+".png ";
-        str+= dir+classNumber.str()+"/treino/; ";
-        system(str.c_str());
-        //cout << " Executa " << str.c_str() << endl;
-      }
-
-      /* Copy the rest of originals to a testing folder */
-      for(x = imagesTraining; x < (int)vectorRand.size(); x++){
-        image.str("");
-        image << vectorRand[x];
-        str = "cp "+database+classNumber.str()+"/"+image.str()+".png ";
-        str+= dir+classNumber.str()+"/teste/;";
-        system(str.c_str());
-        //cout << " Executa " << str.c_str() << endl;
-      }
-
-      str = "bash scripts/rename.sh "+dir+classNumber.str()+"/";
-      system(str.c_str());
-
-      vectorRand.clear();
-    }
-    if (count_diff == 0) {
-      // fator -= id/(double)qtdClasses;
-      if (id != 1.0) {
-        fator -= (1.0 - id);
-      } else {
-        fator -= 1.0/(double)qtdClasses;
-      }
-    }
-  }
-  return dir;
 }

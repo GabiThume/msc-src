@@ -1,8 +1,43 @@
-int Data::numClasses(void) {
-	return static<int>(classes.size());
-}
+/*
+Copyright (c) 2015, All rights reserved.
 
-int Data::numTrainingImages(int class) {
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Gabriela Thumé nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Authors:  Gabriela Thumé (gabithume@gmail.com)
+          Moacir Antonelli Ponti (moacirponti@gmail.com)
+Universidade de São Paulo / ICMC
+Master's thesis in Computer Science
+*/
+
+#include <vector>
+
+#include "utils/data.h"
+
+int Data::numTrainingImages(int id) {
 
 	int numberImages = 0;
 	int fold;
@@ -10,7 +45,7 @@ int Data::numTrainingImages(int class) {
 	vector<ImageClass>::iterator itClass;
 
 	for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
-		if (itClass->id == class){
+		if (itClass->id == id){
 			for(itImage = itClass->images.begin(); itImage != itClass->images.end(); ++itImage) {
 				for (fold = 0; fold < itClass->training_fold.size(); fold++) {
 					if (itImage->fold == itClass->training_fold[fold]) {
@@ -24,7 +59,7 @@ int Data::numTrainingImages(int class) {
 	return numberImages;
 }
 
-int Data::numTestingImages(int class) {
+int Data::numTestingImages(int id) {
 
 	int numberImages = 0;
 	int fold;
@@ -32,7 +67,7 @@ int Data::numTestingImages(int class) {
 	vector<ImageClass>::iterator itClass;
 
 	for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
-		if (itClass->id == class){
+		if (itClass->id == id){
 			for(itImage = itClass->images.begin(); itImage != itClass->images.end(); ++itImage) {
 				for (fold = 0; fold < itClass->testing_fold.size(); fold++) {
 					if (itImage->fold == itClass->testing_fold[fold]) {
@@ -64,6 +99,23 @@ int Data::biggestClass(void) {
 	return biggestClass;
 }
 
+int Data::biggestTrainingClass(void) {
+
+	double biggest = -1;
+	int biggestClass = -1;
+	vector<ImageClass>::iterator itClass;
+
+	for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
+		trainingImages = numTrainingImages(itClass->id);
+		if (trainingImages + testingImages > biggest) {
+			biggest = trainingImages + testingImages;
+			biggestClass = itClass->id;
+		}
+	}
+
+	return biggestClass;
+}
+
 int Data::smallerClass(void) {
 
 	double smaller = std::numeric_limits<double>::infinity();
@@ -82,13 +134,13 @@ int Data::smallerClass(void) {
 	return smallerClass;
 }
 
-int Data::isFreeTrainOrTest(int class, int fold) {
+int Data::isFreeTrainOrTest(int id, int fold) {
 
 	int freeTrainOrTest = 0;
 	vector<ImageClass>::iterator itClass;
 
 	for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
-		if (itClass->id == class){
+		if (itClass->id == id){
 			for (fold = 0; fold < itClass->training_fold.size(); fold++) {
 				if (fold == itClass->training_fold[fold]) {
 					freeTrainOrTest == 1;
@@ -103,6 +155,42 @@ int Data::isFreeTrainOrTest(int class, int fold) {
 	}
 
 	return freeTrainOrTest;
+}
+
+bool Data::isTraining(int id, int fold) {
+  bool = training;
+  training = if Data::isFreeTrainOrTest(id, fold) == 1 ? true : false;
+  return training;
+}
+
+bool Data::isTesting(int id, int fold) {
+  bool = training;
+  training = if Data::isFreeTrainOrTest(id, fold) == 2 ? true : false;
+  return training;
+}
+
+
+int Data::numClasses(void) {
+  return static<int>(classes.size());
+}
+
+
+int Data::numFeatures(void) {
+
+  int num = 0;
+  vector<ImageClass>::iterator itClass;
+  vector<Images>::iterator itImage;
+
+  for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
+    for (itImage = itClass->images.begin();
+        itImage != itClass->images.end();
+        ++itImage) {
+      num = itImage->features.size();
+      return num;
+    }
+  }
+
+  return num;
 }
 
 int Data::isOriginalSmoteOrGenerated(int class, int fold) {
@@ -239,6 +327,9 @@ string Data::writeFeatures(string id) {
 		}
 	}
 
+  cout << "---------------------------------------------------------------------------------------" << endl;
+  cout << "Wrote on data file named " << name << endl;
+  cout << "---------------------------------------------------------------------------------------" << endl;
   arq.close();
   return name;
 }

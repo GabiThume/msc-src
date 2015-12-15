@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "utils/funcoesArquivo.h"
+#include "utils/data.h"
 #include "classification/classifier.h"
 
 using namespace cv;

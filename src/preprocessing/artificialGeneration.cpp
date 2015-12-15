@@ -469,7 +469,7 @@ void Artificial::GenerateImage(vector<Mat> images, string name, int total,
 	}
 }
 
-vector<Classes> Artificial::generateImagesFromData(vector<Classes> original_data,
+vector<ImageClass> Artificial::generateImagesFromData(vector<ImageClass> original_data,
 																					string newDirectory,
 																					int whichOperation){
 
@@ -481,8 +481,8 @@ vector<Classes> Artificial::generateImagesFromData(vector<Classes> original_data
 	DIR *dir = NULL, *minDir = NULL;
 	vector<int> totalImage, vectorRand;
 	vector<Mat> images;
-	vector<Classes> generatedData;
-	Classes thisClass;
+	vector<ImageClass> generatedData;
+	ImageClass thisClass;
 	Image newImage;
 
 	cout << "\n---------------------------------------------------------" << endl;

@@ -46,7 +46,7 @@ Requires:
 - Q: image to store quantized version
 - num_colors: number of colors after quantization
 *******************************************************************************/
-void QuantizationIntensity(Mat I, Mat *Q, int num_colors) {
+void GrayscaleConversion::Intensity(Mat I, Mat *Q, int num_colors) {
   if (I.channels() == 1) return;
 
   vector<Mat> imColors(3);
@@ -59,11 +59,11 @@ void QuantizationIntensity(Mat I, Mat *Q, int num_colors) {
   (*Q) = imColors[0]/3.0 + imColors[1]/3.0 + imColors[2]/3.0;
 
   // Gamma correction after quantization
-  correctGamma(Q, 2.2);
+  GrayscaleConversion::correctGamma(Q, 2.2);
 
   // Reduce number of colors if necessary
   if (num_colors < 256) {
-    reduceImageColors(Q, num_colors);
+    GrayscaleConversion::reduceImageColors(Q, num_colors);
   }
 }
 
@@ -77,7 +77,7 @@ Requires
 - Q: image to store quantized version
 - num_colors: number of colors after quantization
 *******************************************************************************/
-void QuantizationGleam(Mat I, Mat *Q, int num_colors) {
+void GrayscaleConversion::Gleam(Mat I, Mat *Q, int num_colors) {
   if (I.channels() == 1) return;
 
   vector<Mat> imColors(3);
@@ -85,16 +85,16 @@ void QuantizationGleam(Mat I, Mat *Q, int num_colors) {
 
   split(I, imColors);
 
-  correctGamma(&(imColors[0]), 2.2);
-  correctGamma(&(imColors[1]), 2.2);
-  correctGamma(&(imColors[2]), 2.2);
+  GrayscaleConversion::correctGamma(&(imColors[0]), 2.2);
+  GrayscaleConversion::correctGamma(&(imColors[1]), 2.2);
+  GrayscaleConversion::correctGamma(&(imColors[2]), 2.2);
 
   // Sum 1/3 of each channel using gamma corrected pixels
   (*Q) = imColors[0]/3.0 + imColors[1]/3.0 + imColors[2]/3.0;
 
   // Reduce number of colors if necessary
   if (num_colors < 256) {
-    reduceImageColors(Q, num_colors);
+    GrayscaleConversion::reduceImageColors(Q, num_colors);
   }
 }
 
@@ -110,7 +110,7 @@ Requires
 - Q: image to store quantized version
 - nColor : number of colors after quantization
 *******************************************************************************/
-void QuantizationLuminance(Mat I, Mat *Q, int num_colors) {
+void GrayscaleConversion::Luminance(Mat I, Mat *Q, int num_colors) {
   if (I.channels() == 1) return;
 
   vector<Mat> imColors(3);
@@ -123,11 +123,11 @@ void QuantizationLuminance(Mat I, Mat *Q, int num_colors) {
   (*Q) = 0.299*imColors[2] + 0.587*imColors[1] + 0.114*imColors[0];
 
   // Gamma correction
-  correctGamma(Q, 2.2);
+  GrayscaleConversion::correctGamma(Q, 2.2);
 
   // Reduce number of colors if necessary
   if (num_colors < 256) {
-    reduceImageColors(Q, num_colors);
+    GrayscaleConversion::reduceImageColors(Q, num_colors);
   }
 }
 
@@ -142,7 +142,7 @@ Requires
 - Q: image to store quantized version
 - nColor : number of colors after quantization
 *******************************************************************************/
-void QuantizationLuma(Mat I, Mat *Q, int num_colors) {
+void GrayscaleConversion::Luma(Mat I, Mat *Q, int num_colors) {
   if (I.channels() == 1) return;
 
   vector<Mat> imColors(3);
@@ -151,16 +151,16 @@ void QuantizationLuma(Mat I, Mat *Q, int num_colors) {
   // split image in RGB channels
   split(I, imColors);
 
-  correctGamma(&(imColors[0]), 2.2);
-  correctGamma(&(imColors[1]), 2.2);
-  correctGamma(&(imColors[2]), 2.2);
+  GrayscaleConversion::correctGamma(&(imColors[0]), 2.2);
+  GrayscaleConversion::correctGamma(&(imColors[1]), 2.2);
+  GrayscaleConversion::correctGamma(&(imColors[2]), 2.2);
 
   // Weighted combination considering input image is BGR
   (*Q) = 0.2126*imColors[2] + 0.7152*imColors[1] + 0.0722*imColors[0];
 
   // Reduce number of colors if necessary
   if (num_colors < 256) {
-    reduceImageColors(Q, num_colors);
+    GrayscaleConversion::reduceImageColors(Q, num_colors);
   }
 }
 
@@ -177,7 +177,7 @@ Requires
 - Q: image to store quantized version
 - num_colors: number of colors after quantization
 *******************************************************************************/
-void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
+void GrayscaleConversion::MSB(Mat I, Mat *Q, int num_colors) {
   if (I.channels() == 1) return;
 
   int bitsc, rest, k;
@@ -235,7 +235,7 @@ void QuantizationMSB(Mat I, Mat *Q, int num_colors) {
     // cout << "New pixel: " << p << " : " << (int) new_color << endl;
   }
   if (num_colors < 256) {
-    reduceImageColors(Q, num_colors);
+    GrayscaleConversion::reduceImageColors(Q, num_colors);
   }
 }
 
@@ -253,7 +253,7 @@ Requires
 - Q: image to store quantized version
 - num_colors: number of colors after quantization
 *******************************************************************************/
-void QuantizationMSBModified(Mat I, Mat *Q, int num_colors) {
+void GrayscaleConversion::MSBModified(Mat I, Mat *Q, int num_colors) {
   if (I.channels() == 1) return;
 
   int bitsc, rest, k, color, b;
@@ -304,6 +304,123 @@ void QuantizationMSBModified(Mat I, Mat *Q, int num_colors) {
     (*itQ) = saturate_cast<uchar>(green_msb | red_msb | blue_msb);
   }
   if (num_colors < 256) {
-    reduceImageColors(Q, num_colors);
+    GrayscaleConversion::reduceImageColors(Q, num_colors);
   }
+}
+
+
+
+/*******************************************************************************
+    Plot in a window the input histogram
+
+    Requires:
+    - Mat histogram :
+*******************************************************************************/
+void GrayscaleConversion::PlotHistogram(Mat hist) {
+  int bins = hist.rows, j;
+  normalize(hist, hist, 0, bins, NORM_MINMAX, -1, Mat());
+
+  Mat hist_img(bins, bins, CV_8UC1, Scalar(0,0,0));
+  for (j = 1; j < bins; j++) {
+    line(hist_img,
+      Point((j-1), bins - cvRound(hist.at<float>(j-1))),
+      Point(j, bins - cvRound(hist.at<float>(j))),
+      Scalar(255, 255, 255), 1, 8, 0);
+  }
+
+  namedWindow("histogram", CV_WINDOW_AUTOSIZE );
+  imshow("histogram", hist_img);
+  waitKey(0);
+}
+
+/*******************************************************************************
+    Gamma correction (power transformation)
+
+        Controls the overall brightness of an image:
+            gammaCorrectedImage = image ^ (1/crt_gamma)
+
+    Requires:
+    - Mat image to be processed
+    - double gamma correction parameter
+*******************************************************************************/
+void GrayscaleConversion::correctGamma(Mat *I, double gamma) {
+
+    Mat result, lut_matrix(1, 256, CV_8UC1);
+    uchar *ptr = lut_matrix.ptr();
+    double iGamma = 1.0 / gamma;
+    int i, img_channels = (*I).channels();
+
+    // Create a lookup table with a grayscale color ajusted for each color
+    for (i = 0; i < 256; i++ ) {
+        ptr[i] = saturate_cast<uchar>(pow((double)i/255.0, iGamma) * 255.0);
+    }
+
+    vector<Mat> channel(img_channels);
+    split((*I), channel);
+
+    for (i = 0; i < img_channels; i++) {
+      // Apply the correction in lutMatrix on input img
+      LUT(channel[i], lut_matrix, channel[i]);
+    }
+
+    merge(channel, (*I));
+  }
+
+/*******************************************************************************
+    Reduce the number of colors in a single channel image
+
+    Requires:
+    - I: input image to be modified
+    - nColors: final number of colors
+*******************************************************************************/
+void GrayscaleConversion::reduceImageColors(Mat *img, int nColors) {
+
+	double min = 0, max = 0, stretch;
+	Point maxLoc, minLoc;
+  int i, img_channels = (*img).channels();
+  vector<Mat> channel(img_channels);
+  split((*img), channel);
+
+  nColors = (nColors > 256) ? 256 : nColors;
+
+  for (i = 0; i < img_channels; i++) {
+    minMaxLoc(channel[i], &min, &max, &minLoc, &maxLoc);
+    stretch = ((double)((nColors -1)) / (max - min));
+    channel[i] = channel[i] - min;
+    channel[i] = channel[i] * stretch;
+  }
+
+  merge(channel, (*img));
+}
+
+void GrayscaleConversion::convert(int method, Mat img, Mat *gray) {
+
+  switch (method) {
+    case 1:
+      GrayscaleConversion::Intensity(img, gray, colors);
+      break;
+    case 2:
+      GrayscaleConversion::Luminance(img, gray, colors);
+      break;
+    case 3:
+      GrayscaleConversion::Gleam(img, gray, colors);
+      break;
+    case 4:
+      GrayscaleConversion::MSB(img, gray, colors);
+      break;
+    case 5:
+      GrayscaleConversion::MSBModified(img, gray, colors);
+      break;
+    case 6: // Keep in BRG
+      break;
+    case 7: // Convert BGR -> HSV
+      cv::cvtColor(img, (*gray), CV_BGR2HSV);
+      break;
+    default:
+      cout << "Error: quantization method " << method;
+      cout << " does not exists." << endl;
+  }
+  // namedWindow("Display window", WINDOW_AUTOSIZE );
+  // imshow("Grayscale Image", *gray);
+  // waitKey(0);
 }

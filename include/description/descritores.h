@@ -39,17 +39,12 @@ Master's thesis in Computer Science
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
 #include <math.h>
-#include "utils/funcoesAux.h"
 #include <opencv2/nonfree/nonfree.hpp>
-
-// #include "vlfeat/vl/sift.h"
-#include <vl/sift.h>
 
 using namespace cv;
 using namespace std;
 
 const string quantizationMethod[7] = {"Intensity", "Luminance", "Gleam", "MSB", "MSBModified", "BGR", "HSV"};
-const string descriptorMethod[9] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"};
 
 typedef struct {
     int i;
@@ -57,18 +52,69 @@ typedef struct {
     uchar color;
 } Pixel;
 
-void find_neighbor(Mat img, queue<Pixel> *pixels, int *visited, long int *tam_reg);
-void CCV(Mat img, Mat *features, int nColor, int oNorm, int threshold);
-void GCH(Mat I, Mat *features, int nColor, int oNorm);
-void BIC(Mat I, Mat *features, int nColor, int oNorm);
-void CoocurrenceMatrix(Mat img, vector< vector<double> > *co_occurence,
-                      int colors, int distance, int angle);
-void Haralick6(vector< vector<double> > co_occurence, Mat *features);
-void CalculateHARALICK(Mat img, Mat *features, int colors, int normalization);
-void HARALICK(Mat img, Mat *features, int colors, int normalization);
-void ACC(Mat I, Mat *features, int colors, int normalization, vector<int> distances);
-void LBP(Mat img, Mat *features, int colors, int normalization);
-void HOG(Mat img, Mat *features, int colors, int normalization);
-void contourExtraction(Mat Img, Mat *features, int colors, int normalization);
+class FeatureExtraction {
+
+    string descriptors[9] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"};
+  public:
+    int numColors;
+    int normalization;
+    int ccvThreshold;
+    double resizeFactor;
+    vector<int> accDistances;
+
+    FeatureExtraction(int, int);
+
+    string getName(int method);
+
+    void extract(int method, Mat img, Mat *features);
+
+    void VerifyNeighborPixel(Mat img, int index_height, int index_width,
+      uchar pixel_color, vector< vector<bool> > *visited, queue<Pixel> *pixels,
+      int *size_region);
+    void FindNeighbor(Mat img, vector< vector<bool> > *visited,
+      queue<Pixel> *pixels, int *size_region);
+    void CalculateCCV(Mat img, Mat *features);
+    void CCV(Mat img, Mat *features);
+
+    void CalculateGCH(Mat img, Mat *features);
+    void GCH(Mat img, Mat *features);
+
+    void CalculateBIC(Mat img, Mat *features);
+    void BIC(Mat img, Mat *features);
+
+    vector<int> NearestNeighborAngle(int row, int col, int distance, int angle);
+
+    void CoocurrenceMatrix(Mat img,
+      vector< vector<double> > *co_occurence, int distance, int angle);
+    void Haralick6(vector< vector<double> > co_occurence,
+      Mat *features);
+    void CalculateHARALICK(Mat img, Mat *features);
+    void HARALICK(Mat img, Mat *features);
+
+    vector < vector<int> > ChessboardNeighbors(int row, int col,
+      int distance);
+    void CalculateACC(Mat I, Mat *features);
+    void ACC(Mat img, Mat *features);
+
+    vector<int> initUniform();
+    void CalculateLBP(Mat img, Mat *features);
+    void LBP(Mat img, Mat *features);
+
+    void CalculateHOG(Mat img, Mat *features);
+    void HOG(Mat img, Mat *features);
+
+    void CalculateContour(Mat img, Mat *features);
+    void contourExtraction(Mat img, Mat *features);
+
+    void RemoveNullColumns(Mat *features);
+    void ZScoreNormalization(Mat *features);
+    void MaxMinNormalization(Mat *features);
+
+};
+
+FeatureExtraction::FeatureExtraction(int colors, int norm) {
+  numColors = colors;
+  normalization = norm;
+}
 
 #endif

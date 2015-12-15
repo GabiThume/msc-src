@@ -44,13 +44,33 @@ Master's thesis in Computer Science
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
-#include "utils/funcoesAux.h"
+class GrayscaleConversion {
 
-void QuantizationIntensity(Mat I, Mat *Q, int num_colors);
-void QuantizationGleam(Mat I, Mat *Q, int num_colors);
-void QuantizationLuminance(Mat I, Mat *Q, int num_colors);
-void QuantizationLuma(Mat I, Mat *Q, int num_colors);
-void QuantizationMSB(Mat I, Mat *Q, int num_colors);
-void QuantizationMSBModified(Mat I, Mat *Q, int num_colors);
+  string quantization[7] = {"Intensity", "Luminance", "Gleam", "MSB", "MSBModified", "BGR", "HSV"};
+  public:
+    int numColors;
+    string getName(int method) {
+      string name = ((sizeof(quantization)/sizeof(quantization[0])) > method) ? quantization[method] : "";
+      return name;
+    }
 
-#endif  // QUANTIZATION_H_
+    GrayscaleConversion(int colors);
+    void convert(int method, Mat img, Mat *gray);
+    void Intensity(Mat I, Mat *Q, int num_colors);
+    void Gleam(Mat I, Mat *Q, int num_colors);
+    void Luminance(Mat I, Mat *Q, int num_colors);
+    void Luma(Mat I, Mat *Q, int num_colors);
+    void MSB(Mat I, Mat *Q, int num_colors);
+    void MSBModified(Mat I, Mat *Q, int num_colors);
+
+    void PlotHistogram(Mat hist);
+    void correctGamma(Mat *I, double gamma);
+    void reduceImageColors(Mat *img, int nColors);
+
+};
+
+void GrayscaleConversion::GrayscaleConversion(int colors) {
+  numColors = colors;
+}
+
+#endif

@@ -13,7 +13,6 @@
 #include <sstream>
 #include <fstream>
 #include "description/descritores.h"
-#include "utils/funcoesAux.h"
 #include "quantization/quantization.h"
 
 using namespace cv;
@@ -36,17 +35,17 @@ class Data {
 		int grayscaleMethod, featureExtractionMethod;
 		string originalDirectory, featuresDirectory, analysisDirectory;
 		vector<ImageClass> classes;
-};
 
-int Data::numClasses(void);
-int Data::numTrainingImages(int class);
-int Data::numTestingImages(int class);
-int Data::biggestClass(void);
-int Data::smallerClass(void);
-int Data::isFreeTrainOrTest(int class, int fold);
-int Data::isOriginalSmoteOrGenerated(int class, int fold);
-void Data::addImage(int class, Image img);
-bool Data::readFeaturesFromFile(string filename);
-string Data::writeFeatures(string id);
+		int numClasses(void);
+		int numTrainingImages(int class);
+		int numTestingImages(int class);
+		int biggestClass(void);
+		int smallerClass(void);
+		int isFreeTrainOrTest(int class, int fold);
+		int isOriginalSmoteOrGenerated(int class, int fold);
+		void addImage(int class, Image img);
+		bool readFeaturesFromFile(string filename);
+		string writeFeatures(string id);
+};
 
 #endif

@@ -4,7 +4,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/ml/ml.hpp>
 
-#include "utils/funcoesArquivo.h"
+#include "utils/data.h"
 
 class Classifier{
 

@@ -37,84 +37,6 @@ Master's thesis in Computer Science
 #include "utils/rebalance.h"
 
 
-string description(string dir, string features, int d, int m, string id) {
-
-  vector<int> paramCCV = {25}, paramACC = {1, 3, 5, 7}, parameters;
-
-  /* If descriptor ==  CCV, threshold is required */
-  if (d == 3)
-    return PerformFeatureExtraction(dir, features, d, 64, 1, 0, paramCCV, 0, m, id);
-  /* If descriptor ==  ACC, distances are required */
-  else if (d == 5)
-    return PerformFeatureExtraction(dir, features, d, 64, 1, 0, paramACC, 0, m, id);
-  else
-    return PerformFeatureExtraction(dir, features, d, 64, 1, 0, parameters, 0, m, id);
-}
-
-vector<vector<double> > perform(string descriptorFile, int repeat, double prob, string csv) {
-  Classifier c;
-  int minoritySize, numClasses;
-  vector<vector<double> > fscore;
-  // Read the feature vectors
-  vector<Classes> data = ReadFeaturesFromFile(descriptorFile);
-  numClasses = data.size();
-  if (numClasses != 0){
-    cout << "---------------------------------------------------------------------------------------" << endl;
-    cout << "Features vectors file: " << descriptorFile.c_str() << endl;
-    cout << "---------------------------------------------------------------------------------------" << endl;
-    c.findSmallerClass(data, &minoritySize);
-    fscore = c.classify(prob, repeat, data, csv.c_str(), minoritySize);
-    data.clear();
-  }
-  return fscore;
-}
-
-
-void ShuffleImages(vector<Image> *img){
-
-  int i, k, numImages;
-  Image aux;
-
-  numImages = (*img).size();
-  for (i = numImages-1; i > 1; i--) {
-    k = rand()%i;
-    // Swap with k position
-    aux = (*img)[i];
-    (*img)[i] = (*img)[k];
-    (*img)[k] = aux;
-  }
-}
-
-
-// Arrange original images in k folds each, creating k fold_i.txt files
-void SeparateInFolds(vector<Classes> *original_data, int k) {
-
-  int i, j, fold, numClasses, numImages, resto, imgsInThisFold, imgTotal, next;
-  Mat labels, trainTest, isGenerated, img;
-
-  numClasses = (*original_data).size();
-  for (i = 0; i < numClasses; i++) {
-    resto = 0; next = 0;
-
-    ShuffleImages(&(*original_data)[i].images);
-
-    numImages = (*original_data)[i].images.size();
-    for (fold = 0; fold < k; fold++) {
-      // If the number of images per fold is less than the total, increase each extra image in a fold
-      imgsInThisFold = floor(numImages/k);
-      if (numImages % k > resto) {
-        imgsInThisFold++;
-        resto++;
-      }
-      // For each image requested for this fold, add the fold indication
-      for (j = 0; j < imgsInThisFold; j++) {
-        (*original_data)[i].images[next].fold = fold;
-        next++;
-      }
-    }
-  }
-}
-
 int main(int argc, char const *argv[]) {
   Classifier c;
   Size size;
@@ -125,7 +47,7 @@ int main(int argc, char const *argv[]) {
   string csvRebalance, analysisDir, csvDesbalanced, directory, str, op;
   string images_directory, imbalancedDescriptor, originalDescriptor;
   string descSmote, smoteDescriptor, dirRebalanced, artificialDescriptor;
-  vector<Classes> imbalancedData;
+  vector<ImageClass> imbalancedData;
   Artificial a;
   int minorityClass = 1, thisClass, j, x;
   vector<int> testing_fold, majority_fold, minority_fold;
@@ -180,7 +102,7 @@ int main(int argc, char const *argv[]) {
   originalDescriptor = description(baseDir, featuresDir, d, m, "original");
   csvOriginal = analysisDir+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
   // perform(originalDescriptor, 10, prob, csvOriginal);
-  vector<Classes> data = ReadFeaturesFromFile(originalDescriptor);
+  vector<ImageClass> data = ReadFeaturesFromFile(originalDescriptor);
 
   // Arrange original images in k folds each, creating k fold_i.txt files
   SeparateInFolds(&data, k);
@@ -201,7 +123,7 @@ int main(int argc, char const *argv[]) {
             }
           }
         }
-        vector<Classes> generated = a.generateImagesFromData(data, newDir+"/Artificial/", operation);
+        vector<ImageClass> generated = a.generateImagesFromData(data, newDir+"/Artificial/", operation);
         featuresDir = newDir+"/Artificial/"+"/features/";
         artificialDescriptor = PerformFeatureExtraction(generated, featuresDir, d, 64, 1, 0, paramCCV, 0, m, "artificial");
         // artificialDescriptor = description(dirRebalanced, featuresDir, d, m, "artificial");

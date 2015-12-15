@@ -16,7 +16,7 @@ PREPROCESSING = $(SRC_DIR)/preprocessing
 QUANTIZATION = $(SRC_DIR)/quantization/quantization.cpp
 UTILS = $(SRC_DIR)/utils
 EXAMPLES = examples
-OBJS = funcoesArquivo.o description.o funcoesAux.o quantization.o classifier.o smote.o rebalance.o artificialGeneration.o
+OBJS = data.o description.o quantization.o classifier.o smote.o rebalance.o artificialGeneration.o
 
 # all: clean descriptorTest artificialGenerationTest rebalanceTest smoteTest rebalanceTwoClasses rebalanceMultiClasses staticRebalance classifierTest cleanLink
 
@@ -40,17 +40,14 @@ all: clean rebalanceTwoClasses
 # 	python plot.py
 # 	python statistics.py
 
-funcoesAux.o:
-	$(CXX) -c $(CXXFLAGS) $(UTILS)/funcoesAux.cpp $(OPENCV)
+data.o:
+	$(CXX) -c $(CXXFLAGS) $(UTILS)/data.cpp $(OPENCV)
 
 quantization.o:
 	$(CXX) -c $(CXXFLAGS) $(QUANTIZATION) $(OPENCV)
 
 description.o:
 	$(CXX) -c $(CXXFLAGS) $(DESCRIPTION) $(OPENCV) $(VLFEAT)
-
-funcoesArquivo.o:
-	$(CXX) -c $(CXXFLAGS) $(UTILS)/funcoesArquivo.cpp $(OPENCV) $(VLFEAT)
 
 classifier.o:
 	$(CXX) -c $(CXXFLAGS) $(CLASSIFICATION) $(OPENCV) $(VLFEAT)
