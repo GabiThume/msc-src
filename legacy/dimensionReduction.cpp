@@ -25,22 +25,22 @@ double log2(double number){
    return log(number)/log(2);
 }
 
-Mat entropyReduction(Mat data, int tam_janela, string name_my_file){
+cv::Mat entropyReduction(cv::Mat data, int tam_janela, std::string name_my_file){
 
     map<float, int> frequencias;
     map<float, int>::const_iterator iterator;
     double entropy, prob;
     int i, j, height, width, janela, fim_janela, indice_janela;
-    string arq_saida;
-    stringstream tam;
+    std::string arq_saida;
+    std::stringstream tam;
     tam << tam_janela;
 
     height = data.size().height;
     width = data.size().width;
-    Mat vectorEntropy(height, ceil((float)width/tam_janela), CV_32FC1);
+    cv::Mat vectorEntropy(height, ceil((float)width/tam_janela), CV_32FC1);
 
     arq_saida = "entropy/ENTROPIA_" + tam.str() + "_"  + name_my_file;
-    ofstream arq(arq_saida.c_str());
+    std::ofstream arq(arq_saida.c_str());
 
     for (i = 0; i < height; i++){
         janela = 0;
@@ -76,16 +76,16 @@ Mat entropyReduction(Mat data, int tam_janela, string name_my_file){
     return vectorEntropy;
 }
 
-Mat pcaReduction(Mat data, int nComponents, string name_my_file){
+cv::Mat pcaReduction(cv::Mat data, int nComponents, std::string name_my_file){
 
-    Mat projection, eigenvectors;
-    stringstream n;
+    cv::Mat projection, eigenvectors;
+    std::stringstream n;
     n << nComponents;
 
-    string arq_saida = "pca/PCA_" + n.str() + "_" + name_my_file;
-    ofstream arq(arq_saida.c_str());
+    std::string arq_saida = "pca/PCA_" + n.str() + "_" + name_my_file;
+    std::ofstream arq(arq_saida.c_str());
 
-    PCA pca(data, Mat(), CV_PCA_DATA_AS_ROW, nComponents);
+    PCA pca(data, cv::Mat(), CV_PCA_DATA_AS_ROW, nComponents);
     eigenvectors = pca.eigenvectors.clone();
     projection = pca.project(data);
 
@@ -95,20 +95,20 @@ Mat pcaReduction(Mat data, int nComponents, string name_my_file){
 }
 
 void inputError(){
-    cout << "This programs waits: <directory> <technique> <attributes for PCA | window size for Entropy>\n";
-    cout << "\tTechnique: 0-None, 1-PCA, 2-Entropy ou 3-All\n";
+    std::cout << "This programs waits: <directory> <technique> <attributes for PCA | window size for Entropy>\n";
+    std::cout << "\tTechnique: 0-None, 1-PCA, 2-Entropy ou 3-All\n";
     exit(0);
 }
 
 int main(int argc, const char *argv[]){
 
     Classifier c;
-    Mat vectorEntropy, projection, classes, trainTest;
-    vector<Classes> data;
+    cv::Mat vectorEntropy, projection, classes, trainTest;
+    std::vector<ImageClass> data;
     DIR *directory;
     struct dirent *arq;
-    ifstream my_file;
-    string name_arq, name_dir, name;
+    std::ifstream my_file;
+    std::string name_arq, name_dir, name;
     int metodo, atributos, janela, i;
     pair <int, int> minority(-1,-1);
     float prob = 0.5;
@@ -145,33 +145,33 @@ int main(int argc, const char *argv[]){
     directory = opendir(name_dir.c_str());
     if (directory != NULL){
        while ((arq = readdir(directory))){
-            string out = "";
+            std::string out = "";
             name_arq = arq->d_name;
             name = name_dir + arq->d_name;
             my_file.open(name.c_str());
 
             int previousClass = -1;
-            vector<Classes> dataInVector;
+            std::vector<ImageClass> dataInVector;
             Classes dataClass;
-            Mat dataMat, classesMat;
+            cv::Mat dataMat, classesMat;
 
             if(my_file.good()){
                 /* Read the feature vectors */
                 data = readFeatures(name);
                 if (data.size() != 0){
 
-                    for(std::vector<Classes>::iterator it = data.begin(); it != data.end(); ++it) {
+                    for(std::vector<ImageClass>::iterator it = data.begin(); it != data.end(); ++it) {
                         vconcat(dataMat, it->features, dataMat);
                         classesMat.resize(dataMat.size().height, it->classNumber);
                     }
 
                     switch(metodo){
                         case 0:
-                            cout << endl << "Classification for "<< name.c_str() << endl;
+                            std::cout << std::endl << "Classification for "<< name.c_str() << std::endl;
                             c.classify(prob, 10, data, out.c_str(), 0);
                             break;
                         case 1:
-                            cout << endl << "PCA for "<< name.c_str() << " with " << atributos << " attributes" << endl;
+                            std::cout << std::endl << "PCA for "<< name.c_str() << " with " << atributos << " attributes" << std::endl;
                             projection = pcaReduction(dataMat, atributos, name_arq);
                             for (i = 0; i < projection.size().height; ++i){
                                 if (previousClass != classesMat.at<float>(i,0)){
@@ -188,7 +188,7 @@ int main(int argc, const char *argv[]){
                             c.classify(prob, 10, dataInVector, out.c_str(), atributos);
                             break;
                         case 2:
-                            cout << endl << "Entropy for "<< name.c_str() << " with window = " << janela << endl;
+                            std::cout << std::endl << "Entropy for "<< name.c_str() << " with window = " << janela << std::endl;
                             vectorEntropy = entropyReduction(dataMat, janela, name_arq);
 
                             for (i = 0; i < vectorEntropy.size().height; ++i){
@@ -206,10 +206,10 @@ int main(int argc, const char *argv[]){
                             c.classify(prob, 10, dataInVector, out.c_str(), janela);
                             break;
                         case 3:
-                            cout << endl << "Classification for "<< name.c_str() << endl;
+                            std::cout << std::endl << "Classification for "<< name.c_str() << std::endl;
                             c.classify(prob, 10, data, out.c_str(), 0);
 
-                            cout << endl << "PCA for "<< name.c_str() << " with " << atributos << " attributes" << endl;
+                            std::cout << std::endl << "PCA for "<< name.c_str() << " with " << atributos << " attributes" << std::endl;
                             projection = pcaReduction(dataMat, atributos, name_arq);
                             for (i = 0; i < projection.size().height; ++i){
                                 if (previousClass != classesMat.at<float>(i,0)){
@@ -224,7 +224,7 @@ int main(int argc, const char *argv[]){
                             }
                             c.classify(prob, 10, dataInVector, out.c_str(), atributos);
 
-                            cout << endl << "Entropy for "<< name.c_str() << " with window = " << janela << endl;
+                            std::cout << std::endl << "Entropy for "<< name.c_str() << " with window = " << janela << std::endl;
                             vectorEntropy = entropyReduction(dataMat, janela, name_arq);
                             for (i = 0; i < vectorEntropy.size().height; ++i){
                                 if (previousClass != classesMat.at<float>(i,0)){

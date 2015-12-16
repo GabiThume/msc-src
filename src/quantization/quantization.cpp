@@ -46,10 +46,10 @@ Requires:
 - Q: image to store quantized version
 - num_colors: number of colors after quantization
 *******************************************************************************/
-void GrayscaleConversion::Intensity(Mat I, Mat *Q, int num_colors) {
+void GrayscaleConversion::Intensity(cv::Mat I, cv::Mat *Q, int num_colors) {
   if (I.channels() == 1) return;
 
-  vector<Mat> imColors(3);
+  std::vector<cv::Mat> imColors(3);
   (*Q).create(I.size(), CV_8UC1);
 
   // Split input image into separated channels
@@ -77,10 +77,10 @@ Requires
 - Q: image to store quantized version
 - num_colors: number of colors after quantization
 *******************************************************************************/
-void GrayscaleConversion::Gleam(Mat I, Mat *Q, int num_colors) {
+void GrayscaleConversion::Gleam(cv::Mat I, cv::Mat *Q, int num_colors) {
   if (I.channels() == 1) return;
 
-  vector<Mat> imColors(3);
+  std::vector<cv::Mat> imColors(3);
   (*Q).create(I.size(), CV_8UC1);
 
   split(I, imColors);
@@ -110,10 +110,10 @@ Requires
 - Q: image to store quantized version
 - nColor : number of colors after quantization
 *******************************************************************************/
-void GrayscaleConversion::Luminance(Mat I, Mat *Q, int num_colors) {
+void GrayscaleConversion::Luminance(cv::Mat I, cv::Mat *Q, int num_colors) {
   if (I.channels() == 1) return;
 
-  vector<Mat> imColors(3);
+  std::vector<cv::Mat> imColors(3);
   (*Q).create(I.size(), CV_8UC1);
 
   // split image in RGB channels
@@ -142,10 +142,10 @@ Requires
 - Q: image to store quantized version
 - nColor : number of colors after quantization
 *******************************************************************************/
-void GrayscaleConversion::Luma(Mat I, Mat *Q, int num_colors) {
+void GrayscaleConversion::Luma(cv::Mat I, cv::Mat *Q, int num_colors) {
   if (I.channels() == 1) return;
 
-  vector<Mat> imColors(3);
+  std::vector<cv::Mat> imColors(3);
   (*Q).create(I.size(), CV_8UC1);
 
   // split image in RGB channels
@@ -177,12 +177,12 @@ Requires
 - Q: image to store quantized version
 - num_colors: number of colors after quantization
 *******************************************************************************/
-void GrayscaleConversion::MSB(Mat I, Mat *Q, int num_colors) {
+void GrayscaleConversion::MSB(cv::Mat I, cv::Mat *Q, int num_colors) {
   if (I.channels() == 1) return;
 
   int bitsc, rest, k;
-  MatIterator_<Vec3b> itI, endI;
-  MatIterator_<uchar> itQ, endQ;
+  cv::MatIterator_<cv::Vec3b> itI, endI;
+  cv::MatIterator_<uchar> itQ, endQ;
   uchar dG, dR, dB, green_mask, red_mask, blue_mask, B, G, R, green_msb;
   uchar red_msb, blue_msb;
   (*Q).create(I.size(), CV_8UC1);
@@ -210,8 +210,8 @@ void GrayscaleConversion::MSB(Mat I, Mat *Q, int num_colors) {
 
   itQ = (*Q).begin<uchar>();
   endQ = (*Q).end<uchar>();
-  itI = I.begin<Vec3b>();
-  endI = I.end<Vec3b>();
+  itI = I.begin<cv::Vec3b>();
+  endI = I.end<cv::Vec3b>();
   for (; itI != endI; ++itI, ++itQ) {
     // Get pixels of individual channels in the input image
     B = (uchar) (*itI)[0];
@@ -225,14 +225,14 @@ void GrayscaleConversion::MSB(Mat I, Mat *Q, int num_colors) {
     blue_msb  = (B & blue_mask);
 
     // Merge the bit codes and store in the new image
-    (*itQ) = saturate_cast<uchar>(green_msb | red_msb | blue_msb);
+    (*itQ) = cv::saturate_cast<uchar>(green_msb | red_msb | blue_msb);
 
     // std::bitset<8> b(B), g(G), r(R);
-    // cout << "Color: G " << g << " R " << r << " B " << b << endl;
+    // std::cout << "Color: G " << g << " R " << r << " B " << b << std::endl;
     // std::bitset<8> gm(green_msb), rm(red_msb), bm(blue_msb);
-    // cout << "Masks: G " << gm << " R " << rm << " B " << bm << endl;
+    // std::cout << "Masks: G " << gm << " R " << rm << " B " << bm << std::endl;
     // std::bitset<8> p(new_color);
-    // cout << "New pixel: " << p << " : " << (int) new_color << endl;
+    // std::cout << "New pixel: " << p << " : " << (int) new_color << std::endl;
   }
   if (num_colors < 256) {
     GrayscaleConversion::reduceImageColors(Q, num_colors);
@@ -253,12 +253,12 @@ Requires
 - Q: image to store quantized version
 - num_colors: number of colors after quantization
 *******************************************************************************/
-void GrayscaleConversion::MSBModified(Mat I, Mat *Q, int num_colors) {
+void GrayscaleConversion::MSBModified(cv::Mat I, cv::Mat *Q, int num_colors) {
   if (I.channels() == 1) return;
 
   int bitsc, rest, k, color, b;
-  MatIterator_<Vec3b> itI, endI;
-  MatIterator_<uchar> itQ, endQ;
+  cv::MatIterator_<cv::Vec3b> itI, endI;
+  cv::MatIterator_<uchar> itQ, endQ;
   uchar green_mask, red_mask, blue_mask, B, G, R, green_msb, red_msb, blue_msb;
   (*Q).create(I.size(), CV_8UC1);
 
@@ -288,8 +288,8 @@ void GrayscaleConversion::MSBModified(Mat I, Mat *Q, int num_colors) {
 
   itQ = (*Q).begin<uchar>();
   endQ = (*Q).end<uchar>();
-  itI = I.begin<Vec3b>();
-  endI = I.end<Vec3b>();
+  itI = I.begin<cv::Vec3b>();
+  endI = I.end<cv::Vec3b>();
   for (; itI != endI; ++itI, ++itQ) {
     // Get pixels of individual channels in the input image
     B = (uchar) (*itI)[0];
@@ -301,7 +301,7 @@ void GrayscaleConversion::MSBModified(Mat I, Mat *Q, int num_colors) {
     red_msb   = (R & red_mask);
     blue_msb  = (B & blue_mask);
     // Merge the bit codes and store in the new image
-    (*itQ) = saturate_cast<uchar>(green_msb | red_msb | blue_msb);
+    (*itQ) = cv::saturate_cast<uchar>(green_msb | red_msb | blue_msb);
   }
   if (num_colors < 256) {
     GrayscaleConversion::reduceImageColors(Q, num_colors);
@@ -314,23 +314,23 @@ void GrayscaleConversion::MSBModified(Mat I, Mat *Q, int num_colors) {
     Plot in a window the input histogram
 
     Requires:
-    - Mat histogram :
+    - cv::Mat histogram :
 *******************************************************************************/
-void GrayscaleConversion::PlotHistogram(Mat hist) {
+void GrayscaleConversion::PlotHistogram(cv::Mat hist) {
   int bins = hist.rows, j;
-  normalize(hist, hist, 0, bins, NORM_MINMAX, -1, Mat());
+  normalize(hist, hist, 0, bins, cv::NORM_MINMAX, -1, cv::Mat());
 
-  Mat hist_img(bins, bins, CV_8UC1, Scalar(0,0,0));
+  cv::Mat hist_img(bins, bins, CV_8UC1, cv::Scalar(0,0,0));
   for (j = 1; j < bins; j++) {
     line(hist_img,
-      Point((j-1), bins - cvRound(hist.at<float>(j-1))),
-      Point(j, bins - cvRound(hist.at<float>(j))),
-      Scalar(255, 255, 255), 1, 8, 0);
+      cv::Point((j-1), bins - cvRound(hist.at<float>(j-1))),
+      cv::Point(j, bins - cvRound(hist.at<float>(j))),
+      cv::Scalar(255, 255, 255), 1, 8, 0);
   }
 
-  namedWindow("histogram", CV_WINDOW_AUTOSIZE );
+  cv::namedWindow("histogram", CV_WINDOW_AUTOSIZE );
   imshow("histogram", hist_img);
-  waitKey(0);
+  cv::waitKey(0);
 }
 
 /*******************************************************************************
@@ -340,22 +340,22 @@ void GrayscaleConversion::PlotHistogram(Mat hist) {
             gammaCorrectedImage = image ^ (1/crt_gamma)
 
     Requires:
-    - Mat image to be processed
+    - cv::Mat image to be processed
     - double gamma correction parameter
 *******************************************************************************/
-void GrayscaleConversion::correctGamma(Mat *I, double gamma) {
+void GrayscaleConversion::correctGamma(cv::Mat *I, double gamma) {
 
-    Mat result, lut_matrix(1, 256, CV_8UC1);
+    cv::Mat result, lut_matrix(1, 256, CV_8UC1);
     uchar *ptr = lut_matrix.ptr();
     double iGamma = 1.0 / gamma;
     int i, img_channels = (*I).channels();
 
     // Create a lookup table with a grayscale color ajusted for each color
     for (i = 0; i < 256; i++ ) {
-        ptr[i] = saturate_cast<uchar>(pow((double)i/255.0, iGamma) * 255.0);
+        ptr[i] = cv::saturate_cast<uchar>(pow((double)i/255.0, iGamma) * 255.0);
     }
 
-    vector<Mat> channel(img_channels);
+    std::vector<cv::Mat> channel(img_channels);
     split((*I), channel);
 
     for (i = 0; i < img_channels; i++) {
@@ -373,12 +373,12 @@ void GrayscaleConversion::correctGamma(Mat *I, double gamma) {
     - I: input image to be modified
     - nColors: final number of colors
 *******************************************************************************/
-void GrayscaleConversion::reduceImageColors(Mat *img, int nColors) {
+void GrayscaleConversion::reduceImageColors(cv::Mat *img, int nColors) {
 
 	double min = 0, max = 0, stretch;
-	Point maxLoc, minLoc;
+	cv::Point maxLoc, minLoc;
   int i, img_channels = (*img).channels();
-  vector<Mat> channel(img_channels);
+  std::vector<cv::Mat> channel(img_channels);
   split((*img), channel);
 
   nColors = (nColors > 256) ? 256 : nColors;
@@ -393,23 +393,23 @@ void GrayscaleConversion::reduceImageColors(Mat *img, int nColors) {
   merge(channel, (*img));
 }
 
-void GrayscaleConversion::convert(int method, Mat img, Mat *gray) {
+void GrayscaleConversion::convert(int method, cv::Mat img, cv::Mat *gray) {
 
   switch (method) {
     case 1:
-      GrayscaleConversion::Intensity(img, gray, colors);
+      GrayscaleConversion::Intensity(img, gray, numColors);
       break;
     case 2:
-      GrayscaleConversion::Luminance(img, gray, colors);
+      GrayscaleConversion::Luminance(img, gray, numColors);
       break;
     case 3:
-      GrayscaleConversion::Gleam(img, gray, colors);
+      GrayscaleConversion::Gleam(img, gray, numColors);
       break;
     case 4:
-      GrayscaleConversion::MSB(img, gray, colors);
+      GrayscaleConversion::MSB(img, gray, numColors);
       break;
     case 5:
-      GrayscaleConversion::MSBModified(img, gray, colors);
+      GrayscaleConversion::MSBModified(img, gray, numColors);
       break;
     case 6: // Keep in BRG
       break;
@@ -417,10 +417,10 @@ void GrayscaleConversion::convert(int method, Mat img, Mat *gray) {
       cv::cvtColor(img, (*gray), CV_BGR2HSV);
       break;
     default:
-      cout << "Error: quantization method " << method;
-      cout << " does not exists." << endl;
+      std::cout << "Error: quantization method " << method;
+      std::cout << " does not exists." << std::endl;
   }
-  // namedWindow("Display window", WINDOW_AUTOSIZE );
+  // cv::namedWindow("Display window", WINDOW_AUTOSIZE );
   // imshow("Grayscale Image", *gray);
-  // waitKey(0);
+  // cv::waitKey(0);
 }

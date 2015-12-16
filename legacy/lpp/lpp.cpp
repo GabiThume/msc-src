@@ -18,19 +18,19 @@
 #include <fstream>
 #include "classifier.h"
 
-using namespace std;
+
 using namespace tapkee;
 
 
-/* Read the features and save them in Mat data */
-Mat readFeatures(const string& filename, Mat &classes, int &nClasses){
+/* Read the features and save them in cv::Mat data */
+cv::Mat readFeatures(const std::string& filename, cv::Mat &classes, int &nClasses){
     int i, j;
     float features;
-    Mat data;
+    cv::Mat data;
     size_t n, d;
-    ifstream myFile(filename.c_str());
-    string line, infos, numImage, classe, numFeatures, numClasses, objetos;
-	//ofstream ofs("saida.csv");
+    std::ifstream myFile(filename.c_str());
+    std::string line, infos, numImage, classe, numFeatures, numClasses, objetos;
+	//std::ofstream ofs("saida.csv");
 
     if(!myFile)
         throw exception();
@@ -38,8 +38,8 @@ Mat readFeatures(const string& filename, Mat &classes, int &nClasses){
     /* Read the first line, which contains the number of objects, classes and features */
     getline(myFile, infos);
     if (infos == "")
-        return Mat();
-    stringstream info(infos);
+        return cv::Mat();
+    std::stringstream info(infos);
     getline(info, objetos, '\t');
     getline(info, numClasses, '\t');
     nClasses = atoi(numClasses.c_str());
@@ -48,13 +48,13 @@ Mat readFeatures(const string& filename, Mat &classes, int &nClasses){
     n = atoi(objetos.c_str());
     d = atoi(numFeatures.c_str());
 
-    /* Create a Mat named data with the file data provided */
+    /* Create a cv::Mat named data with the file data provided */
     data.create(n, d, CV_32FC1);
     classes.create(n, 1, CV_32FC1);
-    //cout << filename << " features " << d << " imagens " << n << endl; 
+    //std::cout << filename << " features " << d << " imagens " << n << std::endl; 
     while (getline(myFile, line)) {
-        stringstream vector_features(line);
-        stringstream temp;
+        std::stringstream vector_features(line);
+        std::stringstream temp;
         getline(vector_features, numImage, '\t');
         getline(vector_features, classe, '\t');
         i = atoi(numImage.c_str());
@@ -78,20 +78,20 @@ Mat readFeatures(const string& filename, Mat &classes, int &nClasses){
 int main(int argc, const char** argv)
 {
     Classifier c;
-    Mat data, classes;
+    cv::Mat data, classes;
     DIR *directory;
     struct dirent *arq;
-    ifstream my_file;
-    string name_arq, name_dir, name, outName;
+    std::ifstream my_file;
+    std::string name_arq, name_dir, name, outName;
     int nClasses, metodo, atributos, janela, i, j, dim;
-    string delimiter = ",", dimStr;
-    Size size;
+    std::string delimiter = ",", dimStr;
+    cv::Size size;
     pair <int, int> minority(-1,-1);
     float prob = 0.5, r;
     
     if (argc != 3){
-        cout << "\nUsage: ./lpp (1) (2)\n\n\t(1) Features Directory" << endl;
-        cout << "\t(2) Dimensions\n" << endl;
+        std::cout << "\nUsage: ./lpp (1) (2)\n\n\t(1) Features Directory" << std::endl;
+        std::cout << "\t(2) Dimensions\n" << std::endl;
         exit(-1);
     }
 	name_dir = argv[1];
@@ -112,9 +112,9 @@ int main(int argc, const char** argv)
                 size = data.size();
                 if (size.height != 0){
                     srand((unsigned int)time(NULL));
-                    cout << endl << name.c_str();
-                    ifstream ifs(name.c_str());
-                    ofstream ofs(outName.c_str());
+                    std::cout << std::endl << name.c_str();
+                    std::ifstream ifs(name.c_str());
+                    std::ofstream ofs(outName.c_str());
 
                     DenseMatrix input_data(size.height, size.width);
                     for (i = 0; i < size.height; i++){
@@ -143,8 +143,8 @@ int main(int argc, const char** argv)
                     write_data(result.embedding, ofs, delimiter[0]);
                     ofs.close();
 
-                    //Mat projections(size.height, size.width, CV_64F);
-                    Mat projections(size.height, size.width, CV_32FC1);
+                    //cv::Mat projections(size.height, size.width, CV_64F);
+                    cv::Mat projections(size.height, size.width, CV_32FC1);
                     for (i = 0; i < size.height; i++){
                         for (j = 0; j < size.width; j++){
                             projections.at<float>(i,j) = result.embedding(i,j);

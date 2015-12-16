@@ -8,12 +8,12 @@
 #include "preprocessing/smote.h"
 
 /* Generate a imbalanced class and save it in imbalancedData and imbalancedClasses */
-void imbalance(Mat original, Mat classes, int factor, int numClasses, Mat *imbalancedData, Mat *imbalancedClasses, int start, int end){
+void imbalance(cv::Mat original, cv::Mat classes, int factor, int numClasses, cv::Mat *imbalancedData, cv::Mat *imbalancedClasses, int start, int end){
 
     int total = 0, pos = 0, i, num, samples;
-    Size size = original.size();
-    vector<int> vectorRand;
-    Mat other, otherClasses;
+    cv::Size size = original.size();
+    std::vector<int> vectorRand;
+    cv::Mat other, otherClasses;
     srand(time(0));
 
     samples = end - start;
@@ -28,7 +28,7 @@ void imbalance(Mat original, Mat classes, int factor, int numClasses, Mat *imbal
         pos = start + (rand() % end);
         if (!count(vectorRand.begin(), vectorRand.end(), pos)){
             vectorRand.push_back(pos);
-            Mat tmp = (*imbalancedData).row(total);
+            cv::Mat tmp = (*imbalancedData).row(total);
             original.row(pos).copyTo(tmp);
             (*imbalancedClasses).at<double>(total, 0) = classes.at<double>(start,0);
             total++;
@@ -37,7 +37,7 @@ void imbalance(Mat original, Mat classes, int factor, int numClasses, Mat *imbal
 
     for (i = end; i < size.height; i++) {
         if (!count(vectorRand.begin(), vectorRand.end(), i)){
-            Mat tmp = (*imbalancedData).row(total);
+            cv::Mat tmp = (*imbalancedData).row(total);
             original.row(i).copyTo(tmp);
             (*imbalancedClasses).at<double>(total, 0) = classes.at<double>(i,0);
             total++;
@@ -50,17 +50,17 @@ int main(int argc, char const *argv[]){
 
     SMOTE s;
     Classifier c;
-    Size size;
+    cv::Size size;
     int i, smallerClass, amountSmote, neighbors;
     double prob = 0.5;
     DIR *directory;
     struct dirent *arq;
-    ifstream myFile;
-    string nameFile, name, nameDir, baseDir, featuresDir;
-    Mat minorityClass, classes, minorityOverSampled, majority, majorityClasses;
-    Mat newClasses, total, synthetic, trainTest;
+    std::ifstream myFile;
+    std::string nameFile, name, nameDir, baseDir, featuresDir;
+    cv::Mat minorityClass, classes, minorityOverSampled, majority, majorityClasses;
+    cv::Mat newClasses, total, synthetic, trainTest;
     pair <int, int> min(-1,-1);
-    vector<Classes> data;
+    std::vector<ImageClass> data;
 
     myFile.open("original.csv");
     myFile.close();
@@ -68,18 +68,18 @@ int main(int argc, char const *argv[]){
     myFile.close();
 
     if (argc != 3){
-        cout << "\nUsage: ./smoteTest (1) (2)\n\n\t(1) Image Directory" << endl;
-        cout << "\t(2) Features Directory\n" << endl;
+        std::cout << "\nUsage: ./smoteTest (1) (2)\n\n\t(1) Image Directory" << std::endl;
+        std::cout << "\t(2) Features Directory\n" << std::endl;
         exit(-1);
     }
-    baseDir = string(argv[1]);
-    featuresDir = string(argv[2]);
+    baseDir = std::string(argv[1]);
+    featuresDir = std::string(argv[2]);
 
     /* Feature extraction from images */
-    vector<int> parameters;
+    std::vector<int> parameters;
     PerformFeatureExtraction(baseDir.c_str(), featuresDir.c_str(), 4, 64, 1, 1, parameters, 0, 4, "");
 
-    nameDir = string(featuresDir.c_str()) + "/";
+    nameDir = std::string(featuresDir.c_str()) + "/";
     directory = opendir(nameDir.c_str());
 
     if (directory != NULL){
@@ -93,19 +93,19 @@ int main(int argc, char const *argv[]){
             data = ReadFeaturesFromFile(name);
             if (data.size() != 0){
 
-                cout << "---------------------------------------------------------------" << endl;
-                cout << endl << "Features vectors file: " << name.c_str() << endl << endl;
-                cout << "---------------------------------------------------------------" << endl;
-                cout << "Classification using original vectors" << endl;
+                std::cout << "---------------------------------------------------------------" << std::endl;
+                std::cout << std::endl << "Features vectors file: " << name.c_str() << std::endl << std::endl;
+                std::cout << "---------------------------------------------------------------" << std::endl;
+                std::cout << "Classification using original vectors" << std::endl;
                 c.classify(prob, 10, data, "original.csv", 0);
 
                 for (i = 2; i <= 10; i*=2){
 
-                    cout << "---------------------------------------------------------------" << endl;
-                    cout << endl <<  "Normal Bayes Classification for imbalanced classes" << endl << endl;
-                    cout << "\tDivide the number of original samples by a factor of " << i << endl <<"\tto create a minority class:"<< endl;
+                    std::cout << "---------------------------------------------------------------" << std::endl;
+                    std::cout << std::endl <<  "Normal Bayes Classification for imbalanced classes" << std::endl << std::endl;
+                    std::cout << "\tDivide the number of original samples by a factor of " << i << std::endl <<"\tto create a minority class:"<< std::endl;
 
-                    Mat imbalancedClasses, imbalancedData;
+                    cv::Mat imbalancedClasses, imbalancedData;
                     // /* Desbalancing Data */
                     // c.findSmallerClass(data, &smallerClass);
                     // imbalance(data, i, &imbalancedData, smallerClass);
@@ -123,7 +123,7 @@ int main(int argc, char const *argv[]){
 
                     //  Concatenate the minority class with the synthetic
                     // vconcat(minorityClass, synthetic, minorityOverSampled);
-                    //Mat minorityClasses(minorityOverSampled.size().height, 1, CV_64FC1, smallerClass+1);
+                    //cv::Mat minorityClasses(minorityOverSampled.size().height, 1, CV_64FC1, smallerClass+1);
 
                     // /* Select the majority classes */
                     // imbalancedData.rowRange(end, size.height).copyTo(majority);
@@ -133,8 +133,8 @@ int main(int argc, char const *argv[]){
                     // vconcat(minorityClasses, majorityClasses, newClasses);
                     // vconcat(minorityOverSampled, majority, total);
 
-                    // cout << endl << "\tSMOTE: Synthetic Minority Over-sampling Technique" << endl;
-                    // cout << "\tAmount to SMOTE: " << amountSmote << "%" << endl;
+                    // std::cout << std::endl << "\tSMOTE: Synthetic Minority Over-sampling Technique" << std::endl;
+                    // std::cout << "\tAmount to SMOTE: " << amountSmote << "%" << std::endl;
                     // c.classify(prob, 10, total, newClasses, numClasses, min, trainTest, "smote_accuracy.csv");
 
                     minorityOverSampled.release();

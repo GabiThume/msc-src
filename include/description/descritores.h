@@ -36,15 +36,12 @@ Master's thesis in Computer Science
 #ifndef _DESCRITORES_H
 #define _DESCRITORES_H
 
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/objdetect/objdetect.hpp>
+#include <queue>
+#include <vector>
 #include <math.h>
-#include <opencv2/nonfree/nonfree.hpp>
-
-using namespace cv;
-using namespace std;
-
-const string quantizationMethod[7] = {"Intensity", "Luminance", "Gleam", "MSB", "MSBModified", "BGR", "HSV"};
+#include <iostream>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/objdetect/objdetect.hpp>
 
 typedef struct {
     int i;
@@ -54,67 +51,67 @@ typedef struct {
 
 class FeatureExtraction {
 
-    string descriptors[9] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"};
+    std::string descriptors[9] = {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"};
   public:
+    int method;
     int numColors;
     int normalization;
     int ccvThreshold;
     double resizeFactor;
-    vector<int> accDistances;
+    std::vector<int> accDistances;
 
-    FeatureExtraction(int, int);
+    FeatureExtraction(int colors, int norm) {
+      numColors = colors;
+      normalization = norm;
+    }
 
-    string getName(int method);
+    std::string getName(int method);
 
-    void extract(int method, Mat img, Mat *features);
+    void extract(int method, cv::Mat img, cv::Mat *features);
 
-    void VerifyNeighborPixel(Mat img, int index_height, int index_width,
-      uchar pixel_color, vector< vector<bool> > *visited, queue<Pixel> *pixels,
+    void VerifyNeighborPixel(cv::Mat img, int index_height, int index_width,
+      uchar pixel_color, std::vector< std::vector<bool> > *visited, std::queue<Pixel> *pixels,
       int *size_region);
-    void FindNeighbor(Mat img, vector< vector<bool> > *visited,
-      queue<Pixel> *pixels, int *size_region);
-    void CalculateCCV(Mat img, Mat *features);
-    void CCV(Mat img, Mat *features);
+    void FindNeighbor(cv::Mat img, std::vector< std::vector<bool> > *visited,
+      std::queue<Pixel> *pixels, int *size_region);
+    void CalculateCCV(cv::Mat img, cv::Mat *features);
+    void CCV(cv::Mat img, cv::Mat *features);
 
-    void CalculateGCH(Mat img, Mat *features);
-    void GCH(Mat img, Mat *features);
+    void CalculateGCH(cv::Mat img, cv::Mat *features);
+    void GCH(cv::Mat img, cv::Mat *features);
 
-    void CalculateBIC(Mat img, Mat *features);
-    void BIC(Mat img, Mat *features);
+    void CalculateBIC(cv::Mat img, cv::Mat *features);
+    void BIC(cv::Mat img, cv::Mat *features);
 
-    vector<int> NearestNeighborAngle(int row, int col, int distance, int angle);
+    std::vector<int> NearestNeighborAngle(int row, int col, int distance, int angle);
 
-    void CoocurrenceMatrix(Mat img,
-      vector< vector<double> > *co_occurence, int distance, int angle);
-    void Haralick6(vector< vector<double> > co_occurence,
-      Mat *features);
-    void CalculateHARALICK(Mat img, Mat *features);
-    void HARALICK(Mat img, Mat *features);
+    void CoocurrenceMatrix(cv::Mat img,
+      std::vector< std::vector<double> > *co_occurence, int distance, int angle);
+    void Haralick6(std::vector< std::vector<double> > co_occurence,
+      cv::Mat *features);
+    void CalculateHARALICK(cv::Mat img, cv::Mat *features);
+    void HARALICK(cv::Mat img, cv::Mat *features);
 
-    vector < vector<int> > ChessboardNeighbors(int row, int col,
+    std::vector < std::vector<int> > ChessboardNeighbors(int row, int col,
       int distance);
-    void CalculateACC(Mat I, Mat *features);
-    void ACC(Mat img, Mat *features);
+    void CalculateACC(cv::Mat I, cv::Mat *features);
+    void ACC(cv::Mat img, cv::Mat *features);
 
-    vector<int> initUniform();
-    void CalculateLBP(Mat img, Mat *features);
-    void LBP(Mat img, Mat *features);
+    std::vector<int> initUniform();
+    void CalculateLBP(cv::Mat img, cv::Mat *features);
+    void LBP(cv::Mat img, cv::Mat *features);
 
-    void CalculateHOG(Mat img, Mat *features);
-    void HOG(Mat img, Mat *features);
+    void CalculateHOG(cv::Mat img, cv::Mat *features);
+    void HOG(cv::Mat img, cv::Mat *features);
 
-    void CalculateContour(Mat img, Mat *features);
-    void contourExtraction(Mat img, Mat *features);
+    void CalculateContour(cv::Mat img, cv::Mat *features);
+    void contourExtraction(cv::Mat img, cv::Mat *features);
 
-    void RemoveNullColumns(Mat *features);
-    void ZScoreNormalization(Mat *features);
-    void MaxMinNormalization(Mat *features);
+    void RemoveNullColumns(cv::Mat *features);
+    void ZScoreNormalization(cv::Mat *features);
+    void MaxMinNormalization(cv::Mat *features, int norm);
+    void reduceImageColors(cv::Mat *img, int nColors);
 
 };
-
-FeatureExtraction::FeatureExtraction(int colors, int norm) {
-  numColors = colors;
-  normalization = norm;
-}
 
 #endif

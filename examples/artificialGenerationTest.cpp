@@ -7,21 +7,21 @@
 
 #include "preprocessing/artificialGeneration.h"
 
-void classifica(string base, string features, string outfileName){
+void classifica(std::string base, std::string features, std::string outfileName){
 
     Classifier c;
     int smallerClass, minoritySize;
     double prob = 0.5;
     DIR *directory;
     struct dirent *arq;
-    ifstream myFile;
-    string nameFile, name, nameDir;
-    stringstream id;
-    Mat classes, trainTest;
-    vector<Classes> data;
+    std::ifstream myFile;
+    std::string nameFile, name, nameDir;
+    std::stringstream id;
+    cv::Mat classes, trainTest;
+    std::vector<ImageClass> data;
 
     /* Feature extraction */
-    vector<int> parameters;
+    std::vector<int> parameters;
     PerformFeatureExtraction(base.c_str(), features.c_str(), 4, 256, 1, 0, parameters, 0, 4, "");
 
     nameDir = features + "/";
@@ -53,21 +53,21 @@ int main(int argc, char const *argv[]){
     Artificial a;
 
     if (argc != 3){
-        cout << "\nUsage: ./artificialGenerationTest (1) (2)\n\n\t(1) Image Directory" << endl;
-        cout << "\t(2) Features Directory\n" << endl;
+        std::cout << "\nUsage: ./artificialGenerationTest (1) (2)\n\n\t(1) Image Directory" << std::endl;
+        std::cout << "\t(2) Features Directory\n" << std::endl;
         exit(-1);
     }
 
-    cout << "\nRunning a rebalance test" << endl;
+    std::cout << "\nRunning a rebalance test" << std::endl;
 
     /* Calculate before rebalance */
-    classifica(string(argv[1]), string(argv[2]), "original_accuracy");
+    classifica(std::string(argv[1]), std::string(argv[2]), "original_accuracy");
 
     /* */
-    a.generate(string(argv[1]), string(argv[1])+"/../generated/", 0);
+    a.generate(std::string(argv[1]), std::string(argv[1])+"/../generated/", 0);
 
     /* Calculate after rebalance */
-    classifica(string(argv[1]), string(argv[2]), "rebalance_accuracy");
+    classifica(std::string(argv[1]), std::string(argv[2]), "rebalance_accuracy");
 
     return 0;
 }

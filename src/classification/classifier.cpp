@@ -36,8 +36,8 @@ Master's thesis in Computer Science
 #include "classification/classifier.h"
 
 /* Train and predict using the Normal Bayes classifier */
-void Classifier::bayesClassifier(Mat dataTraining, Mat labelsTraining,
-		Mat dataTesting, Mat& result){
+void Classifier::bayesClassifier(cv::Mat dataTraining, cv::Mat labelsTraining,
+		cv::Mat dataTesting, cv::Mat& result){
 	CvNormalBayesClassifier classifier;
 	classifier.train(dataTraining, labelsTraining);
 	classifier.predict(dataTesting, &result);
@@ -45,9 +45,9 @@ void Classifier::bayesClassifier(Mat dataTraining, Mat labelsTraining,
 }
 
 /* Train and predict using 1-KNN */
-void Classifier::knn(Mat dataTraining, Mat labelsTraining, Mat dataTesting,
-		int k, Mat& result) {
-	Mat responses, dist, nearests(1, k, CV_32F);
+void Classifier::knn(cv::Mat dataTraining, cv::Mat labelsTraining, cv::Mat dataTesting,
+		int k, cv::Mat& result) {
+	cv::Mat responses, dist, nearests(1, k, CV_32F);
 	CvKNearest knn(dataTraining, labelsTraining, responses, false, k);
 	knn.find_nearest(dataTesting, k, result, nearests, dist);
 	knn.clear();
@@ -56,7 +56,7 @@ void Classifier::knn(Mat dataTraining, Mat labelsTraining, Mat dataTesting,
 	dist.release();
 }
 
-double Classifier::calculateMean(vector<double> accuracy) {
+double Classifier::calculateMean(std::vector<double> accuracy) {
 	int i;
 	double mean;
 	/* Calculate accuracy's mean */
@@ -72,7 +72,7 @@ double Classifier::calculateMean(vector<double> accuracy) {
 	return mean;
 }
 
-double Classifier::calculateStandardDeviation(vector<double> accuracy) {
+double Classifier::calculateStandardDeviation(std::vector<double> accuracy) {
 	int i;
 	double mean, variance, std;
 	mean = calculateMean(accuracy);
@@ -90,10 +90,10 @@ double Classifier::calculateStandardDeviation(vector<double> accuracy) {
 	return std;
 }
 
-void Classifier::printAccuracy(double id, vector<vector<double> > fScore) {
+void Classifier::printAccuracy(double id, std::vector<std::vector<double> > fScore) {
 	int i;
-	ofstream outputFile;
-	vector<double> fscores, fscoresStd;
+	std::ofstream outputFile;
+	std::vector<double> fscores, fscoresStd;
 	double mean, std, balancedMean, balancedStd, fscoreMean, fscoreStd;
 	mean = calculateMean(accuracy);
 	std = calculateStandardDeviation(accuracy);
@@ -110,34 +110,34 @@ void Classifier::printAccuracy(double id, vector<vector<double> > fScore) {
 	}
 	fscoreStd = calculateStandardDeviation(fscoresStd);
 
-	cout << "-----------------------------------------------------------" << endl;
-	cout << "Image classification using KNN classifier" << endl;
-	cout << "-----------------------------------------------------------" << endl;
-	cout << "Number of classes: " << numClasses << endl;
-	cout << "Total samples: " << totalTest + totalTrain << endl;
-	cout << "\tTesting samples: " << totalTest << endl;
-	cout << "\tTraining samples: " << totalTrain << endl;
-	cout <<  "Random cross validation with "<< accuracy.size() <<" k-fold:" << endl;
-	cout << "\tMean Accuracy: " << mean << endl;
+	std::cout << "-----------------------------------------------------------" << std::endl;
+	std::cout << "Image classification using KNN classifier" << std::endl;
+	std::cout << "-----------------------------------------------------------" << std::endl;
+	std::cout << "Number of classes: " << numClasses << std::endl;
+	std::cout << "Total samples: " << totalTest + totalTrain << std::endl;
+	std::cout << "\tTesting samples: " << totalTest << std::endl;
+	std::cout << "\tTraining samples: " << totalTrain << std::endl;
+	std::cout <<  "Random cross validation with "<< accuracy.size() <<" k-fold:" << std::endl;
+	std::cout << "\tMean Accuracy: " << mean << std::endl;
 	if (std != 0)
-		cout << "\t\tStandard Deviation: " << std << endl;
-	cout << "\tMean Balanced Accuracy: " << balancedMean << endl;
+		std::cout << "\t\tStandard Deviation: " << std << std::endl;
+	std::cout << "\tMean Balanced Accuracy: " << balancedMean << std::endl;
 	if (balancedStd != 0)
-		cout << "\t\tStandard Deviation: " << balancedStd << endl;
-	cout << "\tMean F1Score: " << fscoreMean << endl;
+		std::cout << "\t\tStandard Deviation: " << balancedStd << std::endl;
+	std::cout << "\tMean F1Score: " << fscoreMean << std::endl;
 	if (fscoreStd != 0)
-		cout << "\t\tStandard Deviation: " << fscoreStd << endl;
-	cout << "-----------------------------------------------------------" << endl;
+		std::cout << "\t\tStandard Deviation: " << fscoreStd << std::endl;
+	std::cout << "-----------------------------------------------------------" << std::endl;
 
 	if (outputName != ""){
-		cout << "Write on " << (outputName+"FScore.csv").c_str() << endl;
-		cout << "---------------------------------------------------------" << endl;
+		std::cout << "Write on " << (outputName+"FScore.csv").c_str() << std::endl;
+		std::cout << "---------------------------------------------------------" << std::endl;
 
-		outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), ios::out | ios::app);
+		outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), std::ios::out | std::ios::app);
 		outputFile << balancedMean << "\n";
 		outputFile.close();
 
-		outputFile.open((outputName+"FScore.csv").c_str(), ios::out | ios::app);
+		outputFile.open((outputName+"FScore.csv").c_str(), std::ios::out | std::ios::app);
 		outputFile << fscoreMean << "\n";
 		// outputFile << fscoreMean << "\n";
 		// for (i = 0; i < (int) fscores.size(); i++){
@@ -147,27 +147,7 @@ void Classifier::printAccuracy(double id, vector<vector<double> > fScore) {
 	}
 }
 
-/* Find which is the smaller class */
-int Classifier::findSmallerClass(vector<ImageClass> imageClasses,
-		int *minoritySize) {
-	int class_id = 0, minorityClass;
-	std::vector<ImageClass>::iterator it;
-	// Number of images in the first class
-	(*minoritySize) = imageClasses[0].images.size();
-
-	// For each class
-	for(it = imageClasses.begin(); it != imageClasses.end(); ++it) {
-		// If the number of images in it is less than the minority number
-		if (it->images.size() < (*minoritySize)) {
-			(*minoritySize) = it->images.size();
-			minorityClass = class_id;
-		}
-		class_id++;
-	}
-	return minorityClass;
-}
-
-double Classifier::calculateBalancedAccuracy(Mat confusionMat) {
+double Classifier::calculateBalancedAccuracy(cv::Mat confusionMat) {
 	double balancedAccuracyMean, truePositive, falseNegative, falsePositive;
 	double trueNegative, specificity, sensitivity, positive, negative;
 	int class_id, i, j;
@@ -208,10 +188,10 @@ double Classifier::calculateBalancedAccuracy(Mat confusionMat) {
 Positive: minority class
 Negative: majority class
 *******************************************************************************/
-vector<double> Classifier::calculateFscore(Mat confusionMat){
+std::vector<double> Classifier::calculateFscore(cv::Mat confusionMat){
 	double fscore, truePositive, falseNegative, falsePositive;
 	double trueNegative, precisionRate, recallRate, positive;
-	vector<double> fScore;
+	std::vector<double> fScore;
 	int class_id, i, j;
 
 	for (class_id = 0; class_id < confusionMat.rows; class_id++){
@@ -255,11 +235,11 @@ Confusion Matrix
 actual class   truePositive   | falseNegative
                falsePositive  | trueNegative
 *******************************************************************************/
-Mat Classifier::confusionMatrix(int numClasses, Mat labelsTesting, Mat result,
+cv::Mat Classifier::confusionMatrix(int numClasses, cv::Mat labelsTesting, cv::Mat result,
 	int print) {
 
 	int i, rightClass, guessedClass;
-	Mat confusionMat = Mat::zeros(numClasses, numClasses, CV_32S);
+	cv::Mat confusionMat = cv::Mat::zeros(numClasses, numClasses, CV_32S);
 
 	for (i = 0; i < result.size().height; i++) {
 		rightClass = labelsTesting.at<int>(i,0);
@@ -268,32 +248,32 @@ Mat Classifier::confusionMatrix(int numClasses, Mat labelsTesting, Mat result,
 	}
 
 	if (print) {
-    cout << "---------------------------------------------------------" << endl;
-    cout << "\t\t\t\tConfusion Matrix" << endl;
-    cout << "\t\tPredicted" << endl << "\t";
+    std::cout << "---------------------------------------------------------" << std::endl;
+    std::cout << "\t\t\t\tConfusion Matrix" << std::endl;
+    std::cout << "\t\tPredicted" << std::endl << "\t";
     for(i = 0; i < confusionMat.cols; i++){
-        cout << "\t" << i;
+        std::cout << "\t" << i;
     }
-    cout << endl;
+    std::cout << std::endl;
     for(i = 0; i < confusionMat.rows; i++){
-        if (i == 0) cout << "Real";
-        cout << "\t"<< i;
+        if (i == 0) std::cout << "Real";
+        std::cout << "\t"<< i;
         for(int j = 0; j < confusionMat.cols; j++){
-            cout << "\t" << confusionMat.at<int>(i, j);
+            std::cout << "\t" << confusionMat.at<int>(i, j);
         }
-        cout << endl;
+        std::cout << std::endl;
     }
 	}
 
 	// /* Output file to use the confusion matrix plot with python*/
-	// stringstream fileName, resultFile;
+	// std::stringstream fileName, resultFile;
 	// fileName << outputName+"_labels_" << minority.second << ".csv";
 	// resultFile << outputName+"_resultlabels_" << minority.second << ".csv";
-	// ofstream labels(fileName.str().c_str());
-	// ofstream labelsResult(resultFile.str().c_str());
+	// std::ofstream labels(fileName.str().c_str());
+	// std::ofstream labelsResult(resultFile.str().c_str());
 	// for (i = 0; i < result.size().height; i++) {
-	//     labels << labelsTesting.at<int>(i, 0) << endl;
-	//     labelsResult << result.at<float>(i, 0) << endl;
+	//     labels << labelsTesting.at<int>(i, 0) << std::endl;
+	//     labelsResult << result.at<float>(i, 0) << std::endl;
 	// }
 	// labels.close();
 	// labelsResult.close();
@@ -301,13 +281,15 @@ Mat Classifier::confusionMatrix(int numClasses, Mat labelsTesting, Mat result,
 	return confusionMat;
 }
 
-vector< vector<double> > Classifier::classify(double trainingRatio,
-	int numRepetition, vector<ImageClass> data, string name, double id) {
+std::vector< std::vector<double> > Classifier::classify(double trainingRatio,
+	int numRepetition, Data data, std::string name, double id) {
 
-	Mat result, confusionMat;
-	int i, hits, numFeatures, numClasses, rep;
-	vector <vector<double> > fscore;
-	vector<double> fscoreClasses;
+	cv::Mat result, confusionMat;
+	int i, hits, numFeatures, numClasses, rep, numImages, numTraining;
+	int pos, rand_training;
+	std::vector<int> vectorRand;
+	std::vector <std::vector<double> > fscore;
+	std::vector<double> fscoreClasses;
 	outputName = name;
 	std::vector<ImageClass>::iterator it;
 	std::vector<Image>::iterator itImage;
@@ -315,22 +297,22 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 	numClasses = data.numClasses();
 	numFeatures = data.numFeatures();
 
-	Mat dataTraining(0, numFeatures, CV_32FC1);
-	Mat labelsTraining(0, 1, CV_32S);
-	Mat dataTesting(0, numFeatures, CV_32FC1);
-	Mat labelsTesting(0, 1, CV_32S);
+	cv::Mat dataTraining(0, numFeatures, CV_32FC1);
+	cv::Mat labelsTraining(0, 1, CV_32S);
+	cv::Mat dataTesting(0, numFeatures, CV_32FC1);
+	cv::Mat labelsTesting(0, 1, CV_32S);
 
 	for (rep = 0; rep <= numRepetition; ++rep) {
 
-		for (it = data.begin(); it != data.end(); ++it) {
+		for (it = data.classes.begin(); it != data.classes.end(); ++it) {
 			for (itImage = it->images.begin();
 					itImage != it->images.end();
 					++itImage) {
-				if (data.isTraining(itImage->fold)) {
+				if (data.isTraining(it->id, itImage->fold)) {
 					dataTraining.push_back(itImage->features);
 					labelsTraining.at<int>(dataTraining.rows-1, 0) = it->id;
 				}
-				else if (data.isTesting(itImage->fold)) {
+				else if (data.isTesting(it->id, itImage->fold)) {
 					dataTesting.push_back(itImage->features);
 					labelsTesting.at<int>(dataTesting.rows-1, 0) = it->id;
 				}
@@ -338,7 +320,7 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 		}
 
 		if (dataTraining.rows == 0) {
-			for (it = data.begin(); it != data.end(); ++it) {
+			for (it = data.classes.begin(); it != data.classes.end(); ++it) {
 
 				numImages = it->images.size();
 				numTraining = ceil(numImages * trainingRatio);
@@ -356,7 +338,7 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 				}
 				// After selecting the training set, the testing set it is going to be
 				// the rest of the whole set
-				for (i = 0; i < it->images.size(); i++) {
+				for (i = 0; i < (int) it->images.size(); i++) {
 					if (!count(vectorRand.begin(), vectorRand.end(), i)) {
 						dataTesting.push_back(it->images[pos].features);
 						labelsTesting.at<int>(dataTesting.rows-1, 0) = it->id;
@@ -367,8 +349,8 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 		}
 
 		for (i = 0; i < numClasses; i++) {
-	    cout << "\tTraining: " << dataTraining.rows << endl;
-	    cout << "\tTesting: " << dataTesting.rows << endl;
+	    std::cout << "\tTraining: " << dataTraining.rows << std::endl;
+	    std::cout << "\tTesting: " << dataTesting.rows << std::endl;
 		}
 
 		/* Train and predict using the Normal Bayes classifier */
@@ -393,7 +375,7 @@ vector< vector<double> > Classifier::classify(double trainingRatio,
 		fscoreClasses = calculateFscore(confusionMat);
 		if (fscore.size() == 0) {
 			for (i = 0; i < numClasses; i++) {
-				fscore.push_back(vector<double>()); // Add an empty row
+				fscore.push_back(std::vector<double>()); // Add an empty row
 			}
 		}
 		for (i = 0; i < (int) fscoreClasses.size(); i++) {

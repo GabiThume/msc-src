@@ -9,7 +9,7 @@ met:
 notice, this list of conditions and the following disclaimer.
     * Redistributions in binary form must reproduce the above
 copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
+in the documentation and/or other Materials provided with the
 distribution.
     * Neither the name of Gabriela Thumé nor the names of its
 contributors may be used to endorse or promote products derived from
@@ -36,32 +36,31 @@ Master's thesis in Computer Science
 #include "rebalanceTest.h"
 #include "utils/rebalance.h"
 
-
 int main(int argc, char const *argv[]) {
   Classifier c;
-  Size size;
+  cv::Size size;
   int m, d, operation, indexDescriptor, i, numImages;
   int repeatRebalance, repeat, count_diff, prev, qtd_classes, treino;
   double prob = 0.5;
-  string name, method, newDir, baseDir, featuresDir, csvOriginal, csvSmote;
-  string csvRebalance, analysisDir, csvDesbalanced, directory, str, op;
-  string images_directory, imbalancedDescriptor, originalDescriptor;
-  string descSmote, smoteDescriptor, dirRebalanced, artificialDescriptor;
-  vector<ImageClass> imbalancedData;
+  std::string name, method, newDir, baseDir, featuresDir, csvOriginal, csvSmote;
+  std::string csvRebalance, analysisDir, csvDesbalanced, directory, str, op;
+  std::string images_directory, imbalancedDescriptor, originalDescriptor;
+  std::string descSmote, smoteDescriptor, dirRebalanced, artificialDescriptor;
+  std::vector<ImageClass> imbalancedData;
   Artificial a;
   int minorityClass = 1, thisClass, j, x;
-  vector<int> testing_fold, majority_fold, minority_fold;
+  std::vector<int> testing_fold, majority_fold, minority_fold;
 
   int k = 10;
   repeatRebalance = 1;
   if (argc < 3) {
-    cout << "\nUsage: ./rebalanceTest (0) (1) (2) (3) (4)\n " << endl;
-    cout << "\t(0) Directory to place tests\n" << endl;
-    cout << "\t(1) Image Directory\n" << endl;
+    std::cout << "\nUsage: ./rebalanceTest (0) (1) (2) (3) (4)\n " << std::endl;
+    std::cout << "\t(0) Directory to place tests\n" << std::endl;
+    std::cout << "\t(1) Image Directory\n" << std::endl;
     exit(-1);
   }
-  newDir = string(argv[1]);
-  baseDir = string(argv[2]);
+  newDir = std::string(argv[1]);
+  baseDir = std::string(argv[2]);
   if (argc == 4) repeatRebalance = atoi(argv[3]);
 
   analysisDir = newDir+"/analysis/";
@@ -72,18 +71,18 @@ int main(int argc, char const *argv[]) {
   // Description {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"}
   // Quantization {"Intensity", "Luminance", "Gleam", "MSB", "MSB-Modified", "BGR", "HSV"}
 
-  // vector <int> descriptors {1, 6, 7};
-  // vector <int> quant {1, 3, 2};
+  // std::vector <int> descriptors {1, 6, 7};
+  // std::vector <int> quant {1, 3, 2};
 
-  vector <int> descriptors {1};
-  vector <int> quant {1};
+  std::vector <int> descriptors {1};
+  std::vector <int> quant {1};
 
   double factor = 0.1;
 
   // Check how many classes and images there are
   qtd_classes = qtdArquivos(baseDir+"/");
   if (qtd_classes < 2) {
-    cout << "Error. There is less than two classes in " << baseDir << endl;
+    std::cout << "Error. There is less than two classes in " << baseDir << std::endl;
     exit(-1);
   }
 
@@ -98,63 +97,63 @@ int main(int argc, char const *argv[]) {
   d = 1; m = 1;
   operation = 1;
 
-  cout << "Classification using original data" << endl;
-  originalDescriptor = description(baseDir, featuresDir, d, m, "original");
-  csvOriginal = analysisDir+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-  // perform(originalDescriptor, 10, prob, csvOriginal);
-  vector<ImageClass> data = ReadFeaturesFromFile(originalDescriptor);
+  // std::cout << "Classification using original data" << std::endl;
+  // originalDescriptor = description(baseDir, featuresDir, d, m, "original");
+  // csvOriginal = analysisDir+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+  // // perform(originalDescriptor, 10, prob, csvOriginal);
+  // std::vector<ImageClass> data = ReadFeaturesFromFile(originalDescriptor);
+  //
+  // // Arrange original images in k folds each, creating k fold_i.txt files
+  // SeparateInFolds(&data, k);
+  //
+  // for (i = 0; i < k; i++) {
+  //   for (j = 0; j < k; j++) {
+  //     if (j != i) {
+  //       for (thisClass = 0; thisClass < data.size(); thisClass++) {
+  //         data[thisClass].testing_fold.push_back(i);
+  //         if (thisClass == minorityClass) {
+  //           data[thisClass].training_fold.push_back(j);
+  //         }
+  //         else {
+  //           for (x = 0; x < k; x++) {
+  //             if (x != i) {
+  //               data[thisClass].training_fold.push_back(x);
+  //             }
+  //           }
+  //         }
+  //       }
+  //       std::vector<ImageClass> generated = a.generateImagesFromData(data, newDir+"/Artificial/", operation);
+  //       featuresDir = newDir+"/Artificial/"+"/features/";
+  //       artificialDescriptor = PerformFeatureExtraction(generated, featuresDir, d, 64, 1, 0, paramCCV, 0, m, "artificial");
+  //       // artificialDescriptor = description(dirRebalanced, featuresDir, d, m, "artificial");
+  //       // csvRebalance = analysisDir+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+  //       // perform(artificialDescriptor, 1, prob, csvRebalance);
+  //
+  //       exit(1);
+  //     }
+  //   }
+  // }
 
-  // Arrange original images in k folds each, creating k fold_i.txt files
-  SeparateInFolds(&data, k);
-
-  for (i = 0; i < k; i++) {
-    for (j = 0; j < k; j++) {
-      if (j != i) {
-        for (thisClass = 0; thisClass < data.size(); thisClass++) {
-          data[thisClass].testing_fold.push_back(i);
-          if (thisClass == minorityClass) {
-            data[thisClass].training_fold.push_back(j);
-          }
-          else {
-            for (x = 0; x < k; x++) {
-              if (x != i) {
-                data[thisClass].training_fold.push_back(x);
-              }
-            }
-          }
-        }
-        vector<ImageClass> generated = a.generateImagesFromData(data, newDir+"/Artificial/", operation);
-        featuresDir = newDir+"/Artificial/"+"/features/";
-        artificialDescriptor = PerformFeatureExtraction(generated, featuresDir, d, 64, 1, 0, paramCCV, 0, m, "artificial");
-        // artificialDescriptor = description(dirRebalanced, featuresDir, d, m, "artificial");
-        // csvRebalance = analysisDir+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-        // perform(artificialDescriptor, 1, prob, csvRebalance);
-
-        exit(1);
-      }
-    }
-  }
-
-  // cout << "\n\n------------------------------------------------------------------------------------" << endl;
-  // cout << "Select a single fold to train the  minority class:" << endl;
-  // cout << "---------------------------------------------------------------------------------------" << endl;
+  // std::cout << "\n\n------------------------------------------------------------------------------------" << std::endl;
+  // std::cout << "Select a single fold to train the  minority class:" << std::endl;
+  // std::cout << "---------------------------------------------------------------------------------------" << std::endl;
   // images_directory = RemoveSamples(baseDir, newDir, prob, factor);
 
   // // For each rebalancing operation
   // for (operation = 0; operation <= 0; operation++){
   //
-  //   vector<String> allRebalanced;
-  //   stringstream operationstr;
+  //   std::vector<String> allRebalanced;
+  //   std::stringstream operationstr;
   //   operationstr << operation;
   //   op = operationstr.str();
   //
   //   /* Generate Artificial Images */
   //   repeatRebalance = 1;
   //   for (repeat = 0; repeat < repeatRebalance; repeat++) {
-  //     stringstream repeatStr;
+  //     std::stringstream repeatStr;
   //     repeatStr << repeat;
-  //     string newDirectory = newDir+"/Artificial/"+op+"-Rebalanced"+repeatStr.str();
-  //     string dirRebalanced = a.generate(images_directory, newDirectory, operation);
+  //     std::string newDirectory = newDir+"/Artificial/"+op+"-Rebalanced"+repeatStr.str();
+  //     std::string dirRebalanced = a.generate(images_directory, newDirectory, operation);
   //     allRebalanced.push_back(dirRebalanced);
   //   }
   //
@@ -164,14 +163,14 @@ int main(int argc, char const *argv[]) {
   //
   //     // Feature extraction from images
   //     if (count_diff == 0) {
-  //       cout << "Classification using original data" << endl;
-  //       string originalDescriptor = description(baseDir, featuresDir, d, m, "original");
+  //       std::cout << "Classification using original data" << std::endl;
+  //       std::string originalDescriptor = description(baseDir, featuresDir, d, m, "original");
   //       csvOriginal = analysisDir+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
   //       perform(originalDescriptor, 10, prob, csvOriginal);
   //     }
   //
-  //     cout << "Classification using desbalanced data" << endl;
-  //     string imbalancedDescriptor = description(images_directory, featuresDir, d, m, "desbalanced");
+  //     std::cout << "Classification using desbalanced data" << std::endl;
+  //     std::string imbalancedDescriptor = description(images_directory, featuresDir, d, m, "desbalanced");
   //     csvDesbalanced = analysisDir+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
   //     perform(imbalancedDescriptor, 1, prob, csvDesbalanced);
   //
@@ -180,14 +179,14 @@ int main(int argc, char const *argv[]) {
   //       imbalancedData = ReadFeaturesFromFile(imbalancedDescriptor);
   //       descSmote = newDir+"/features/"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
   //       smoteDescriptor = PerformSmote(imbalancedData, operation, descSmote);
-  //       cout << "Classification using SMOTE" << endl;
+  //       std::cout << "Classification using SMOTE" << std::endl;
   //       csvSmote = analysisDir+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
   //       perform(smoteDescriptor, 1, prob, csvSmote);
   //       imbalancedData.clear();
   //
-  //       cout << "Classification using rebalanced data" << endl;
+  //       std::cout << "Classification using rebalanced data" << std::endl;
   //       featuresDir = allRebalanced[i]+"/../features/";
-  //       string artificialDescriptor = description(allRebalanced[i], featuresDir, d, m, "artificial");
+  //       std::string artificialDescriptor = description(allRebalanced[i], featuresDir, d, m, "artificial");
   //       csvRebalance = analysisDir+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
   //       perform(artificialDescriptor, 1, prob, csvRebalance);
   //     }
@@ -195,6 +194,6 @@ int main(int argc, char const *argv[]) {
   //   allRebalanced.clear();
   // }
 
-  cout << "Done." << endl;
+  std::cout << "Done." << std::endl;
   return 0;
 }

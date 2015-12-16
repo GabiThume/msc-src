@@ -1,23 +1,23 @@
 /*******************************************************************************
 Generate a imbalanced class
 *******************************************************************************/
-string Rebalance::RemoveSamples(string database, string newDir, double prob, double id) {
+std::string Rebalance::RemoveSamples(std::string database, std::string newDir, double prob, double id) {
 
   int pos = 0, samples, imagesTraining, i, imgsInClass, x, qtdClasses;
   int prev, count_diff, treino, num_images, imagesTesting;
-  vector<int> vectorRand, objperClass;
-  string str, nameFile, name, nameDir, directory, dir;
-  stringstream numImages, classNumber, image, globalFactor;
-  Size size;
-  ifstream myFile;
-  Mat data, classes;
+  std::vector<int> vectorRand, objperClass;
+  std::string str, nameFile, name, nameDir, directory, dir;
+  std::stringstream numImages, classNumber, image, globalFactor;
+  cv::Size size;
+  std::ifstream myFile;
+  cv::Mat data, classes;
   double fator = 1.0;
 
   // Check how many classes and images there are
   directory = database+"/";
   qtdClasses = qtdArquivos(directory);
   if (qtdClasses < 2) {
-    cout << "Error. There is less than two classes in " << directory << endl;
+    std::cout << "Error. There is less than two classes in " << directory << std::endl;
     exit(-1);
   }
   NumberImgInClass(directory, 0, &prev, &treino);
@@ -31,9 +31,9 @@ string Rebalance::RemoveSamples(string database, string newDir, double prob, dou
   }
   imagesTesting = imagesTesting*prob;
   if (count_diff == 0) {
-    cout << "\n\n------------------------------------------------------------------------------------" << endl;
-    cout << "Divide the number of original samples to create a minority class:" << endl;
-    cout << "---------------------------------------------------------------------------------------" << endl;
+    std::cout << "\n\n------------------------------------------------------------------------------------" << std::endl;
+    std::cout << "Divide the number of original samples to create a minority class:" << std::endl;
+    std::cout << "---------------------------------------------------------------------------------------" << std::endl;
   }
 
   globalFactor << id;
@@ -62,7 +62,7 @@ string Rebalance::RemoveSamples(string database, string newDir, double prob, dou
       str += "mkdir -p "+dir+classNumber.str()+"/treino/;";
       str += "mkdir -p "+dir+classNumber.str()+"/teste/;";
 
-      //cout << " Executa " << str.c_str() << endl;
+      //std::cout << " Executa " << str.c_str() << std::endl;
       system(str.c_str());
 
       /* Generate a random position to select samples to create the minority class */
@@ -82,7 +82,7 @@ string Rebalance::RemoveSamples(string database, string newDir, double prob, dou
         str = "cp "+database+classNumber.str()+"/"+image.str()+".png ";
         str+= dir+classNumber.str()+"/treino/; ";
         system(str.c_str());
-        //cout << " Executa " << str.c_str() << endl;
+        //std::cout << " Executa " << str.c_str() << std::endl;
       }
 
       /* Copy the rest of originals to a testing folder */
@@ -92,7 +92,7 @@ string Rebalance::RemoveSamples(string database, string newDir, double prob, dou
         str = "cp "+database+classNumber.str()+"/"+image.str()+".png ";
         str+= dir+classNumber.str()+"/teste/;";
         system(str.c_str());
-        //cout << " Executa " << str.c_str() << endl;
+        //std::cout << " Executa " << str.c_str() << std::endl;
       }
 
       str = "bash scripts/rename.sh "+dir+classNumber.str()+"/";
@@ -112,32 +112,32 @@ string Rebalance::RemoveSamples(string database, string newDir, double prob, dou
   return dir;
 }
 
-string Rebalance::PerformFeatureExtraction(string database, string featuresDir, int method,
-    int colors, double resizeFactor, int normalization, vector<int> param,
-    int deleteNull, int quantization, string id){
+std::string Rebalance::PerformFeatureExtraction(std::string database, std::string featuresDir, int method,
+    int colors, double resizeFactor, int normalization, std::vector<int> param,
+    int deleteNull, int quantization, std::string id){
 
   int numImages = 0, qtdClasses = 0, qtdImgTotal = 0, imgTotal = 0, treino = 0;
   int i, j, bars, current_class;
   double porc;
   int resizingFactor = static_cast<int>(resizeFactor*100);
-  string name, directory;
-  Mat img, featureVector, features, labels, trainTest, newimg, isGenerated;
-  vector<int> num_images_class;
-  vector<string> path;
+  std::string name, directory;
+  cv::Mat img, featureVector, features, labels, trainTest, newimg, isGenerated;
+  std::vector<int> num_images_class;
+  std::vector<string> path;
   clock_t begin, end;
 
-  cout << "\n---------------------------------------------------------" << endl;
-  cout << "Image feature extraction using " << descriptorMethod[method-1];
-  cout << " and " << quantizationMethod[quantization-1] << endl;
-  cout << "-----------------------------------------------------------" << endl;
+  std::cout << "\n---------------------------------------------------------" << std::endl;
+  std::cout << "Image feature extraction using " << descriptorMethod[method-1];
+  std::cout << " and " << quantizationMethod[quantization-1] << std::endl;
+  std::cout << "-----------------------------------------------------------" << std::endl;
 
-  cout << "Database: " << database << endl;
+  std::cout << "Database: " << database << std::endl;
 
   begin = clock();
-  img = imread(database, CV_LOAD_IMAGE_COLOR);
+  img = cv::imread(database, CV_LOAD_IMAGE_COLOR);
   if (!img.empty()) {
     // Resize the image given the input factor
-    resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
+    resize(img, newimg, cv::Size(), resizeFactor, resizeFactor, INTER_AREA);
 
     // Convert the image to grayscale
     ConvertToGrayscale(quantization, newimg, &newimg, colors);
@@ -145,7 +145,7 @@ string Rebalance::PerformFeatureExtraction(string database, string featuresDir, 
     // Call the description method
     GetFeatureVector(method, newimg, &features, colors, normalization, param);
     if (featureVector.cols == 0) {
-      cout << "Error: the feature vector is null" << endl;
+      std::cout << "Error: the feature std::vector is null" << std::endl;
       exit(1);
     }
 
@@ -155,9 +155,9 @@ string Rebalance::PerformFeatureExtraction(string database, string featuresDir, 
     // Check how many classes and images there are
     qtdClasses = qtdArquivos(database+"/");
     qtdImgTotal = NumberImagesInDataset(database, qtdClasses, &num_images_class);
-    labels = Mat::zeros(qtdImgTotal, 1, CV_32S);
-    trainTest = Mat::zeros(qtdImgTotal, 1, CV_32S);
-    isGenerated= Mat::zeros(qtdImgTotal, 1, CV_32S);
+    labels = cv::Mat::zeros(qtdImgTotal, 1, CV_32S);
+    trainTest = cv::Mat::zeros(qtdImgTotal, 1, CV_32S);
+    isGenerated= cv::Mat::zeros(qtdImgTotal, 1, CV_32S);
 
 
     for (i = 0; i < qtdClasses; i++) {
@@ -174,7 +174,7 @@ string Rebalance::PerformFeatureExtraction(string database, string featuresDir, 
           // Resize the image given the input size
           img.copyTo(newimg);
           if (resizeFactor != 1.0) {
-            cv::resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
+            cv::resize(img, newimg, cv::Size(), resizeFactor, resizeFactor, INTER_AREA);
           }
 
           // Convert the image to grayscale
@@ -184,11 +184,11 @@ string Rebalance::PerformFeatureExtraction(string database, string featuresDir, 
           GetFeatureVector(method, newimg, &featureVector, colors, normalization,
             param);
           if (featureVector.cols == 0) {
-            cout << "Error: the feature vector is null" << endl;
+            std::cout << "Error: the feature std::vector is null" << std::endl;
             exit(1);
           }
 
-          // Push the feature vector for the current image in the features vector
+          // Push the feature std::vector for the current image in the features std::vector
           features.push_back(featureVector);
           imgTotal++;
           featureVector.release();
@@ -202,34 +202,34 @@ string Rebalance::PerformFeatureExtraction(string database, string featuresDir, 
       ZScoreNormalization(&features);
     }
 
-    // Remove null columns in Mat of features
+    // Remove null columns in cv::Mat of features
     if (deleteNull) {
       RemoveNullColumns(&features);
     }
   }
 
   // Show the number of images per class
-  cout << "Images: " << features.rows << " - Classes: " << qtdClasses;
-  cout << " - Features: " << features.cols << endl;
+  std::cout << "Images: " << features.rows << " - Classes: " << qtdClasses;
+  std::cout << " - Features: " << features.cols << std::endl;
   for (current_class = 0; current_class < qtdClasses; current_class++) {
     bars = (static_cast<double> (num_images_class[current_class]) /
       static_cast<double> (features.rows)) * 50.0;
-    cout << current_class << " ";
+    std::cout << current_class << " ";
     for (j = 0; j < bars; j++) {
-      cout << "|";
+      std::cout << "|";
     }
     porc = static_cast<double> (num_images_class[current_class]) /
       static_cast<double> (features.rows);
-    cout << " " << porc * 100.0 << "%" << " (";
-    cout << num_images_class[current_class] << ")" <<endl;
+    std::cout << " " << porc * 100.0 << "%" << " (";
+    std::cout << num_images_class[current_class] << ")" <<std::endl;
   }
 
   name = WriteFeaturesOnFile(featuresDir, quantization, method, colors,
     normalization, resizingFactor, qtdClasses, features, labels, trainTest,
     isGenerated, path, id, false);
-  cout << "File: " << name << endl;
+  std::cout << "File: " << name << std::endl;
   end = clock();
-  cout << endl << "Elapsed time: " << double(end-begin)/ CLOCKS_PER_SEC << endl;
+  std::cout << std::endl << "Elapsed time: " << double(end-begin)/ CLOCKS_PER_SEC << std::endl;
 
   return name;
 }

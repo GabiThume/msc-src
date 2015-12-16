@@ -39,12 +39,12 @@ Based on paper's "SMOTE: Synthetic Minority Over-sampling Technique" pseudo-code
 #include "preprocessing/smote.h"
 
 /* Generate the synthetic samples to over-sample the minority class */
-void SMOTE::populate(Mat minority, Mat neighbors, Mat *synthetic, int *index,
+void SMOTE::populate(cv::Mat minority, cv::Mat neighbors, cv::Mat *synthetic, int *index,
     int amountSmote, int i, int nearestNeighbors) {
   int attributes, nn, attr;
   double gap, dif, attrOriginal, neighbor;
-  vector<int> vectorRand;
-  Size s = minority.size();
+  std::vector<int> vectorRand;
+  cv::Size s = minority.size();
   attributes = s.width;
 
   /* amountSmote is how many synthetic samples need to be generated for i */
@@ -58,12 +58,12 @@ void SMOTE::populate(Mat minority, Mat neighbors, Mat *synthetic, int *index,
 
       for (attr = 0; attr < attributes; attr++) {
         attrOriginal = minority.at<float>(i, attr);
-        /* The difference between the feature vector under and its
+        /* The difference between the feature std::vector under and its
         nearest neighbor*/
         dif = minority.at<float>(neighbor, attr) - attrOriginal;
         /* Multiply this difference with a number between 0 and 1 */
         gap = rand()/static_cast<double>(RAND_MAX);
-        /* Add it to the original feature vector */
+        /* Add it to the original feature std::vector */
         (*synthetic).at<float>((*index), attr) = attrOriginal + gap*dif;
       }
       (*index)++;
@@ -73,25 +73,25 @@ void SMOTE::populate(Mat minority, Mat neighbors, Mat *synthetic, int *index,
 }
 
 /* Compute the nearest neighbors */
-void SMOTE::computeNeighbors(Mat minority, int nearestNeighbors,
-    Mat *neighbors) {
-  Size s = minority.size();
+void SMOTE::computeNeighbors(cv::Mat minority, int nearestNeighbors,
+    cv::Mat *neighbors) {
+  cv::Size s = minority.size();
   int i, k = nearestNeighbors, max, index = 0;
-  Mat classes(s.height, 1, CV_32FC1);
+  cv::Mat classes(s.height, 1, CV_32FC1);
 
   for (i = 0; i < s.height; i++) {
     classes.at<float>(i, 0) = index;
     index++;
   }
 
-  KNearest knn(minority, classes);
+  cv::KNearest knn(minority, classes);
   max = (minority.rows > knn.get_max_k() ? knn.get_max_k() : minority.rows);
   knn.find_nearest(minority, (k > max ? max : k), 0, 0, neighbors, 0);
 
   // for (i = 0; i < (*neighbors).size().height; i++){
-  //   cout << endl <<  nearestNeighbors << " vizinhos de i: " << i << endl;
+  //   std::cout << std::endl <<  nearestNeighbors << " vizinhos de i: " << i << std::endl;
   //   for (int x = 0; x < (*neighbors).size().width; x++){
-  //     cout << (*neighbors).at<float>(i, x) << " ";
+  //     std::cout << (*neighbors).at<float>(i, x) << " ";
   //   }
   // }
 
@@ -99,18 +99,18 @@ void SMOTE::computeNeighbors(Mat minority, int nearestNeighbors,
 }
 
 /* Synthetic Minority Over-sampling Technique */
-Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors) {
-  Size s = minority.size();
+cv::Mat SMOTE::smote(cv::Mat minority, int amountSmote, int nearestNeighbors) {
+  cv::Size s = minority.size();
   int i, samples, pos, index = 0;
   int minoritySamples = s.height;
   int attributes = s.width;
-  vector<int> vectorRand;
-  Mat newMinority;
-  if (amountSmote == 0) return Mat();
+  std::vector<int> vectorRand;
+  cv::Mat newMinority;
+  if (amountSmote == 0) return cv::Mat();
 
-  cout << "\n---------------------------------------------------------" << endl;
-  cout << "SMOTE generation of samples to rebalance classes" << endl;
-  cout << "---------------------------------------------------------" << endl;
+  std::cout << "\n---------------------------------------------------------" << std::endl;
+  std::cout << "SMOTE generation of samples to rebalance classes" << std::endl;
+  std::cout << "---------------------------------------------------------" << std::endl;
 
   // The first neighbor is the sample itself
   nearestNeighbors =  nearestNeighbors + 1 < minority.rows ? nearestNeighbors + 1 : minority.rows;
@@ -126,7 +126,7 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors) {
       pos = rand() % (s.height);
       if (!count(vectorRand.begin(), vectorRand.end(), pos)) {
         vectorRand.push_back(pos);
-        Mat tmp = newMinority.row(samples);
+        cv::Mat tmp = newMinority.row(samples);
         minority.row(pos).copyTo(tmp);
         samples++;
       }
@@ -134,8 +134,8 @@ Mat SMOTE::smote(Mat minority, int amountSmote, int nearestNeighbors) {
     minority = newMinority;
   }
 
-  Mat synthetic(amountSmote, attributes, CV_32FC1);
-  Mat neighbors(minoritySamples, nearestNeighbors, CV_32FC1);
+  cv::Mat synthetic(amountSmote, attributes, CV_32FC1);
+  cv::Mat neighbors(minoritySamples, nearestNeighbors, CV_32FC1);
 
   /* Compute all the neighbors for the minority class */
   computeNeighbors(minority, nearestNeighbors, &neighbors);

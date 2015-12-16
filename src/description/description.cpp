@@ -33,29 +33,26 @@ Universidade de São Paulo / ICMC
 Master's thesis in Computer Science
 */
 
-#include <queue>
-#include <vector>
-
 #include "description/descritores.h"
 
 /*******************************************************************************
 Verify a neighbor pixel. To do so, it checks if it is in the correct dimensions
 of the image, than compare to the color we are looking for and if was not yet
-visited. Then add this pixel to the queue, mark it as visited and increase the
+visited. Then add this pixel to the std::queue, mark it as visited and increase the
 region size.
 
 Requires:
-- Mat original image
+- cv::Mat original image
 - int height of the image to check border
 - int width of the image to check border
 - uchar color we are expect neighbors have
-- vector< vector<bool> >* control of which pixels were visited
-- queue<Pixel>* queue of pixels to visit
+- std::vector< std::vector<bool> >* control of which pixels were visited
+- std::queue<Pixel>* std::queue of pixels to visit
 - int64* size of the region we are calculating
 *******************************************************************************/
-void FeatureExtraction::VerifyNeighborPixel(Mat img, int index_height,
-  int index_width, uchar pixel_color, vector< vector<bool> > *visited,
-  queue<Pixel> *pixels, int *size_region) {
+void FeatureExtraction::VerifyNeighborPixel(cv::Mat img, int index_height,
+  int index_width, uchar pixel_color, std::vector< std::vector<bool> > *visited,
+  std::queue<Pixel> *pixels, int *size_region) {
 
   int height = img.rows, width = img.cols;
   uchar img_color;
@@ -78,17 +75,17 @@ void FeatureExtraction::VerifyNeighborPixel(Mat img, int index_height,
 
 /*******************************************************************************
 Finds the neighbors that are not border and have the same color of the pixel on
-the begin of the queue (oldest element) and add them into the queue and increase
+the begin of the std::queue (oldest element) and add them into the std::queue and increase
 the size of the current region.
 
 Requires:
-- Mat original image
-- vector< vector<bool> >* control of which pixels were visited
-- queue<Pixel> queue of pixels to visit
+- cv::Mat original image
+- std::vector< std::vector<bool> >* control of which pixels were visited
+- std::queue<Pixel> std::queue of pixels to visit
 - int64* size of the region we are calculating
 *******************************************************************************/
-void FeatureExtraction::FindNeighbor(Mat img, vector< vector<bool> > *visited,
-  queue<Pixel> *pixels, int *size_region) {
+void FeatureExtraction::FindNeighbor(cv::Mat img, std::vector< std::vector<bool> > *visited,
+  std::queue<Pixel> *pixels, int *size_region) {
 
   Pixel pix = (*pixels).front();
   (*pixels).pop();
@@ -113,7 +110,7 @@ void FeatureExtraction::FindNeighbor(Mat img, vector< vector<bool> > *visited,
 }
 
 /*******************************************************************************
-A color coherence vector (CCV) stores the number of coherent versus incoherent
+A color coherence std::vector (CCV) stores the number of coherent versus incoherent
 pixels of each color.
 
 Coherent pixels area a part of some contiguous region while incoherent are not.
@@ -122,7 +119,7 @@ Computes two histograms:
 - histogram of coherent pixels.
 - histogram of incoherent pixels.
 
-1 - Slightly blur the image by replacing pixels values with the average value
+1 - Slightly cv::blur the image by replacing pixels values with the average value
     in a 8-neighborhood.
 2 - Discretize the colorspace, such that there are only n distinct colors.
 3 - Classify pixels as either coherent or incoherent depending on the size of
@@ -130,32 +127,32 @@ Computes two histograms:
 
 
 Requires:
-- Mat original image
-- Mat* histogram with size equal to 2*colors
+- cv::Mat original image
+- cv::Mat* histogram with size equal to 2*colors
   * coherent: [0, colors-1]
   * incoherent: [colors, colors*2-1]
 - int number of colors
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 - int level of coherency
 *******************************************************************************/
-void FeatureExtraction::CalculateCCV(Mat img, Mat *features) {
+void FeatureExtraction::CalculateCCV(cv::Mat img, cv::Mat *features) {
 
   int x, y, size_region, height = img.rows, width = img.cols;
-  vector< vector<bool> > visited_pixels;
-  visited_pixels.resize(height, vector<bool>(width, false));
-  Mat ccv_histograms, blur_img;
-  queue<Pixel> pixels;
+  std::vector< std::vector<bool> > visited_pixels;
+  visited_pixels.resize(height, std::vector<bool>(width, false));
+  cv::Mat ccv_histograms, blur_img;
+  std::queue<Pixel> pixels;
   Pixel pix;
 
   // 1 - Blur the image
-  blur(img, blur_img, Size(3, 3));
+  cv::blur(img, blur_img, cv::Size(3, 3));
 
   // 2 - Discretize the colorspace to 1/4 of the colors
-  // number_colors = static_cast<int>(number_colors/4.0);
-  FeatureExtraction::reduceImageColors(&blur_img, number_colors);
+  // number_colors = static_cast<int>(numColors/4.0);
+  FeatureExtraction::reduceImageColors(&blur_img, numColors);
 
-  vector<float> coherent(number_colors, 0);
-  vector<float> incoherent(number_colors, 0);
+  std::vector<float> coherent(numColors, 0);
+  std::vector<float> incoherent(numColors, 0);
 
   // 3 - For each pixel, classify it as either coherent or incoherent
   for (y = 0; y < height; y++) {
@@ -174,7 +171,7 @@ void FeatureExtraction::CalculateCCV(Mat img, Mat *features) {
         while (!pixels.empty()) {
           // If neither neighbor has the same color, call it only one time
           // If a neighbor with the same color is found, call it for the new one
-          FindNeighbor(blur_img, &visited_pixels, &pixels, &size_region);
+          FeatureExtraction::FindNeighbor(blur_img, &visited_pixels, &pixels, &size_region);
         }
         // If the size of the region is higher than the ccvThreshold is coherent
         if (size_region >= ccvThreshold) {
@@ -186,14 +183,14 @@ void FeatureExtraction::CalculateCCV(Mat img, Mat *features) {
     }
   }
 
-  Mat coherent_hist(coherent, true);
-  Mat incoherent_hist(incoherent, true);
-  // Normalize the vectors and concatenate them on Mat features
+  cv::Mat coherent_hist(coherent, true);
+  cv::Mat incoherent_hist(incoherent, true);
+  // Normalize the vectors and concatenate them on cv::Mat features
   if (normalization != 0) {
-    normalize(coherent_hist, coherent_hist, 0, normalization, NORM_MINMAX,
-              -1, Mat());
-    normalize(incoherent_hist, incoherent_hist, 0, normalization, NORM_MINMAX,
-              -1, Mat());
+    normalize(coherent_hist, coherent_hist, 0, normalization, cv::NORM_MINMAX,
+              -1, cv::Mat());
+    normalize(incoherent_hist, incoherent_hist, 0, normalization, cv::NORM_MINMAX,
+              -1, cv::Mat());
   }
   ccv_histograms.push_back(coherent_hist);
   ccv_histograms.push_back(incoherent_hist);
@@ -203,20 +200,20 @@ void FeatureExtraction::CalculateCCV(Mat img, Mat *features) {
 }
 
 /*******************************************************************************
-Compute color coherent vector for each channel and concatenate them
+Compute color coherent std::vector for each channel and concatenate them
 
 Requires:
-- Mat original image
-- Mat* feature vector where to save the histograms
+- cv::Mat original image
+- cv::Mat* feature std::vector where to save the histograms
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 - int threshold to indicate the size of the region that is coherent
 *******************************************************************************/
-void FeatureExtraction::CCV(Mat img, Mat *features) {
+void FeatureExtraction::CCV(cv::Mat img, cv::Mat *features) {
 
   int i, img_channels = img.channels();
-  vector<Mat> color_ccv(img_channels), channel(img_channels);
-  Mat ccv_histograms;
+  std::vector<cv::Mat> color_ccv(img_channels), channel(img_channels);
+  cv::Mat ccv_histograms;
 
   if (img_channels > 1) FeatureExtraction::reduceImageColors(&img, numColors);
   split(img, channel);
@@ -238,26 +235,26 @@ the number of times each color occurs.
 Usually a 64-bins histogram is used.
 
 Requires:
-- Mat original image
-- Mat* feature vector where to save the histogram
+- cv::Mat original image
+- cv::Mat* feature std::vector where to save the histogram
 - int number of colors wanted in the image (64)
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void FeatureExtraction::CalculateGCH(Mat img, Mat *features) {
+void FeatureExtraction::CalculateGCH(cv::Mat img, cv::Mat *features) {
 
   int histogram_size[] = {numColors};
   float ranges[] = {0, static_cast<float>(numColors)};
   const float* histogram_ranges[] = {ranges};
-  MatND histogram;
+  cv::MatND histogram;
   bool uniform = true, accumulate = false;
 
   // Calculate the histogram. Be aware that the discretization occur
   // when a bin < 256 is given as input to his function
-  calcHist(&img, 1, 0, Mat(), histogram, 1, histogram_size, histogram_ranges,
+  cv::calcHist(&img, 1, 0, cv::Mat(), histogram, 1, histogram_size, histogram_ranges,
           uniform, accumulate);
 
   if (normalization != 0) {
-    normalize(histogram, histogram, 0, normalization, NORM_MINMAX, -1, Mat());
+    normalize(histogram, histogram, 0, normalization, cv::NORM_MINMAX, -1, cv::Mat());
   }
   histogram = histogram.t();
   (*features).push_back(histogram);
@@ -268,17 +265,17 @@ void FeatureExtraction::CalculateGCH(Mat img, Mat *features) {
 Compute a global color histogram for each channel and concatenate them
 
 Requires:
-- Mat original image
-- Mat* feature vector where to save the two histograms
+- cv::Mat original image
+- cv::Mat* feature std::vector where to save the two histograms
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void FeatureExtraction::GCH(Mat img, Mat *features) {
+void FeatureExtraction::GCH(cv::Mat img, cv::Mat *features) {
 
   int i, img_channels = img.channels();
-  vector<Mat> color_gch(img_channels);
-  Mat gch_histograms;
-  vector<Mat> channel(img_channels);
+  std::vector<cv::Mat> color_gch(img_channels);
+  cv::Mat gch_histograms;
+  std::vector<cv::Mat> channel(img_channels);
 
   if (img_channels > 1) FeatureExtraction::reduceImageColors(&img, numColors);
   split(img, channel);
@@ -304,19 +301,19 @@ Border/Interior pixel classification
 Usually 64 bins each color histogram.
 
 Requires:
-- Mat original image
-- Mat* feature vector where to save the two histograms
+- cv::Mat original image
+- cv::Mat* feature std::vector where to save the two histograms
     * Borda: [0, colors-1]
     * Interior: [colors, colors*2-1]
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void FeatureExtraction::CalculateBIC(Mat img, Mat *features) {
+void FeatureExtraction::CalculateBIC(cv::Mat img, cv::Mat *features) {
 
   int height = img.rows, width = img.cols, row, col;
   uchar pixel_color;
-  Mat histogram_border = Mat::zeros(1, numColors, CV_32FC1);
-  Mat histogram_interior = Mat::zeros(1, numColors, CV_32FC1);
+  cv::Mat histogram_border = cv::Mat::zeros(1, numColors, CV_32FC1);
+  cv::Mat histogram_interior = cv::Mat::zeros(1, numColors, CV_32FC1);
 
   // 1- Calculate the histogram while classify pixels as border or interior
   for (row = 0; row < height; row++) {
@@ -342,9 +339,9 @@ void FeatureExtraction::CalculateBIC(Mat img, Mat *features) {
   //  2- Normalize
   if (normalization != 0) {
     normalize(histogram_border, histogram_border, 0, normalization,
-              NORM_MINMAX, -1, Mat());
+              cv::NORM_MINMAX, -1, cv::Mat());
     normalize(histogram_interior, histogram_interior, 0, normalization,
-              NORM_MINMAX, -1, Mat());
+              cv::NORM_MINMAX, -1, cv::Mat());
   }
 
   // 3- Concatenate
@@ -358,17 +355,17 @@ void FeatureExtraction::CalculateBIC(Mat img, Mat *features) {
 Compute a Border/Interior pixel classification for each channel
 
 Requires:
-- Mat original image
-- Mat* feature vector where to save the two histograms
+- cv::Mat original image
+- cv::Mat* feature std::vector where to save the two histograms
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void FeatureExtraction::BIC(Mat img, Mat *features) {
+void FeatureExtraction::BIC(cv::Mat img, cv::Mat *features) {
 
   int i, img_channels = img.channels();
-  vector<Mat> color_bic(img_channels);
-  Mat bic_histograms;
-  vector<Mat> channel(img_channels);
+  std::vector<cv::Mat> color_bic(img_channels);
+  cv::Mat bic_histograms;
+  std::vector<cv::Mat> channel(img_channels);
 
   if (img_channels > 1) FeatureExtraction::reduceImageColors(&img, numColors);
   split(img, channel);
@@ -387,10 +384,10 @@ void FeatureExtraction::BIC(Mat img, Mat *features) {
 Four directions of adjacency as defined for calculation of the Haralick texture
 features
 *******************************************************************************/
-vector<int> FeatureExtraction::NearestNeighborAngle(int row, int col,
+std::vector<int> FeatureExtraction::NearestNeighborAngle(int row, int col,
   int distance, int angle) {
 
-  vector<int> neighbor(2, 0);
+  std::vector<int> neighbor(2, 0);
   neighbor[0] = 0;
   neighbor[1] = 0;
 
@@ -427,22 +424,22 @@ pixels at a time, called the reference and the neighbor pixel.
 3 - Normalize the matrix to turn it into probabilities.
 
 Requires:
-- Mat original image
-- vector< vector<float> >* co-occurence matrix
+- cv::Mat original image
+- std::vector< std::vector<float> >* co-occurence matrix
 - int number of colors wanted in the image
 - int distance between neighbors (usually 2)
 - int angle (0||45||90||135)
 *******************************************************************************/
-void FeatureExtraction::CoocurrenceMatrix(Mat img,
-  vector< vector<double> > *co_occurence, int distance, int angle) {
+void FeatureExtraction::CoocurrenceMatrix(cv::Mat img,
+  std::vector< std::vector<double> > *co_occurence, int distance, int angle) {
 
   double number_occurences = 0;
   int color_reference, color_neighbor;
   int row, col, height = img.rows, width = img.cols;
-  vector<int> neighbor;
+  std::vector<int> neighbor;
 
   FeatureExtraction::reduceImageColors(&img, numColors);
-  (*co_occurence).resize(numColors, vector<double>(numColors, 0));
+  (*co_occurence).resize(numColors, std::vector<double>(numColors, 0));
   for (row = distance; row < height-distance; ++row) {
     for (col = distance; col < width-distance; ++col) {
       neighbor = NearestNeighborAngle(row, col, distance, angle);
@@ -481,11 +478,11 @@ diagonal. Range: [0,1]
 * Entropy: descriptor of randomness. Range:  [0, 2 * log_2 colors]
 
 Requires:
-- vector< vector<float> >* GLCM matrix
-- Mat* to write the 6 measurements after computing them
+- std::vector< std::vector<float> >* GLCM matrix
+- cv::Mat* to write the 6 measurements after computing them
 *******************************************************************************/
-void FeatureExtraction::Haralick6(vector< vector<double> > co_occurence,
-  Mat *features) {
+void FeatureExtraction::Haralick6(std::vector< std::vector<double> > co_occurence,
+  cv::Mat *features) {
 
   double mean_rows = 0, mean_cols = 0, standard_deviation_rows = 0;
   double standard_deviation_cols = 0, entropy = 0, homogeneity = 0;
@@ -493,8 +490,8 @@ void FeatureExtraction::Haralick6(vector< vector<double> > co_occurence,
   double variance_rows = 0, variance_cols = 0, p_ij;
   int i, j, colors = co_occurence.size();
 
-  vector <double> frequency_rows(colors, 0);
-  vector <double> frequency_cols(colors, 0);
+  std::vector <double> frequency_rows(colors, 0);
+  std::vector <double> frequency_cols(colors, 0);
 
   for (i = 0; i < colors; i++) {
     for (j = 0; j < colors; j++) {
@@ -541,7 +538,7 @@ void FeatureExtraction::Haralick6(vector< vector<double> > co_occurence,
   }
 
   (*features).create(1, 6, CV_32FC1);
-  (*features) = Scalar::all(0.0);
+  (*features) = cv::Scalar::all(0.0);
 
   entropy = -entropy;
   (*features).at<float>(0, 0) = static_cast<float>(max_probability);
@@ -559,24 +556,24 @@ Texture descriptor: Haralick feature extraction
 2 - Extract 6 Haralick features from it
 
 Requires:
-- Mat original image
-- Mat* feature vector where to write the features
+- cv::Mat original image
+- cv::Mat* feature std::vector where to write the features
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void FeatureExtraction::CalculateHARALICK(Mat img, Mat *features) {
+void FeatureExtraction::CalculateHARALICK(cv::Mat img, cv::Mat *features) {
 
-  vector< vector<double> > GLCM_0, GLCM_45, GLCM_90, GLCM_135, GLCM;
+  std::vector< std::vector<double> > GLCM_0, GLCM_45, GLCM_90, GLCM_135, GLCM;
   int distance, i, j;
 
   distance = 1;
-  CoocurrenceMatrix(img, &GLCM_0, numColors, distance, 0);
-  CoocurrenceMatrix(img, &GLCM_45, numColors, distance, 45);
-  CoocurrenceMatrix(img, &GLCM_90, numColors, distance, 90);
-  CoocurrenceMatrix(img, &GLCM_135, numColors, distance, 135);
+  FeatureExtraction::CoocurrenceMatrix(img, &GLCM_0, distance, 0);
+  FeatureExtraction::CoocurrenceMatrix(img, &GLCM_45, distance, 45);
+  FeatureExtraction::CoocurrenceMatrix(img, &GLCM_90, distance, 90);
+  FeatureExtraction::CoocurrenceMatrix(img, &GLCM_135, distance, 135);
 
   // The GLCM matrix is the average of four matrixes with different directions
-  GLCM.resize(numColors, vector<double>(numColors, 0));
+  GLCM.resize(numColors, std::vector<double>(numColors, 0));
   for (i = 0; i < numColors; ++i) {
     for (j = 0; j < numColors; ++j) {
       GLCM[i][j] =
@@ -591,17 +588,17 @@ void FeatureExtraction::CalculateHARALICK(Mat img, Mat *features) {
 Texture descriptor: Haralick feature extraction
 
 Requires:
-- Mat original image
-- Mat* feature vector where to write the features
+- cv::Mat original image
+- cv::Mat* feature std::vector where to write the features
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void FeatureExtraction::HARALICK(Mat img, Mat *features) {
+void FeatureExtraction::HARALICK(cv::Mat img, cv::Mat *features) {
 
   int i, img_channels = img.channels();
-  vector<Mat> color_haralick(img_channels);
-  Mat haralick_histograms;
-  vector<Mat> channel(img_channels);
+  std::vector<cv::Mat> color_haralick(img_channels);
+  cv::Mat haralick_histograms;
+  std::vector<cv::Mat> channel(img_channels);
 
   if (img_channels > 1) FeatureExtraction::reduceImageColors(&img, numColors);
   split(img, channel);
@@ -626,10 +623,10 @@ Requires:
 - int x position [0..width/cols]
 - int number of colors wanted in the image
 *******************************************************************************/
-vector < vector<int> > FeatureExtraction::ChessboardNeighbors(int row, int col,
+std::vector < std::vector<int> > FeatureExtraction::ChessboardNeighbors(int row, int col,
   int distance) {
 
-  vector < vector<int> > neighbors;
+  std::vector < std::vector<int> > neighbors;
   int up = row - distance, down = row + distance;
   int left = col - distance, right = col + distance;
 
@@ -649,27 +646,27 @@ vector < vector<int> > FeatureExtraction::ChessboardNeighbors(int row, int col,
 Auto-correlogram of colors Descritor
 
 Capture the spacial correlation between identical colors given a set of distance
-values. The features vector consist in concatenation of auto-correlograms, one
+values. The features std::vector consist in concatenation of auto-correlograms, one
 for each distance.
 
 Requires:
-- Mat original image
-- Mat* feature vector where to write the colors*distances_number features
+- cv::Mat original image
+- cv::Mat* feature std::vector where to write the colors*distances_number features
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
-- vector<int> set of distances
+- std::vector<int> set of distances
 *******************************************************************************/
-void FeatureExtraction::CalculateACC(Mat I, Mat *features) {
+void FeatureExtraction::CalculateACC(cv::Mat I, cv::Mat *features) {
 
   int i, j, d, current_distance, chess;
-  vector < vector<int>> neighbors;
+  std::vector < std::vector<int>> neighbors;
   uchar current_pixel, neighbor_color;
 
   FeatureExtraction::reduceImageColors(&I, numColors);
-  Mat acc_correlogram, autocorrelogram(numColors, 1, CV_32FC1);
+  cv::Mat acc_correlogram, autocorrelogram(numColors, 1, CV_32FC1);
   // For each given distance in 'distances' set
   for (d = 0; d < static_cast<int>(accDistances.size()); ++d) {
-    autocorrelogram = Scalar::all(0.0);
+    autocorrelogram = cv::Scalar::all(0.0);
     current_distance = accDistances[d];
     // For each pixel
     for (i = current_distance; i < I.rows - current_distance; ++i) {
@@ -690,8 +687,8 @@ void FeatureExtraction::CalculateACC(Mat I, Mat *features) {
     }
     // Normalize for each distance, not when already concatenated
     if (normalization != 0) {
-      normalize(autocorrelogram, autocorrelogram, 0, normalization, NORM_MINMAX,
-                -1, Mat());
+      normalize(autocorrelogram, autocorrelogram, 0, normalization, cv::NORM_MINMAX,
+                -1, cv::Mat());
     }
     acc_correlogram.push_back(autocorrelogram);
   }
@@ -705,17 +702,17 @@ void FeatureExtraction::CalculateACC(Mat I, Mat *features) {
 Auto-correlogram of colors descriptor
 
 Requires:
-- Mat original image
-- Mat* feature vector where to write the numColors*distances_number features
+- cv::Mat original image
+- cv::Mat* feature std::vector where to write the numColors*distances_number features
 - int number of colors wanted in the image
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
-- vector<int> set of distances
+- std::vector<int> set of distances
 *******************************************************************************/
-void FeatureExtraction::ACC(Mat img, Mat *features) {
+void FeatureExtraction::ACC(cv::Mat img, cv::Mat *features) {
 
   int i, img_channels = img.channels();
-  vector<Mat> color_acc(img_channels), channel(img_channels);
-  Mat acc_histograms;
+  std::vector<cv::Mat> color_acc(img_channels), channel(img_channels);
+  cv::Mat acc_histograms;
 
   if (img_channels > 1) FeatureExtraction::reduceImageColors(&img, numColors);
   split(img, channel);
@@ -736,9 +733,9 @@ Create a lookup table to LBP function checks if the pattern is uniform
 Some binary patterns occur more commonly than others
 A binary code is binary if contains at most two 0-1 or 1-0 transitions
 *******************************************************************************/
-vector<int> FeatureExtraction::initUniform() {
+std::vector<int> FeatureExtraction::initUniform() {
   int index = 0, i = 0, b = 0, count = 0, c = 0;
-  vector<int> lookup(256);
+  std::vector<int> lookup(256);
 
   for (i = 0; i < 256; i++) {
     b = (i >> 1) | (i << 7 & 0xff);
@@ -772,52 +769,52 @@ This version is an extension of the original LBP by using the proposed..
 5- Concatenated the histograms of all cells
 
 Requires
-- Mat original image
-- Mat features vector in which perform the operations
+- cv::Mat original image
+- cv::Mat features std::vector in which perform the operations
 - int number of colors
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void FeatureExtraction::CalculateLBP(Mat img, Mat *features) {
+void FeatureExtraction::CalculateLBP(cv::Mat img, cv::Mat *features) {
 
-  int bin, cellWidth, cellHeight, i, j, bitString, grid, bias, row, col;
+  int bin, cellWidth, cellHeight, i, j, bitstring, grid, bias, row, col;
   int histogram_size[] = {59};
   float center, ranges[] = {0, 59};
   const float* histogram_ranges[] = {ranges};
   bool uniform = true, accumulate = false;
-  Size cell;
-  MatND histogram, lbp_histograms;
-  Mat codes = Mat::zeros(img.rows, img.cols, CV_32FC1);
-  vector<int> lookup = initUniform();
+  cv::Size cell;
+  cv::MatND histogram, lbp_histograms;
+  cv::Mat codes = cv::Mat::zeros(img.rows, img.cols, CV_32FC1);
+  std::vector<int> lookup = initUniform();
 
   // For each pixel in a cell, compare it to each of its 8 neighbors
   for (row = 1; row < img.rows - 1; row++) {
     for (col = 1; col < img.cols - 1; col++) {
       // Where the center pixel's value is greater than the neighbor's, write 1
       // Otherwise, it remains 0.
-      bitString = 0;
+      bitstring = 0;
       center = img.at<uchar>(row, col);
       // Start from the one to the right in anti-clockwise order
-      if (img.at<uchar>(row, col+1)   >= center) bitString |= 0x1 << 0;
-      if (img.at<uchar>(row-1, col+1) >= center) bitString |= 0x1 << 1;
-      if (img.at<uchar>(row-1, col)   >= center) bitString |= 0x1 << 2;
-      if (img.at<uchar>(row-1, col-1) >= center) bitString |= 0x1 << 3;
-      if (img.at<uchar>(row, col-1)   >= center) bitString |= 0x1 << 4;
-      if (img.at<uchar>(row+1, col-1) >= center) bitString |= 0x1 << 5;
-      if (img.at<uchar>(row+1, col)   >= center) bitString |= 0x1 << 6;
-      if (img.at<uchar>(row+1, col+1) >= center) bitString |= 0x1 << 7;
+      if (img.at<uchar>(row, col+1)   >= center) bitstring |= 0x1 << 0;
+      if (img.at<uchar>(row-1, col+1) >= center) bitstring |= 0x1 << 1;
+      if (img.at<uchar>(row-1, col)   >= center) bitstring |= 0x1 << 2;
+      if (img.at<uchar>(row-1, col-1) >= center) bitstring |= 0x1 << 3;
+      if (img.at<uchar>(row, col-1)   >= center) bitstring |= 0x1 << 4;
+      if (img.at<uchar>(row+1, col-1) >= center) bitstring |= 0x1 << 5;
+      if (img.at<uchar>(row+1, col)   >= center) bitstring |= 0x1 << 6;
+      if (img.at<uchar>(row+1, col+1) >= center) bitstring |= 0x1 << 7;
       // This gives a 8-digit binary number corresponding to the binary code
-      // Instead of using the resulting bitString [0-256], we use a lookup table
-      bin = lookup[bitString];
+      // Instead of using the resulting bitstring [0-256], we use a lookup table
+      bin = lookup[bitstring];
       codes.at<float>(row-1, col-1) = bin;
     }
   }
 
-  // namedWindow("LBP Image", WINDOW_AUTOSIZE);
+  // cv::namedWindow("LBP Image", WINDOW_AUTOSIZE);
   // imshow("LBP Image", (codes/255.0)*4);
-  // waitKey(0);
+  // cv::waitKey(0);
 
-  Mat lbp = Mat::zeros(img.rows + 2, img.cols + 2, CV_8U);
-  copyMakeBorder(codes, lbp, 1, 1, 1, 1, BORDER_REPLICATE);
+  cv::Mat lbp = cv::Mat::zeros(img.rows + 2, img.cols + 2, CV_8U);
+  cv::copyMakeBorder(codes, lbp, 1, 1, 1, 1, cv::BORDER_REPLICATE);
 
   grid = 2;
   cellWidth = lbp.cols/grid;
@@ -830,15 +827,15 @@ void FeatureExtraction::CalculateLBP(Mat img, Mat *features) {
 
   for (i = 0; i < grid; i++) {
     for (j = 0; j < grid; j++) {
-      Mat cell =
-        lbp(Rect(i*cellWidth+bias, j*cellHeight+bias, cellWidth, cellHeight));
+      cv::Mat cell =
+        lbp(cv::Rect(i*cellWidth+bias, j*cellHeight+bias, cellWidth, cellHeight));
       // Calculate the histogram for this cell
-      calcHist(&cell, 1, 0, Mat(), histogram, 1, histogram_size,
+      cv::calcHist(&cell, 1, 0, cv::Mat(), histogram, 1, histogram_size,
         histogram_ranges, uniform, accumulate);
 
       if (normalization != 0) {
-        normalize(histogram, histogram, 0, normalization, NORM_MINMAX, -1,
-          Mat());
+        normalize(histogram, histogram, 0, normalization, cv::NORM_MINMAX, -1,
+          cv::Mat());
       }
       lbp_histograms.push_back(histogram);
       histogram.release();
@@ -854,17 +851,17 @@ void FeatureExtraction::CalculateLBP(Mat img, Mat *features) {
 LBP Descriptor using uniform patterns
 
 Requires
-- Mat original image
-- Mat features vector in which perform the operations
+- cv::Mat original image
+- cv::Mat features std::vector in which perform the operations
 - int number of colors
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void FeatureExtraction::LBP(Mat img, Mat *features) {
+void FeatureExtraction::LBP(cv::Mat img, cv::Mat *features) {
 
   int i, img_channels = img.channels();
-  vector<Mat> color_lbp(img_channels);
-  Mat lbp_histograms;
-  vector<Mat> channel(img_channels);
+  std::vector<cv::Mat> color_lbp(img_channels);
+  cv::Mat lbp_histograms;
+  std::vector<cv::Mat> channel(img_channels);
 
   if (img_channels > 1) FeatureExtraction::reduceImageColors(&img, numColors);
   split(img, channel);
@@ -888,33 +885,33 @@ numFeatures = hog.nbins * (blockSize.width/cellSize.width)
   ((winSize.height - blockSize.height)/ blockStride.height + 1);
 
 Requires
-- Mat original image
-- Mat features vector in which perform the operations
+- cv::Mat original image
+- cv::Mat features std::vector in which perform the operations
 - int number of colors
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void FeatureExtraction::CalculateHOG(Mat img, Mat *features) {
+void FeatureExtraction::CalculateHOG(cv::Mat img, cv::Mat *features) {
 
-  HOGDescriptor hog;
-  vector<float> hogFeatures;
-  vector<Point> locs;
+  cv::HOGDescriptor hog;
+  std::vector<float> hogFeatures;
+  std::vector<cv::Point> locs;
   int i, cellSize;
-  Mat new_image;
-  Size new_size = Size(256, 256);
+  cv::Mat new_image;
+  cv::Size new_size = cv::Size(256, 256);
 
   img.copyTo(new_image);
   cv::resize(new_image, new_image, new_size);
 
   hog.winSize = new_size;
   cellSize = 16;
-  hog.blockSize = Size(cellSize*2, cellSize*2);
-  hog.blockStride = Size(cellSize, cellSize);
-  hog.cellSize = Size(cellSize, cellSize);
+  hog.blockSize = cv::Size(cellSize*2, cellSize*2);
+  hog.blockStride = cv::Size(cellSize, cellSize);
+  hog.cellSize = cv::Size(cellSize, cellSize);
 
   hog.compute(new_image, hogFeatures);
 
   (*features).create(1, hogFeatures.size(), CV_32FC1);
-  (*features) = Scalar::all(0.0);
+  (*features) = cv::Scalar::all(0.0);
   for (i = 0; i < static_cast<int>(hogFeatures.size()); i++) {
       (*features).at<float>(0, i) = (float) hogFeatures.at(i);
   }
@@ -924,17 +921,17 @@ void FeatureExtraction::CalculateHOG(Mat img, Mat *features) {
 Orientation Descriptor - Histogram of Oriented Gradients
 
 Requires
-- Mat original image
-- Mat features vector in which perform the operations
+- cv::Mat original image
+- cv::Mat features std::vector in which perform the operations
 - int number of colors
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void FeatureExtraction::HOG(Mat img, Mat *features) {
+void FeatureExtraction::HOG(cv::Mat img, cv::Mat *features) {
 
   int i, img_channels = img.channels();
-  vector<Mat> color_hog(img_channels);
-  Mat hog_histograms;
-  vector<Mat> channel(img_channels);
+  std::vector<cv::Mat> color_hog(img_channels);
+  cv::Mat hog_histograms;
+  std::vector<cv::Mat> channel(img_channels);
 
   if (img_channels > 1) FeatureExtraction::reduceImageColors(&img, numColors);
   split(img, channel);
@@ -956,58 +953,57 @@ Calculate the biggest contour and extract the mass centers, number of pixels
 inside the contour, perimeter and approximated area.
 
 Requires
-- Mat original image
-- Mat features vector in which perform the operations
+- cv::Mat original image
+- cv::Mat features std::vector in which perform the operations
 - int number of colors
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void FeatureExtraction::CalculateContour(Mat img, Mat *features,
-  int normalization) {
+void FeatureExtraction::CalculateContour(cv::Mat img, cv::Mat *features) {
 
-  vector<vector<Point> > contours;
-  vector<Point> approx;
-  vector<Vec4i> hierarchy;
-  Mat bin;
+  std::vector<std::vector<cv::Point> > contours;
+  std::vector<cv::Point> approx;
+  std::vector<cv::Vec4i> hierarchy;
+  cv::Mat bin;
   int i, biggestAreaIndex = 0;
   double area = 0.0, areaApprox, perimeter, biggestArea = 0.0;
-  Moments mu;
-  Point2f mc;
+  cv::Moments mu;
+  cv::Point2f mc;
 
   threshold(img, bin, 100, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
   findContours(bin, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
 
   for (i = 0; i < static_cast<int>(contours.size()); i++) {
-    area = contourArea(contours[i], false);
+    area = cv::contourArea(contours[i], false);
     if (area > biggestArea) {
       biggestArea = area;
       biggestAreaIndex = i;
     }
   }
 
-  // Mat contourImage(bin.size(), CV_8UC3, Scalar(0, 0, 0));
+  // cv::Mat contourImage(bin.size(), CV_8UC3, cv::Scalar(0, 0, 0));
   // for (i = 0; i < static_cast<int>(contours.size()); i++) {
-  //   Scalar color(rand()&255, rand()&255, rand()&255);
+  //   cv::Scalar color(rand()&255, rand()&255, rand()&255);
   //   drawContours(contourImage, contours, i, color);
   // }
-  // namedWindow("All", 1);
+  // cv::namedWindow("All", 1);
   // imshow("All", contourImage);
-  // waitKey(0);
+  // cv::waitKey(0);
 
-  // Mat biggestAreaImg(bin.size(), CV_8UC3, Scalar(0, 0, 0));
-  // Scalar color(255, 0, 0);
+  // cv::Mat biggestAreaImg(bin.size(), CV_8UC3, cv::Scalar(0, 0, 0));
+  // cv::Scalar color(255, 0, 0);
   // drawContours(biggestAreaImg, contours, biggestAreaIndex, color, 1, 8,
   //   hierarchy);
-  // namedWindow("Biggest Contour", 1);
+  // cv::namedWindow("Biggest Contour", 1);
   // imshow("Biggest Contour", biggestAreaImg);
-  // waitKey(0);
+  // cv::waitKey(0);
 
   (*features).create(1, 5, CV_32FC1);
-  (*features) = Scalar::all(0.0);
+  (*features) = cv::Scalar::all(0.0);
 
-  // Get the moments
-  mu = moments(contours[biggestAreaIndex], false);
+  // Get the cv::moments
+  mu = cv::moments(contours[biggestAreaIndex], false);
   //  Get the mass centers:
-  mc = Point2f(mu.m10/mu.m00, mu.m01/mu.m00);
+  mc = cv::Point2f(mu.m10/mu.m00, mu.m01/mu.m00);
   (*features).at<float>(0, 0) = mc.x;
   (*features).at<float>(0, 1) = mc.y;
 
@@ -1015,12 +1011,12 @@ void FeatureExtraction::CalculateContour(Mat img, Mat *features,
   (*features).at<float>(0, 2) = biggestArea;
 
   // Contour perimeter
-  perimeter = arcLength(contours[biggestAreaIndex], true);
+  perimeter = cv::arcLength(contours[biggestAreaIndex], true);
   (*features).at<float>(0, 3) = perimeter;
 
   // Remove small curves by approximating the contour more to a straight line
-  approxPolyDP(contours[biggestAreaIndex], approx, 0.1*perimeter, true);
-  areaApprox = contourArea(approx);
+  cv::approxPolyDP(contours[biggestAreaIndex], approx, 0.1*perimeter, true);
+  areaApprox = cv::contourArea(approx);
   (*features).at<float>(0, 4) = areaApprox;
 }
 
@@ -1028,17 +1024,17 @@ void FeatureExtraction::CalculateContour(Mat img, Mat *features,
 Shape Descriptors - Contour Extraction
 
 Requires
-- Mat original image
-- Mat features vector in which perform the operations
+- cv::Mat original image
+- cv::Mat features std::vector in which perform the operations
 - int number of colors
 - int indicate if normalization is necessary (0-None 1-[0,1] 255-[0,255])
 *******************************************************************************/
-void FeatureExtraction::contourExtraction(Mat img, Mat *features) {
+void FeatureExtraction::contourExtraction(cv::Mat img, cv::Mat *features) {
 
   int i, img_channels = img.channels();
-  vector<Mat> color_contour(img_channels);
-  Mat contour_histograms;
-  vector<Mat> channel(img_channels);
+  std::vector<cv::Mat> color_contour(img_channels);
+  cv::Mat contour_histograms;
+  std::vector<cv::Mat> channel(img_channels);
 
   if (img_channels > 1) FeatureExtraction::reduceImageColors(&img, numColors);
   split(img, channel);
@@ -1057,13 +1053,13 @@ void FeatureExtraction::contourExtraction(Mat img, Mat *features) {
 //  SURF - extract Speeded Up Robust Features
 //
 //      Input
-//          Mat original image
-//          Mat features vector in which perform the operations
+//          cv::Mat original image
+//          cv::Mat features std::vector in which perform the operations
 // ***************************************************************************/
-// void surf(Mat img, Mat *features){
+// void surf(cv::Mat img, cv::Mat *features){
 //
 //     cv::initModule_nonfree();
-//     vector<KeyPoint> keypoints;
+//     std::vector<KeyPoint> keypoints;
 //     int i, minHessian = 500;
 //
 //     SurfFeatureDetector detector(minHessian);
@@ -1071,17 +1067,17 @@ void FeatureExtraction::contourExtraction(Mat img, Mat *features) {
 //
 //     detector.detect(img, keypoints);
 //
-//     Mat imgKey;
-//     drawKeypoints(img, keypoints, imgKey, Scalar::all(-1),
+//     cv::Mat imgKey;
+//     drawKeypoints(img, keypoints, imgKey, cv::Scalar::all(-1),
 //      DrawMatchesFlags::DEFAULT);
 //     // imshow("Keypoints", imgKey);
-//     // waitKey(0);
-//     Mat descriptors;
+//     // cv::waitKey(0);
+//     cv::Mat descriptors;
 //     extractor.compute(img, keypoints, descriptors);
 //
-//     cout << descriptors.size();
+//     std::cout << descriptors.size();
 //     (*features).create(descriptors.rows, 1, CV_32FC1);
-//     (*features) = Scalar::all(0);
+//     (*features) = cv::Scalar::all(0);
 //
 //     for(i = 0; i < descriptors.rows; i++){
 //         (*features).at<float>(0,i) = descriptors.at<float>(i,0);
@@ -1092,20 +1088,20 @@ void FeatureExtraction::contourExtraction(Mat img, Mat *features) {
 Fisher Vectors Encoding
 
 Input
-Mat original image
-Mat features vector in which perform the operations
+cv::Mat original image
+cv::Mat features std::vector in which perform the operations
 
 - Extract features with SIFT
 - Calculate a Gaussian Mixture Model (GMM)
 - Obtain the Fisher Vector encoding of a set of features
 *******************************************************************************/
-// void fisherVectors(Mat img, Mat *feature){
+// void fisherVectors(cv::Mat img, cv::Mat *feature){
 //   float *means, *covariances, *priors, *posteriors, *enc;
 //   int numClusters = 30;//, numData = img.cols,
 //   int dimension = 3;
 //
-//   vector<KeyPoint> keypoints;
-//   Mat descriptors;
+//   std::vector<KeyPoint> keypoints;
+//   cv::Mat descriptors;
 //   float* data;
 //   vl_size numData, dimension, numClusters;
 //   // create a GMM object and cluster input data to get means, covariances
@@ -1127,7 +1123,7 @@ Mat features vector in which perform the operations
 //   );
 //
 //       (*features).create(enc.size(), 1, CV_32FC1);
-//       (*features) = Scalar::all(0);
+//       (*features) = cv::Scalar::all(0);
 //
 //       for(i = 0; i < enc.size(); i++){
 //           (*features).at<float>(0,i) = enc.at(i);
@@ -1138,23 +1134,23 @@ Mat features vector in which perform the operations
     Remove null columns in feature space (Under construction)
 
     Requires:
-    - Mat features
+    - cv::Mat features
 *******************************************************************************/
-void FeatureExtraction::RemoveNullColumns(Mat *features) {
-  vector<float> features_col_summed;
+void FeatureExtraction::RemoveNullColumns(cv::Mat *features) {
+  std::vector<float> features_col_summed;
   int i;
 
   cv::reduce(*features, features_col_summed, 0, CV_REDUCE_SUM);
   for (i = 0; i < (*features).cols; i++) {
     if (features_col_summed[i] == 0) {
-      // cout << " column " << i << " (*features).cols " << (*features).cols << endl;
+      // std::cout << " column " << i << " (*features).cols " << (*features).cols << std::endl;
       if (i == 0) {
         (*features).colRange(i+1, (*features).cols).copyTo(*features);
       } else if (i+1 == (*features).cols) {
         (*features).colRange(0, i).copyTo(*features);
       } else {
-        Mat start = (*features).colRange(0, i);
-        Mat end = (*features).colRange(i+1, (*features).cols);
+        cv::Mat start = (*features).colRange(0, i);
+        cv::Mat end = (*features).colRange(i+1, (*features).cols);
         hconcat(start, end, *features);
       }
       i--;
@@ -1170,12 +1166,12 @@ Normalization by Z-score of each column
 3 - Calculate new values using:
       new_value = (value - mean) / standart_deviation
 *******************************************************************************/
-void FeatureExtraction::ZScoreNormalization(Mat *features) {
+void FeatureExtraction::ZScoreNormalization(cv::Mat *features) {
   int row, column;
-  Scalar mean, std;
+  cv::Scalar mean, std;
 
   for (column = 0; column < (*features).cols; ++column) {
-    Mat stats = (*features).col(column);
+    cv::Mat stats = (*features).col(column);
     cv::meanStdDev(stats, mean, std);
 
     for (row = 0; row < (*features).rows; ++row) {
@@ -1186,14 +1182,14 @@ void FeatureExtraction::ZScoreNormalization(Mat *features) {
   }
 }
 
-void FeatureExtraction::MaxMinNormalization(Mat *features, int norm) {
+void FeatureExtraction::MaxMinNormalization(cv::Mat *features, int norm) {
   float normFactor, min, max, value;
   int row, column;
 
   normFactor = (norm == 1) ? 1.0 : 255.0;
 
   for (column = 0; column < (*features).cols; ++column) {
-    Mat current_column = (*features).col(column);
+    cv::Mat current_column = (*features).col(column);
 
     min = (*features).at<float>(0, column);
     max = (*features).at<float>(0, column);
@@ -1216,8 +1212,8 @@ void FeatureExtraction::MaxMinNormalization(Mat *features, int norm) {
   }
 }
 
-string FeatureExtraction::getName(int method) {
-  string name;
+std::string FeatureExtraction::getName(int method) {
+  std::string name;
   if (sizeof(descriptors)/sizeof(descriptors[0]) > method) {
       name = descriptors[method];
   }
@@ -1227,7 +1223,7 @@ string FeatureExtraction::getName(int method) {
   return name;
 }
 
-void FeatureExtraction::extract(int method, Mat img, Mat *features) {
+void FeatureExtraction::extract(int method, cv::Mat img, cv::Mat *features) {
 
   switch (method) {
     case 1:
@@ -1255,7 +1251,34 @@ void FeatureExtraction::extract(int method, Mat img, Mat *features) {
       FeatureExtraction::contourExtraction(img, features);
       break;
     default:
-      cout << "Error: this description method " << method;
-      cout << " does not exists." << endl;
+      std::cout << "Error: this description method " << method;
+      std::cout << " does not exists." << std::endl;
   }
+}
+
+/*******************************************************************************
+    Reduce the number of colors in a single channel image
+
+    Requires:
+    - I: input image to be modified
+    - nColors: final number of colors
+*******************************************************************************/
+void FeatureExtraction::reduceImageColors(cv::Mat *img, int nColors) {
+
+	double min = 0, max = 0, stretch;
+	cv::Point maxLoc, minLoc;
+  int i, img_channels = (*img).channels();
+  std::vector<cv::Mat> channel(img_channels);
+  split((*img), channel);
+
+  nColors = (nColors > 256) ? 256 : nColors;
+
+  for (i = 0; i < img_channels; i++) {
+    minMaxLoc(channel[i], &min, &max, &minLoc, &maxLoc);
+    stretch = ((double)((nColors -1)) / (max - min));
+    channel[i] = channel[i] - min;
+    channel[i] = channel[i] * stretch;
+  }
+
+  merge(channel, (*img));
 }

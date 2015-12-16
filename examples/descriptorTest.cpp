@@ -39,29 +39,29 @@ Master's thesis in Computer Science
 
 int main(int argc, char *argv[]) {
   int descMethod, colors, normalization, quantMethod, deleteNull, numParameters;
-  vector<int> params;
+  std::vector<int> params;
   double resize;
-  string id = "", databaseDir = "", featuresDir = "";
+  std::string id = "", databaseDir = "", featuresDir = "";
 
   if (argc < 9) {
-    cout << "\nUsage: ./descriptor (0) (1) (2) (3) (4) (5) (6) (7) (8) (9)\n\n";
-    cout << "\t(0) Images Directory\n" << endl;
-    cout << "\t(1) Features Directory\n" << endl;
-    cout << "\t(2) Descriptor Method:\n" << endl;
-    cout << "\t\t1-BIC  2-GCH  3-CCV  4-Haralick  5-ACC  6-LBP  7-HOG ";
-    cout << "8-Contour  9-Fisher\n" << endl;
-    cout << "\t(3) Number of Colors:\n" << endl;
-    cout << "\t\t8, 16, 32, 64 or 256\n";
-    cout << "\t(4) Resize factor:\n" << endl;
-    cout << "\t\t[0-1] (1 = 100%)\n";
-    cout << "\t(5) Normalization:\n" << endl;
-    cout << "\t\t0-without 1-[0-1] interval 2-[0-255] interval\n";
-    cout << "\t(6) Quantization Method:\n" << endl;
-    cout << "\t\t1-Intensity  2-Luminance  3-Gleam  4-MSB\n" << endl;
-    cout << "\t(7) Null columns:\n" << endl;
-    cout << "\t\t1-Remove 0-Keep\n" << endl;
-    cout << "\t(8) Id to identify outfile\n" << endl;
-    cout << "\t(9) Distances for ACC or CCV threshold\n" << endl;
+    std::cout << "\nUsage: ./descriptor (0) (1) (2) (3) (4) (5) (6) (7) (8) (9)\n\n";
+    std::cout << "\t(0) Images Directory\n" << std::endl;
+    std::cout << "\t(1) Features Directory\n" << std::endl;
+    std::cout << "\t(2) Descriptor Method:\n" << std::endl;
+    std::cout << "\t\t1-BIC  2-GCH  3-CCV  4-Haralick  5-ACC  6-LBP  7-HOG ";
+    std::cout << "8-Contour  9-Fisher\n" << std::endl;
+    std::cout << "\t(3) Number of Colors:\n" << std::endl;
+    std::cout << "\t\t8, 16, 32, 64 or 256\n";
+    std::cout << "\t(4) Resize factor:\n" << std::endl;
+    std::cout << "\t\t[0-1] (1 = 100%)\n";
+    std::cout << "\t(5) Normalization:\n" << std::endl;
+    std::cout << "\t\t0-without 1-[0-1] interval 2-[0-255] interval\n";
+    std::cout << "\t(6) Quantization Method:\n" << std::endl;
+    std::cout << "\t\t1-Intensity  2-Luminance  3-Gleam  4-MSB\n" << std::endl;
+    std::cout << "\t(7) Null columns:\n" << std::endl;
+    std::cout << "\t\t1-Remove 0-Keep\n" << std::endl;
+    std::cout << "\t(8) Id to identify outfile\n" << std::endl;
+    std::cout << "\t(9) Distances for ACC or CCV threshold\n" << std::endl;
     exit(-1);
   }
 
@@ -70,26 +70,26 @@ int main(int argc, char *argv[]) {
 
   descMethod = atoi(argv[3]);
   if (descMethod < 1 || descMethod > 10) {
-    cout << "This descriptor method does not exist.\n";
+    std::cout << "This descriptor method does not exist.\n";
     exit(-1);
   }
 
   colors = atoi(argv[4]);
   if (colors != 8 && colors != 16 && colors != 32 && colors != 64 &&
     colors != 128 && colors != 256) {
-      cout << "The number of colors must be 8, 16, 32, 64, 128 or 256." << endl;
+      std::cout << "The number of colors must be 8, 16, 32, 64, 128 or 256." << std::endl;
       exit(-1);
     }
 
     resize = atof(argv[5]);
     if (resize <= 0 || resize > 1) {
-      cout << "The resize factor must be between 0 and 1." << endl;
+      std::cout << "The resize factor must be between 0 and 1." << std::endl;
       exit(-1);
     }
 
     normalization = atoi(argv[6]);
     if (normalization < 0) {
-      cout << "Invalid normalization (e.g. 0, 1 or 256)." << endl;
+      std::cout << "Invalid normalization (e.g. 0, 1 or 256)." << std::endl;
       exit(-1);
     }
 
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 
     deleteNull = atoi(argv[8]);
     if (deleteNull != 0 && deleteNull != 1) {
-      cout << "Wrong delete option (0, 1)." << endl;
+      std::cout << "Wrong delete option (0, 1)." << std::endl;
       exit(-1);
     }
 

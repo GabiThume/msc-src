@@ -1,42 +1,36 @@
 #ifndef _ARTIFICIAL_H
 #define _ARTIFICIAL_H
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/ml/ml.hpp>
-#include "opencv2/imgproc/imgproc.hpp"
-#include <opencv2/highgui/highgui.hpp>
 #include <fstream>
 #include <dirent.h>
 #include <iostream>
 #include <string>
 #include <vector>
-
-#include <cstring>
-#include <cstdio>
+#include <opencv2/core/core.hpp>
+#include <opencv2/ml/ml.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include "../lib/Saliency/GMRsaliency.h"
-#include "utils/data.h"
 #include "classification/classifier.h"
 
-using namespace cv;
-using namespace std;
 
 class Artificial{
 
   public:
-    string generate(string base, string newDirectory, int whichOperation);
-    void GenerateImage(vector<Mat> images, string name, int total, int generationType);
-    Mat generateBlur(Mat originalImage, int blurType);
-    Mat generateNoise(Mat img);
-    Mat generateBlending(Mat first, Mat second);
-    Mat generateUnsharp(Mat originalImage);
-    Mat generateComposition(Mat originalImage, vector<Mat> images, int total,
+    std::string generate(std::string base, std::string newDirectory, int whichOperation);
+    void GenerateImage(std::vector<cv::Mat> images, std::string name, int total, int generationType);
+    cv::Mat generateBlur(cv::Mat originalImage, int blurType);
+    cv::Mat generateNoise(cv::Mat img);
+    cv::Mat generateBlending(cv::Mat first, cv::Mat second);
+    cv::Mat generateUnsharp(cv::Mat originalImage);
+    cv::Mat generateComposition(cv::Mat originalImage, std::vector<cv::Mat> images, int total,
       int fator, bool option);
-    Mat generateThreshold(Mat first, Mat second);
-    Mat generateSaliency(Mat first, Mat second);
-    Mat generateSmoteImg(Mat first, Mat second);
-    vector<ImageClass> generateImagesFromData(vector<ImageClass> original_data,
-			string newDirectory,
+    cv::Mat generateThreshold(cv::Mat first, cv::Mat second);
+    cv::Mat generateSaliency(cv::Mat first, cv::Mat second);
+    cv::Mat generateSmoteImg(cv::Mat first, cv::Mat second);
+    std::vector<ImageClass> generateImagesFromData(std::vector<ImageClass> original_data,
+			std::string newDirectory,
 			int whichOperation);
 };
 

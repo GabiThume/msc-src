@@ -39,6 +39,7 @@ Master's thesis in Computer Science
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <string>
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -46,31 +47,30 @@ Master's thesis in Computer Science
 
 class GrayscaleConversion {
 
-  string quantization[7] = {"Intensity", "Luminance", "Gleam", "MSB", "MSBModified", "BGR", "HSV"};
+  std::string quantization[7] = {"Intensity", "Luminance", "Gleam", "MSB", "MSBModified", "BGR", "HSV"};
   public:
     int numColors;
-    string getName(int method) {
-      string name = ((sizeof(quantization)/sizeof(quantization[0])) > method) ? quantization[method] : "";
+    int method;
+    
+    std::string getName(int method) {
+      std::string name = ((sizeof(quantization)/sizeof(quantization[0])) > method) ? quantization[method] : "";
       return name;
     }
 
-    GrayscaleConversion(int colors);
-    void convert(int method, Mat img, Mat *gray);
-    void Intensity(Mat I, Mat *Q, int num_colors);
-    void Gleam(Mat I, Mat *Q, int num_colors);
-    void Luminance(Mat I, Mat *Q, int num_colors);
-    void Luma(Mat I, Mat *Q, int num_colors);
-    void MSB(Mat I, Mat *Q, int num_colors);
-    void MSBModified(Mat I, Mat *Q, int num_colors);
+    GrayscaleConversion(int colors) {
+      numColors = colors;
+    }
+    void convert(int method, cv::Mat img, cv::Mat *gray);
+    void Intensity(cv::Mat I, cv::Mat *Q, int num_colors);
+    void Gleam(cv::Mat I, cv::Mat *Q, int num_colors);
+    void Luminance(cv::Mat I, cv::Mat *Q, int num_colors);
+    void Luma(cv::Mat I, cv::Mat *Q, int num_colors);
+    void MSB(cv::Mat I, cv::Mat *Q, int num_colors);
+    void MSBModified(cv::Mat I, cv::Mat *Q, int num_colors);
 
-    void PlotHistogram(Mat hist);
-    void correctGamma(Mat *I, double gamma);
-    void reduceImageColors(Mat *img, int nColors);
-
+    void PlotHistogram(cv::Mat hist);
+    void correctGamma(cv::Mat *I, double gamma);
+    void reduceImageColors(cv::Mat *img, int nColors);
 };
-
-void GrayscaleConversion::GrayscaleConversion(int colors) {
-  numColors = colors;
-}
 
 #endif

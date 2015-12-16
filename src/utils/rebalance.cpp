@@ -35,7 +35,23 @@ Master's thesis in Computer Science
 
 #include "utils/rebalance.h"
 
-void Rebalance::ShuffleImages(vector<Image> *img){
+
+void Rebalance::writeFeatures(std::string id) {
+
+  std::string name;
+
+  // Decide the features file's name
+  name = featuresDirectory;
+  name += extractor.getName(extractor.method-1) + "_";
+  name += quantization.getName(quantization.method-1) + "_";
+  name += std::to_string(extractor.numColors) + "_";
+  name += std::to_string(extractor.resizeFactor) + "_";
+  name += id + ".csv";
+
+  data.writeFeatures(id, name);
+}
+
+void Rebalance::ShuffleImages(std::vector<Image> *img) {
 
   int i, k, numImages;
   Image aux;
@@ -51,16 +67,16 @@ void Rebalance::ShuffleImages(vector<Image> *img){
 }
 
 // Arrange original images in k folds each, creating k fold_i.txt files
-void Rebalance::SeparateInFolds(vector<ImageClass> *original_data, int k) {
+void Rebalance::SeparateInFolds(std::vector<ImageClass> *original_data, int k) {
 
-  int i, j, fold, numClasses, numImages, resto, imgsInThisFold, imgTotal, next;
-  Mat labels, trainTest, isGenerated, img;
+  int i, j, fold, numClasses, numImages, resto, imgsInThisFold, next;
+  cv::Mat labels, trainTest, isGenerated, img;
 
   numClasses = (*original_data).size();
   for (i = 0; i < numClasses; i++) {
     resto = 0; next = 0;
 
-    ShuffleImages(&(*original_data)[i].images);
+    Rebalance::ShuffleImages(&(*original_data)[i].images);
 
     numImages = (*original_data)[i].images.size();
     for (fold = 0; fold < k; fold++) {
@@ -79,99 +95,108 @@ void Rebalance::SeparateInFolds(vector<ImageClass> *original_data, int k) {
   }
 }
 
-vector<vector<double> > Rebalance::classify(string descriptorFile, int repeat, double prob, string csv) {
-  Classifier c;
-  int minoritySize, numClasses;
-  vector<vector<double> > fscore;
-  // Read the feature vectors
-  vector<ImageClass> data = ReadFeaturesFromFile(descriptorFile);
-  numClasses = data.size();
-  if (numClasses != 0){
-    cout << "---------------------------------------------------------------------------------------" << endl;
-    cout << "Features vectors file: " << descriptorFile.c_str() << endl;
-    cout << "---------------------------------------------------------------------------------------" << endl;
-    c.findSmallerClass(data, &minoritySize);
-    fscore = c.classify(prob, repeat, data, csv.c_str(), minoritySize);
-    data.clear();
-  }
-  return fscore;
-}
+// std::vector<std::vector<double> > Rebalance::classify(std::string descriptorFile, int repeat, double prob, std::string csv) {
+//   Classifier c;
+//   int minoritySize, numClasses;
+//   std::vector<std::vector<double> > fscore;
+//   // Read the feature vectors
+//   std::vector<ImageClass> data = ReadFeaturesFromFile(descriptorFile);
+//   numClasses = data.size();
+//   if (numClasses != 0){
+//     std::cout << "---------------------------------------------------------------------------------------" << std::endl;
+//     std::cout << "Features vectors file: " << descriptorFile.c_str() << std::endl;
+//     std::cout << "---------------------------------------------------------------------------------------" << std::endl;
+//     c.findSmallerClass(data, &minoritySize);
+//     fscore = c.classify(prob, repeat, data, csv.c_str(), minoritySize);
+//     data.clear();
+//   }
+//   return fscore;
+// }
 
-void Rebalance::performFeatureExtraction(vector<ImageClass> *data, int extractMethod, int grayMethod) {
+void Rebalance::performFeatureExtraction(std::vector<ImageClass> *data, int extractMethod, int grayMethod) {
 
   int dataClass, image;
-  Mat img, newimg;
+  cv::Mat img, newimg;
 
-  cout << "\n---------------------------------------------------------" << endl;
-  cout << "Image feature extraction using " << extractor.getName(extractMethod-1);
-  cout << " and " << quantization.getName(grayMethod-1) << endl;
-  cout << "-----------------------------------------------------------" << endl;
+  std::cout << "\n---------------------------------------------------------" << std::endl;
+  std::cout << "Image feature extraction using " << extractor.getName(extractMethod-1);
+  std::cout << " and " << quantization.getName(grayMethod-1) << std::endl;
+  std::cout << "-----------------------------------------------------------" << std::endl;
 
-  for (dataClass = 0; dataClass < (*data).size(); dataClass++) {
-    for (image = 0; image < (*data)[dataClass].images.size(); image++) {
+  extractor.method = extractMethod;
+  quantization.method = grayMethod;
 
-      img = imread((*data)[dataClass].images[image].path, CV_LOAD_IMAGE_COLOR);
+  for (dataClass = 0; dataClass < (int)(*data).size(); dataClass++) {
+    for (image = 0; image < (int)(*data)[dataClass].images.size(); image++) {
+
+      img = cv::imread((*data)[dataClass].images[image].path, CV_LOAD_IMAGE_COLOR);
       if (!img.empty()) {
 
         img.copyTo(newimg);
-        if (resizeFactor != 1.0) {
+        if (extractor.resizeFactor != 1.0) {
           // Resize the image given the input factor
-          cv::resize(img, newimg, Size(), resizeFactor, resizeFactor, INTER_AREA);
+          cv::resize(img, newimg, cv::Size(), extractor.resizeFactor, extractor.resizeFactor, CV_INTER_AREA);
         }
 
         // Convert the image to grayscale
-        quantization.convert(quantization, newimg, &newimg);
+        quantization.convert(grayMethod, newimg, &newimg);
 
         // Call the description method
-        extractor.extract(method, newimg, &(*data)[dataClass].images[image].features);
+        extractor.extract(extractMethod, newimg, &(*data)[dataClass].images[image].features);
         if ((*data)[dataClass].images[image].features.cols == 0) {
-          cout << "Error: the feature vector is null" << endl;
+          std::cout << "Error: the feature std::vector is null" << std::endl;
           exit(1);
         }
 
         img.release();
         newimg.release();
       }
+    }
   }
 }
 
-string Rebalance::PerformSmote(vector<ImageClass> imbalancedData, int operation) {
+std::string Rebalance::PerformSmote(Data imbalancedData, int operation) {
 
   int biggestTraining, trainingInThisClass, amountSmote, numFeatures;
-  int neighbors;
-  std::vector<ImageClass>::iterator it;
-  Mat synthetic;
+  int neighbors, x, pos, index;
+  std::vector<ImageClass>::iterator itClass;
+  std::vector<Image>::iterator itImage;
+  cv::Mat synthetic;
   SMOTE s;
-  string name;
+  std::string name;
 
   biggestTraining = imbalancedData.numTrainingImages(imbalancedData.biggestTrainingClass());
 
-  for (itClass = imbalancedData.begin(); itClass != imbalancedData.end(); ++itClass) {
+  for (itClass = imbalancedData.classes.begin();
+      itClass != imbalancedData.classes.end();
+      ++itClass) {
 
     /* Find out how many samples are needed to rebalance */
     trainingInThisClass = imbalancedData.numTrainingImages(itClass->id);
-    cout << "In class " << itClass->id << " were found " << trainingInThisClass << " original training images"<< endl;
     amountSmote = biggestTraining - trainingInThisClass;
-    cout << "Amount to smote: " << amountSmote << " samples" << endl;
-    numFeatures = imbalancedData.numFeatures(itClass->id);
+    numFeatures = imbalancedData.numFeatures();
+
+    std::cout << "In class " << itClass->id << " were found " << trainingInThisClass;
+    std::cout << " original training images"<< std::endl;
+    std::cout << "Amount to smote: " << amountSmote << " samples" << std::endl;
 
     if (amountSmote > 0) {
-      Mat dataTraining(0, numFeatures, CV_32FC1);
+      cv::Mat dataTraining(0, numFeatures, CV_32FC1);
 
       //neighbors = 5;
       neighbors = (double)biggestTraining/(double)trainingInThisClass;
-      cout << "Number of neighbors: " << neighbors << endl;
-      cout << "Number of images in class: " << itClass->images.size() << endl;
+      std::cout << "Number of neighbors: " << neighbors << std::endl;
+      std::cout << "Number of images in class: " << itClass->images.size() << std::endl;
 
-      for (itImage = imbalancedData[eachClass].images.begin();
-          itImage != imbalancedData[eachClass].images.end();
+      for (itImage = itClass->images.begin();
+          itImage != itClass->images.end();
           ++itImage){
-        if (imbalancedData.isTraining(imbalancedData[eachClass].id, itImage->fold)) {
+        if (imbalancedData.isTraining(itClass->id, itImage->fold)) {
           dataTraining.push_back(itImage->features);
         }
       }
 
-      cout << "Number of training in class: " << dataTraining.size() << endl;
+      std::cout << "Number of training in class: " << dataTraining.size() << std::endl;
       if (dataTraining.rows > 0) {
         if (operation != 0){
           synthetic = s.smote(dataTraining, amountSmote, neighbors);
@@ -180,30 +205,157 @@ string Rebalance::PerformSmote(vector<ImageClass> imbalancedData, int operation)
           synthetic.create(amountSmote, numFeatures, CV_32FC1);
           for (x = 0; x < amountSmote; x++){
             pos = rand() % (dataTraining.size().height);
-            Mat tmp = synthetic.row(x);
+            cv::Mat tmp = synthetic.row(x);
             dataTraining.row(pos).copyTo(tmp);
           }
         }
 
-        cout << "SMOTE generated " << amountSmote << " new synthetic samples" << endl;
+        std::cout << "SMOTE generated " << amountSmote << " new synthetic samples" << std::endl;
 
         Image newSample;
         /* Concatenate original with synthetic data*/
         for (index = 0; index < synthetic.rows; index++) {
           synthetic.row(index).copyTo(newSample.features);
-          newSample.isFreeTrainOrTest = 1;
-          newSample.isGenerated = true;
           newSample.path = "smote";
+          newSample.fold = -1;
+          newSample.generationType = -1;
           itClass->images.push_back(newSample);
         }
-        total += imgClass.images.size(); //??
         dataTraining.release();
         synthetic.release();
       }
     }
   }
 
-  name = imbalancedData.writeFeatures("smote");
+  Rebalance::writeFeatures("smote");
 
   return name;
+}
+
+/*******************************************************************************
+*******************************************************************************/
+int qtdArquivos(std::string directory) {
+  int count = 0;
+  struct dirent *sDir = NULL;
+  DIR *dir = NULL;
+
+  dir = opendir(directory.c_str());
+  if (dir == NULL) {
+    return 0;
+  }
+
+  while ((sDir = readdir(dir))) {
+    if ((strcmp(sDir->d_name, ".") != 0) &&
+    (strcmp(sDir->d_name, "..") != 0) &&
+    (strcmp(sDir->d_name, ".DS_Store") != 0) &&
+    (strcmp(sDir->d_name, ".directory") != 0)) {
+      count++;
+    }
+  }
+
+  closedir(dir);
+  return count;
+}
+
+/*******************************************************************************
+*******************************************************************************/
+int NumberImagesInDataset(std::string base, int qtdClasses, std::vector<int> *objClass) {
+  int i, count = 0, currentSize;
+  std::string directory;
+
+  for (i = 0; i < qtdClasses; i++) {
+    directory = base + "/" + std::to_string(i) + "/treino/";
+    currentSize = qtdArquivos(directory);
+    directory = base + "/" + std::to_string(i) + "/treino/generated/";
+    currentSize += qtdArquivos(directory);
+    directory = base + "/" + std::to_string(i) + "/teste/";
+    currentSize += qtdArquivos(directory);
+    if (currentSize == 0) {
+      directory = base + "/" + std::to_string(i)  + "/";
+      currentSize = qtdArquivos(directory);
+      if (currentSize == 0) {
+        std::cout << "Error: there is no directory named " << directory.c_str();
+        exit(-1);
+      }
+    }
+    (*objClass).push_back(currentSize);
+    count += currentSize;
+  }
+  return count;
+}
+
+/*******************************************************************************
+*******************************************************************************/
+cv::Mat FindImgInClass(std::string database, int img_class, int img_number, int index,
+                  int treino, cv::Mat *trainTest, std::vector<std::string> *path,
+                  cv::Mat *isGenerated) {
+  std::string directory, dir_class = database +"/" + std::to_string(img_class);
+  cv::Mat img;
+
+  directory = dir_class + "/"+std::to_string(img_number);
+  img = cv::imread(directory+".png", CV_LOAD_IMAGE_COLOR);
+
+  // std::cout << directory+".png" << std::endl;
+  (*trainTest).at<int>(index, 0) = 0;
+  (*isGenerated).at<int>(index, 0) = 0;
+
+  if (img.empty()) {
+    directory = dir_class + "/treino/" + std::to_string(img_number);
+    img = cv::imread(directory + ".png", CV_LOAD_IMAGE_COLOR);
+    (*trainTest).at<int>(index, 0) = 1;
+
+    if (img.empty()) {
+      directory = dir_class + "/treino/generated/" + std::to_string(img_number);
+      img = cv::imread(directory + ".png", CV_LOAD_IMAGE_COLOR);
+      if (img.empty()) {
+        directory = dir_class + "/teste/" + std::to_string(img_number - treino);
+        img = cv::imread(directory+".png", CV_LOAD_IMAGE_COLOR);
+        (*trainTest).at<int>(index, 0) = 2;
+
+        if (img.empty()) {
+          std::cout << "Error: there is no image in " << directory.c_str();
+          return cv::Mat();
+        }
+      } else {
+        (*isGenerated).at<int>(index, 0) = 1;
+      }
+    }
+  }
+  (*path).push_back(directory + ".png");
+  return img;
+}
+
+/*******************************************************************************
+Counts how many images are in a class, and how many of those are for training
+
+Requires
+- std::string database name
+- int class number
+- int* output the total number of images
+- int* output the number of images in training
+*******************************************************************************/
+void NumberImgInClass(std::string database, int img_class, int *num_imgs,
+                      int *num_train) {
+  std::string directory;
+
+  directory = database + "/" + std::to_string(img_class)  + "/treino/";
+  (*num_imgs) = qtdArquivos(directory);
+  directory = database + "/" + std::to_string(img_class)  + "/treino/generated/";
+  (*num_imgs) += qtdArquivos(directory);
+  (*num_train) = (*num_imgs);
+
+  directory = database + "/" + std::to_string(img_class)  + "/teste/";
+  (*num_imgs) += qtdArquivos(directory);
+
+  if ((*num_imgs) == 0) {
+    directory = database + "/" + std::to_string(img_class)  + "/";
+    (*num_imgs) = qtdArquivos(directory);
+
+    if ((*num_imgs) == 0) {
+      std::cout << "Error: there is no directory named " << directory.c_str();
+      exit(-1);
+    }
+  }
+  std::cout << "class " << img_class << ": " << database + "/" + std::to_string(img_class);
+  std::cout << " has " << (*num_imgs) << " images" << std::endl;
 }

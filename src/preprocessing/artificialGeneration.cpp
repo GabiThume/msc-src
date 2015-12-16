@@ -7,7 +7,7 @@
 
 #include "preprocessing/artificialGeneration.h"
 
-int classesNumber(string diretorio){
+int classesNumber(std::string diretorio){
 
 	struct dirent *sDir = NULL;
 	DIR *dir = NULL;
@@ -32,32 +32,59 @@ int classesNumber(string diretorio){
 }
 
 /*******************************************************************************
+    Reduce the number of colors in a single channel image
+
+    Requires:
+    - I: input image to be modified
+    - nColors: final number of colors
+*******************************************************************************/
+void reduceImageColors(cv::Mat *img, int nColors) {
+
+	double min = 0, max = 0, stretch;
+	cv::Point maxLoc, minLoc;
+  int i, img_channels = (*img).channels();
+  std::vector<cv::Mat> channel(img_channels);
+  split((*img), channel);
+
+  nColors = (nColors > 256) ? 256 : nColors;
+
+  for (i = 0; i < img_channels; i++) {
+    minMaxLoc(channel[i], &min, &max, &minLoc, &maxLoc);
+    stretch = ((double)((nColors -1)) / (max - min));
+    channel[i] = channel[i] - min;
+    channel[i] = channel[i] * stretch;
+  }
+
+  merge(channel, (*img));
+}
+
+/*******************************************************************************
 Artificial generation: Unsharp Masking
 *******************************************************************************/
-Mat unsharp(Mat img, int N) {
+cv::Mat unsharp(cv::Mat img, int N) {
 
-	Mat out(img.size(), img.depth()), blur;
+	cv::Mat out(img.size(), img.depth()), blur;
 	int diff, i, j;
 
-	GaussianBlur(img, blur, Size(N, N), 0);
+	GaussianBlur(img, blur, cv::Size(N, N), 0);
 
 	for (i = 0; i < img.rows; i++) {
 		for (j = 0; j < img.cols; j++) {
 			diff = img.at<uchar>(i,j) - blur.at<uchar>(i,j);
-			out.at<uchar>(i,j) = saturate_cast<uchar>(img.at<uchar>(i,j) + diff);
+			out.at<uchar>(i,j) = cv::saturate_cast<uchar>(img.at<uchar>(i,j) + diff);
 		}
 	}
 	return out;
 }
 
-Mat Artificial::generateUnsharp(Mat originalImage){
+cv::Mat Artificial::generateUnsharp(cv::Mat originalImage){
 	int unsharpLevel;
 
 	unsharpLevel = 3 + 2*(rand() % 5);
-	Size s = originalImage.size();
-	Mat generated(s, CV_8U, 3);
+	cv::Size s = originalImage.size();
+	cv::Mat generated(s, CV_8U, 3);
 
-	vector<Mat> imColors(3);
+	std::vector<cv::Mat> imColors(3);
 	originalImage.copyTo(generated);
 
 	split(generated, imColors);
@@ -84,12 +111,12 @@ uchar poissNoise(double lambda) {
 		p = p * (rand()/(double)RAND_MAX);
 	} while (p > L);
 
-	return saturate_cast<uchar>(k-1);
+	return cv::saturate_cast<uchar>(k-1);
 }
 
-Mat noiseSingleChannel(Mat img){
+cv::Mat noiseSingleChannel(cv::Mat img){
 	int i, j;
-	Mat out(img.size(), CV_8U);
+	cv::Mat out(img.size(), CV_8U);
 
 	for(i = 0; i < img.rows; i++) {
 		for(j = 0; j < img.cols; j++) {
@@ -99,12 +126,12 @@ Mat noiseSingleChannel(Mat img){
 	return out;
 }
 
-Mat Artificial::generateNoise(Mat img) {
+cv::Mat Artificial::generateNoise(cv::Mat img) {
 
-	Size s = img.size();
-	Mat out(s, CV_8U, 3);
+	cv::Size s = img.size();
+	cv::Mat out(s, CV_8U, 3);
 
-	vector<Mat> imColors(3);
+	std::vector<cv::Mat> imColors(3);
 	img.copyTo(out);
 
 	split(out, imColors);
@@ -120,16 +147,16 @@ Mat Artificial::generateNoise(Mat img) {
 /*******************************************************************************
 Artificial generation: Blur
 *******************************************************************************/
-Mat Artificial::generateBlur(Mat originalImage, int blurType) {
+cv::Mat Artificial::generateBlur(cv::Mat originalImage, int blurType) {
 	int i;
-	Mat generated;
+	cv::Mat generated;
 
 	// i = 3 + 2*(rand() % 15);
 	i = 10 + (rand() % 140);
 	//blurType = 1 + (rand() % 2);
 	switch (blurType) {
 		case 1:
-			GaussianBlur(originalImage, generated, Size(i, i), 0);
+			GaussianBlur(originalImage, generated, cv::Size(i, i), 0);
 			break;
 		case 2:
 			// bilateralFilter(originalImage, generated, i, i*2, i/2);
@@ -143,9 +170,9 @@ Mat Artificial::generateBlur(Mat originalImage, int blurType) {
 /*******************************************************************************
 Artificial generation: Blending
 *******************************************************************************/
-Mat Artificial::generateBlending(Mat first, Mat second){
+cv::Mat Artificial::generateBlending(cv::Mat first, cv::Mat second){
 	double alpha, beta;
-	Mat generated;
+	cv::Mat generated;
 
 	alpha = 10.0 + (rand() % 80);
 	beta = (100.0 - alpha);
@@ -162,11 +189,11 @@ Mat Artificial::generateBlending(Mat first, Mat second){
 /*******************************************************************************
 Artificial generation: Composition
 *******************************************************************************/
-Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images,
+cv::Mat Artificial::generateComposition(cv::Mat originalImage, std::vector<cv::Mat> images,
 		int total, int fator, bool option){
 
-	vector<int> vectorRand;
-	Mat subImg, generated, img, roi, second;
+	std::vector<int> vectorRand;
+	cv::Mat subImg, generated, img, roi, second;
 	originalImage.copyTo(subImg);
 	int roiWidth, roiHeight, subImage, randomImg, operation, randomSecondImg;
 	int startWidth, startHeight, randH, randW;
@@ -213,18 +240,18 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images,
 		if (option){
 			randW = rand() % (generated.size().width - roiWidth);
 			randH = rand() % (generated.size().height - roiHeight);
-			generated(Rect(randW, randH, roiWidth, roiHeight)).copyTo(roi);
+			generated(cv::Rect(randW, randH, roiWidth, roiHeight)).copyTo(roi);
 		}
 		else{
 			if (generated.size() == subImg.size()) {
-				generated(Rect(startWidth, startHeight, roiWidth, roiHeight)).copyTo(roi);
+				generated(cv::Rect(startWidth, startHeight, roiWidth, roiHeight)).copyTo(roi);
 			}
 			else {
-				generated(Rect(0, 0, roiWidth, roiHeight)).copyTo(roi);
+				generated(cv::Rect(0, 0, roiWidth, roiHeight)).copyTo(roi);
 			}
 		}
 
-		Mat dst_roi = subImg(Rect(startWidth, startHeight, roiWidth, roiHeight));
+		cv::Mat dst_roi = subImg(cv::Rect(startWidth, startHeight, roiWidth, roiHeight));
 		roi.copyTo(dst_roi);
 		if ((startWidth + 2*roiWidth) <= subImg.size().width){
 			startWidth = startWidth + roiWidth;
@@ -244,19 +271,19 @@ Mat Artificial::generateComposition(Mat originalImage, vector<Mat> images,
 /*******************************************************************************
 Artificial generation: Threshold
 *******************************************************************************/
-Mat Artificial::generateThreshold(Mat first, Mat second) {
+cv::Mat Artificial::generateThreshold(cv::Mat first, cv::Mat second) {
 
-	Mat generated, bin, foreground, background;
+	cv::Mat generated, bin, foreground, background;
 
 	//Create binary image using Otsu's threshold
 	cvtColor(first, bin, CV_BGR2GRAY);
 
 	threshold(bin, bin, 0, 255, THRESH_BINARY_INV | CV_THRESH_OTSU);
 	morphologyEx(bin, bin, MORPH_OPEN,
-		getStructuringElement(MORPH_ELLIPSE, Size(3, 3), Point(1,1)), Point(-1,-1));
+		getStructuringElement(MORPH_ELLIPSE, cv::Size(3, 3), cv::Point(1,1)), cv::Point(-1,-1));
 
 	morphologyEx(bin, bin, MORPH_DILATE,
-		getStructuringElement(MORPH_CROSS, Size(3, 3), Point(1,1)), Point(-1,-1));
+		getStructuringElement(MORPH_CROSS, cv::Size(3, 3), cv::Point(1,1)), cv::Point(-1,-1));
 
 	first.copyTo(foreground, bin);
 
@@ -270,12 +297,12 @@ Mat Artificial::generateThreshold(Mat first, Mat second) {
 	// Blend of background and foreground
 	generated = background + foreground;
 
-	// namedWindow("Display window", WINDOW_AUTOSIZE);
+	// cv::namedWindow("Display window", WINDOW_AUTOSIZE);
 	// imshow("first", first);
 	// imshow("foreground", foreground);
 	// imshow("background", background);
 	// imshow("generated", generated);
-	// waitKey(0);
+	// cv::waitKey(0);
 
 	return generated;
 }
@@ -283,10 +310,10 @@ Mat Artificial::generateThreshold(Mat first, Mat second) {
 /*******************************************************************************
 Artificial generation: Saliency
 *******************************************************************************/
-Mat Artificial::generateSaliency(Mat first, Mat second) {
+cv::Mat Artificial::generateSaliency(cv::Mat first, cv::Mat second) {
 
 	GMRsaliency GMRsal;
-	Mat saliency_map, generated, bin, foreground, background;
+	cv::Mat saliency_map, generated, bin, foreground, background;
 
 	saliency_map = GMRsal.GetSal(first);
 	if (first.size() != saliency_map.size()) {
@@ -300,13 +327,13 @@ Mat Artificial::generateSaliency(Mat first, Mat second) {
 	threshold(bin, bin, 0, 255, THRESH_BINARY | THRESH_OTSU);
 
 	morphologyEx(bin, bin, MORPH_OPEN,
-		getStructuringElement(MORPH_CROSS, Size(3, 3), Point(1,1)), Point(-1,-1));
+		getStructuringElement(MORPH_CROSS, cv::Size(3, 3), cv::Point(1,1)), cv::Point(-1,-1));
 	morphologyEx(bin, bin, MORPH_DILATE,
-		getStructuringElement(MORPH_CROSS, Size(3, 3), Point(1,1)), Point(-1,-1));
+		getStructuringElement(MORPH_CROSS, cv::Size(3, 3), cv::Point(1,1)), cv::Point(-1,-1));
 
 	first.copyTo(foreground, bin);
 
-	// namedWindow( "Display window", WINDOW_AUTOSIZE );
+	// cv::namedWindow( "Display window", WINDOW_AUTOSIZE );
 	// imshow("saliency", bin);
 
 	// Select the background
@@ -320,14 +347,14 @@ Mat Artificial::generateSaliency(Mat first, Mat second) {
 	generated = background + foreground;
 
 	// imshow("saliency", generated);
-	// waitKey(0);
+	// cv::waitKey(0);
 	return generated;
 }
 
 /*******************************************************************************
 Artificial generation: visual SMOTE
 *******************************************************************************/
-// Mat smoteImg(Mat first, Mat second){
+// cv::Mat smoteImg(cv::Mat first, cv::Mat second){
 //
 // 	int i, j;
 // 	double diff, gap, newpixel;
@@ -335,7 +362,7 @@ Artificial generation: visual SMOTE
 // 	if (first.size() != second.size()) {
 // 		resize(second, second, first.size());
 // 	}
-// 	Mat out(first.size(), CV_8U, 1);
+// 	cv::Mat out(first.size(), CV_8U, 1);
 //
 // 	for (i = 0; i < first.rows; i++) {
 // 		for (j = 0; j < first.cols; j++) {
@@ -344,14 +371,14 @@ Artificial generation: visual SMOTE
 // 			/* Multiply this difference with a number between 0 and 1 */
 // 			gap = rand()/static_cast<double>(RAND_MAX);
 // 			newpixel = (double)first.at<uchar>(i,j) + gap*diff;
-// 			out.at<uchar>(i,j) = saturate_cast<uchar>(newpixel);
+// 			out.at<uchar>(i,j) = cv::saturate_cast<uchar>(newpixel);
 // 		}
 // 	}
 //
 // 	return out;
 // }
 
-Mat smoteImg(Mat first, Mat second) {
+cv::Mat smoteImg(cv::Mat first, cv::Mat second) {
 
 	int i, j;
 	double diff, gap;
@@ -359,7 +386,7 @@ Mat smoteImg(Mat first, Mat second) {
 	if (first.size() != second.size()) {
 		resize(second, second, first.size());
 	}
-	Mat out(first.size(), CV_64FC1, 1);
+	cv::Mat out(first.size(), CV_64FC1, 1);
 
 	for (i = 0; i < first.rows; i++) {
 		for (j = 0; j < first.cols; j++) {
@@ -376,10 +403,10 @@ Mat smoteImg(Mat first, Mat second) {
 	return out;
 }
 
-Mat Artificial::generateSmoteImg(Mat first, Mat second){
+cv::Mat Artificial::generateSmoteImg(cv::Mat first, cv::Mat second){
 
-	vector<Mat> imColors(3), imColorsSecond(3);
-	Mat generated;
+	std::vector<cv::Mat> imColors(3), imColorsSecond(3);
+	cv::Mat generated;
 
 	if (first.size() != second.size()) {
 		resize(second, second, first.size());
@@ -395,20 +422,20 @@ Mat Artificial::generateSmoteImg(Mat first, Mat second){
 
 	merge(imColors, generated);
 
-	// namedWindow( "Display window", WINDOW_AUTOSIZE);
+	// cv::namedWindow( "Display window", WINDOW_AUTOSIZE);
 	// imshow("original", originalImage);
 	// imshow("second", second);
 	// imshow("smoteimg", generated);
-	// waitKey(0);
+	// cv::waitKey(0);
 
 	return generated;
 }
 
 /*******************************************************************************
 *******************************************************************************/
-void Artificial::GenerateImage(vector<Mat> images, string name, int total,
+void Artificial::GenerateImage(std::vector<cv::Mat> images, std::string name, int total,
 															int generationType) {
-	Mat generated, first, second;
+	cv::Mat generated, first, second;
 	int randomImg, randomSecondImg;
 
 	while (generated.empty()) {
@@ -426,7 +453,7 @@ void Artificial::GenerateImage(vector<Mat> images, string name, int total,
 		}
 		images[randomSecondImg].copyTo(second);
 
-		cout << "Generate " << name << " with operation " << generationType << endl;
+		std::cout << "Generate " << name << " with operation " << generationType << std::endl;
 
 		switch (generationType) {
 			case 0: /* Replication */
@@ -469,32 +496,31 @@ void Artificial::GenerateImage(vector<Mat> images, string name, int total,
 	}
 }
 
-vector<ImageClass> Artificial::generateImagesFromData(vector<ImageClass> original_data,
-																					string newDirectory,
+std::vector<ImageClass> Artificial::generateImagesFromData(std::vector<ImageClass> original_data,
+																					std::string newDirectory,
 																					int whichOperation){
 
 	int i, qtdClasses = 0, generationType, rebalanceTotal = 0;
 	int maiorClasse, rebalance, eachClass, qtdImg, maior, j, training_fold;
-	Mat img, noise;
-	string imgName, classe, minorityClass, str, nameGeneratedImage, generatedPath;
-	struct dirent *sDir = NULL;
+	cv::Mat img, noise;
+	std::string imgName, classe, minorityClass, str, nameGeneratedImage, generatedPath;
 	DIR *dir = NULL, *minDir = NULL;
-	vector<int> totalImage, vectorRand;
-	vector<Mat> images;
-	vector<ImageClass> generatedData;
+	std::vector<int> totalImage, vectorRand;
+	std::vector<cv::Mat> images;
+	std::vector<ImageClass> generatedData;
 	ImageClass thisClass;
 	Image newImage;
 
-	cout << "\n---------------------------------------------------------" << endl;
-	cout << "Artifical generation of images to rebalance classes" << endl;
-	cout << "-----------------------------------------------------------" << endl;
+	std::cout << "\n---------------------------------------------------------" << std::endl;
+	std::cout << "Artifical generation of images to rebalance classes" << std::endl;
+	std::cout << "-----------------------------------------------------------" << std::endl;
 
 	str = "rm -f -r "+newDirectory+"/*;";
 	str += "mkdir -p "+newDirectory+";";
 	system(str.c_str());
 	dir = opendir(newDirectory.c_str());;
 	if (!dir) {
-		cout << "Error! Directory " << newDirectory << " can't be created. " << endl;
+		std::cout << "Error! Directory " << newDirectory << " can't be created. " << std::endl;
 		exit(1);
 	}
 	closedir(dir);
@@ -506,20 +532,20 @@ vector<ImageClass> Artificial::generateImagesFromData(vector<ImageClass> origina
 	system(str.c_str());
 	dir = opendir((newDirectory+"/features/").c_str());;
 	if (!dir) {
-		cout << "Error! Directory " << newDirectory << " can't be created. " << endl;
+		std::cout << "Error! Directory " << newDirectory << " can't be created. " << std::endl;
 		exit(1);
 	}
 	closedir(dir);
 
 	qtdClasses = original_data.size();
-	cout << "Number of classes: " << qtdClasses << endl;
+	std::cout << "Number of classes: " << qtdClasses << std::endl;
 
 	/* Count how many files exist and which class is the majority */
 	maior = -1;
 	for(i = 0; i < qtdClasses; i++) {
 		qtdImg = 0;
-		for(j = 0; j < original_data[i].images.size(); j++) {
-			for (training_fold = 0; training_fold < original_data[i].training_fold.size(); training_fold++) {
+		for(j = 0; j < (int) original_data[i].images.size(); j++) {
+			for (training_fold = 0; training_fold < (int) original_data[i].training_fold.size(); training_fold++) {
 				if (original_data[i].images[j].fold == training_fold) {
 					qtdImg++;
 				}
@@ -537,12 +563,12 @@ vector<ImageClass> Artificial::generateImagesFromData(vector<ImageClass> origina
 		rebalance = totalImage[maiorClasse] - totalImage[eachClass];
 		if (rebalance > 0) {
 
-			/* Add all minority images in vector<Mat>images */
-			for(j = 0; j < original_data[eachClass].images.size(); j++) {
-				for (training_fold = 0; training_fold < original_data[eachClass].training_fold.size(); training_fold++) {
+			/* Add all minority images in std::vector<cv::Mat>images */
+			for(j = 0; j < (int) original_data[eachClass].images.size(); j++) {
+				for (training_fold = 0; training_fold < (int) original_data[eachClass].training_fold.size(); training_fold++) {
 					if (original_data[eachClass].images[j].fold == training_fold) {
 						imgName = original_data[eachClass].images[j].path;
-						img = imread(imgName, CV_LOAD_IMAGE_COLOR);
+						img = cv::imread(imgName, CV_LOAD_IMAGE_COLOR);
 						if (!img.data) continue;
 						images.push_back(img);
 					}
@@ -550,11 +576,11 @@ vector<ImageClass> Artificial::generateImagesFromData(vector<ImageClass> origina
 			}
 
 			if (images.size() == 0) {
-				cout << "The class " << eachClass << " could't be read" << endl;
+				std::cout << "The class " << eachClass << " could't be read" << std::endl;
 				exit(-1);
 			}
 
-			stringstream generatedClass;
+			std::stringstream generatedClass;
 		 	generatedClass << eachClass;
 			generatedPath = newDirectory + generatedClass.str() + "/";
 			minDir = opendir(generatedPath.c_str());
@@ -563,7 +589,7 @@ vector<ImageClass> Artificial::generateImagesFromData(vector<ImageClass> origina
 				system(str.c_str());
 				minDir = opendir(generatedPath.c_str());
 				if (!minDir) {
-					cout << "Error! Directory " << generatedPath.c_str() << " can't be created." << endl;
+					std::cout << "Error! Directory " << generatedPath.c_str() << " can't be created." << std::endl;
 					exit(1);
 				}
 			}
@@ -573,11 +599,11 @@ vector<ImageClass> Artificial::generateImagesFromData(vector<ImageClass> origina
 			std::mt19937 gen(rd());
 			std::uniform_int_distribution<> dis(2, 10);
 
-			thisClass.classNumber = eachClass;
-			thisClass.images.clear();
-			thisClass.fixedTrainOrTest = 1;
-			thisClass.training_fold.clear();
-			thisClass.testing_fold.clear();
+			// thisClass.classNumber = eachClass;
+			// thisClass.images.clear();
+			// thisClass.fixedTrainOrTest = 1;
+			// thisClass.training_fold.clear();
+			// thisClass.testing_fold.clear();
 
 			/* For each image needed to full rebalance*/
 			for (i = 0; i < rebalance; i++) {
@@ -586,20 +612,19 @@ vector<ImageClass> Artificial::generateImagesFromData(vector<ImageClass> origina
 				Case 1: All operations */
 				generationType = (whichOperation == 1) ? dis(gen) : whichOperation;
 
-				nameGeneratedImage = generatedPath + to_string(totalImage[eachClass]+i) + ".png";
+				nameGeneratedImage = generatedPath + std::to_string(totalImage[eachClass]+i) + ".png";
 
 				GenerateImage(images, nameGeneratedImage, totalImage[eachClass], generationType);
 
-				newImage.features.clear();
-				newImage.isGenerated = true;
-				newImage.isFreeTrainOrTest = 1;
+				newImage.features.release();
 				newImage.fold = -1;
+				newImage.generationType = generationType;
 				newImage.path = nameGeneratedImage;
-				thisClass.images.push_back(newImage);
+				original_data[eachClass].images.push_back(newImage);
 			}
 			rebalanceTotal += rebalance;
-			cout << rebalance << " images were generated and this is now balanced." << endl;
-			cout << "-------------------------------------------------------" << endl;
+			std::cout << rebalance << " images were generated and this is now balanced." << std::endl;
+			std::cout << "-------------------------------------------------------" << std::endl;
 			images.clear();
 
 			generatedData.push_back(thisClass);
@@ -608,17 +633,17 @@ vector<ImageClass> Artificial::generateImagesFromData(vector<ImageClass> origina
 	return generatedData;
 }
 
-string Artificial::generate(string base, string newDirectory,
+std::string Artificial::generate(std::string base, std::string newDirectory,
 														int whichOperation = 0){
 
 	int i, qtdClasses = 0, generationType, rebalanceTotal = 0;
 	int maiorClasse, rebalance, eachClass, qtdImg, maior;
-	Mat img, noise;
-	string imgName, classe, minorityClass, str, nameGeneratedImage, generatedPath;
+	cv::Mat img, noise;
+	std::string imgName, classe, minorityClass, str, nameGeneratedImage, generatedPath;
 	struct dirent *sDir = NULL;
 	DIR *dir = NULL, *minDir = NULL;
-	vector<int> totalImage, vectorRand;
-	vector<Mat> images;
+	std::vector<int> totalImage, vectorRand;
+	std::vector<cv::Mat> images;
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -626,7 +651,7 @@ string Artificial::generate(string base, string newDirectory,
 
 	dir = opendir(base.c_str());
 	if (!dir) {
-		cout << "Error! Directory " << base << " doesn't exist." << endl;
+		std::cout << "Error! Directory " << base << " doesn't exist." << std::endl;
 		exit(1);
 	}
 	closedir(dir);
@@ -643,21 +668,21 @@ string Artificial::generate(string base, string newDirectory,
 	newDirectory += "/original/";
 	dir = opendir(newDirectory.c_str());;
 	if (!dir) {
-		cout << "Error! Directory " << newDirectory << " doesn't exist. " << endl;
+		std::cout << "Error! Directory " << newDirectory << " doesn't exist. " << std::endl;
 		exit(1);
 	}
 
-	cout << "\n---------------------------------------------------------" << endl;
-	cout << "Artifical generation of images to rebalance classes" << endl;
-	cout << "-----------------------------------------------------------" << endl;
+	std::cout << "\n---------------------------------------------------------" << std::endl;
+	std::cout << "Artifical generation of images to rebalance classes" << std::endl;
+	std::cout << "-----------------------------------------------------------" << std::endl;
 
 	qtdClasses = classesNumber(newDirectory);
-	cout << "Number of classes: " << qtdClasses << endl;
+	std::cout << "Number of classes: " << qtdClasses << std::endl;
 	closedir(dir);
 	/* Count how many files there are in classes and which is the majority */
 	maior = -1;
 	for(i = 0; i < qtdClasses; i++) {
-		classe = newDirectory + "/" + to_string(i) + "/";
+		classe = newDirectory + "/" + std::to_string(i) + "/";
 		qtdImg = classesNumber(classe+"/treino/");
 		if (qtdImg == 0){
 			qtdImg = classesNumber(classe);
@@ -674,22 +699,22 @@ string Artificial::generate(string base, string newDirectory,
 		rebalance = totalImage[maiorClasse] - totalImage[eachClass];
 		if (rebalance > 0) {
 
-			minorityClass = newDirectory + "/" + to_string(eachClass) + "/treino/";
-			cout << "Class: " << minorityClass << " contain " << totalImage[eachClass] << " images" << endl;
+			minorityClass = newDirectory + "/" + std::to_string(eachClass) + "/treino/";
+			std::cout << "Class: " << minorityClass << " contain " << totalImage[eachClass] << " images" << std::endl;
 			minDir = opendir(minorityClass.c_str());
 			if (!minDir) {
-				cout << "Error! Directory " << minorityClass.c_str() << " doesn't exist. " << endl;
+				std::cout << "Error! Directory " << minorityClass.c_str() << " doesn't exist. " << std::endl;
 				exit(1);
 			}
-			/* Add all minority images in vector<Mat>images */
+			/* Add all minority images in std::vector<cv::Mat>images */
 			while ((sDir = readdir(minDir))) {
 				imgName = sDir->d_name;
-				img = imread(minorityClass + imgName, CV_LOAD_IMAGE_COLOR);
+				img = cv::imread(minorityClass + imgName, CV_LOAD_IMAGE_COLOR);
 				if (!img.data) continue;
 				images.push_back(img);
 			}
 			if (images.size() == 0) {
-				cout << "The class " << minorityClass+imgName << " could't be read" << endl;
+				std::cout << "The class " << minorityClass+imgName << " could't be read" << std::endl;
 				exit(-1);
 			}
 			closedir(minDir);
@@ -701,7 +726,7 @@ string Artificial::generate(string base, string newDirectory,
 				system(str.c_str());
 				minDir = opendir(generatedPath.c_str());
 				if (!minDir) {
-					cout << "Error! Directory " << generatedPath.c_str() << " can't be created. " << endl;
+					std::cout << "Error! Directory " << generatedPath.c_str() << " can't be created. " << std::endl;
 					exit(1);
 				}
 			}
@@ -714,12 +739,12 @@ string Artificial::generate(string base, string newDirectory,
 				Case 1: All operations */
 				generationType = (whichOperation == 1) ? dis(gen) : whichOperation;
 
-				nameGeneratedImage = minorityClass + "/generated/" + to_string(totalImage[eachClass]+i) + ".png";
+				nameGeneratedImage = minorityClass + "/generated/" + std::to_string(totalImage[eachClass]+i) + ".png";
 				GenerateImage(images, nameGeneratedImage, totalImage[eachClass], generationType);
 			}
 			rebalanceTotal += rebalance;
-			cout << rebalance << " images were generated and this is now balanced." << endl;
-			cout << "-------------------------------------------------------" << endl;
+			std::cout << rebalance << " images were generated and this is now balanced." << std::endl;
+			std::cout << "-------------------------------------------------------" << std::endl;
 			images.clear();
 		}
 	}
