@@ -33,8 +33,8 @@ Universidade de São Paulo / ICMC
 Master's thesis in Computer Science
 */
 
-#ifndef QUANTIZATION_H_
-#define QUANTIZATION_H_
+#ifndef _QUANTIZATION_H_
+#define _QUANTIZATION_H_
 
 #include <iostream>
 #include <sstream>
@@ -51,16 +51,13 @@ class GrayscaleConversion {
   public:
     int numColors;
     int method;
-    
+
     std::string getName(int method) {
       std::string name = ((sizeof(quantization)/sizeof(quantization[0])) > method) ? quantization[method] : "";
       return name;
     }
 
-    GrayscaleConversion(int colors) {
-      numColors = colors;
-    }
-    void convert(int method, cv::Mat img, cv::Mat *gray);
+    void convert(int colors, int method, cv::Mat img, cv::Mat *gray);
     void Intensity(cv::Mat I, cv::Mat *Q, int num_colors);
     void Gleam(cv::Mat I, cv::Mat *Q, int num_colors);
     void Luminance(cv::Mat I, cv::Mat *Q, int num_colors);

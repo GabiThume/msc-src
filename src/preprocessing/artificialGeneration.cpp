@@ -433,8 +433,9 @@ cv::Mat Artificial::generateSmoteImg(cv::Mat first, cv::Mat second){
 
 /*******************************************************************************
 *******************************************************************************/
-void Artificial::GenerateImage(std::vector<cv::Mat> images, std::string name, int total,
-															int generationType) {
+void Artificial::GenerateImage(std::vector<cv::Mat> images, std::string name,
+	int total, int generationType) {
+
 	cv::Mat generated, first, second;
 	int randomImg, randomSecondImg;
 
@@ -453,7 +454,8 @@ void Artificial::GenerateImage(std::vector<cv::Mat> images, std::string name, in
 		}
 		images[randomSecondImg].copyTo(second);
 
-		std::cout << "Generate " << name << " with operation " << generationType << std::endl;
+		std::cout << "Generate " << name;
+		std::cout << " with operation " << generationType << std::endl;
 
 		switch (generationType) {
 			case 0: /* Replication */
@@ -496,9 +498,9 @@ void Artificial::GenerateImage(std::vector<cv::Mat> images, std::string name, in
 	}
 }
 
-std::vector<ImageClass> Artificial::generateImagesFromData(std::vector<ImageClass> original_data,
-																					std::string newDirectory,
-																					int whichOperation){
+std::vector<ImageClass> Artificial::generateImagesFromData(
+	std::vector<ImageClass> original_data, std::string newDirectory,
+	int whichOperation) {
 
 	int i, qtdClasses = 0, generationType, rebalanceTotal = 0;
 	int maiorClasse, rebalance, eachClass, qtdImg, maior, j, training_fold;
@@ -511,16 +513,18 @@ std::vector<ImageClass> Artificial::generateImagesFromData(std::vector<ImageClas
 	ImageClass thisClass;
 	Image newImage;
 
-	std::cout << "\n---------------------------------------------------------" << std::endl;
-	std::cout << "Artifical generation of images to rebalance classes" << std::endl;
-	std::cout << "-----------------------------------------------------------" << std::endl;
+	std::cout << "-------------------------------------------------" << std::endl;
+	std::cout << "Artifical generation of images to rebalance classes";
+	std::cout << std::endl;
+	std::cout << "-------------------------------------------------" << std::endl;
 
 	str = "rm -f -r "+newDirectory+"/*;";
 	str += "mkdir -p "+newDirectory+";";
 	system(str.c_str());
 	dir = opendir(newDirectory.c_str());;
 	if (!dir) {
-		std::cout << "Error! Directory " << newDirectory << " can't be created. " << std::endl;
+		std::cout << "Error! Directory " << newDirectory;
+		std::cout << " can't be created. " << std::endl;
 		exit(1);
 	}
 	closedir(dir);
@@ -633,120 +637,121 @@ std::vector<ImageClass> Artificial::generateImagesFromData(std::vector<ImageClas
 	return generatedData;
 }
 
-std::string Artificial::generate(std::string base, std::string newDirectory,
-														int whichOperation = 0){
-
-	int i, qtdClasses = 0, generationType, rebalanceTotal = 0;
-	int maiorClasse, rebalance, eachClass, qtdImg, maior;
-	cv::Mat img, noise;
-	std::string imgName, classe, minorityClass, str, nameGeneratedImage, generatedPath;
-	struct dirent *sDir = NULL;
-	DIR *dir = NULL, *minDir = NULL;
-	std::vector<int> totalImage, vectorRand;
-	std::vector<cv::Mat> images;
-
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dis(2, 10);
-
-	dir = opendir(base.c_str());
-	if (!dir) {
-		std::cout << "Error! Directory " << base << " doesn't exist." << std::endl;
-		exit(1);
-	}
-	closedir(dir);
-
-	str = "rm -f -r "+newDirectory+"/*;";
-	str += "mkdir -p "+newDirectory+";";
-	str += "mkdir -p "+newDirectory+"/original/;";
-	str += "cp -R "+base+"/* "+newDirectory+"/original/;";
-	system(str.c_str());
-	str = "rm -f -r "+newDirectory+"/features/;";
-	str += "mkdir -p "+newDirectory+"/features/;";
-	system(str.c_str());
-
-	newDirectory += "/original/";
-	dir = opendir(newDirectory.c_str());;
-	if (!dir) {
-		std::cout << "Error! Directory " << newDirectory << " doesn't exist. " << std::endl;
-		exit(1);
-	}
-
-	std::cout << "\n---------------------------------------------------------" << std::endl;
-	std::cout << "Artifical generation of images to rebalance classes" << std::endl;
-	std::cout << "-----------------------------------------------------------" << std::endl;
-
-	qtdClasses = classesNumber(newDirectory);
-	std::cout << "Number of classes: " << qtdClasses << std::endl;
-	closedir(dir);
-	/* Count how many files there are in classes and which is the majority */
-	maior = -1;
-	for(i = 0; i < qtdClasses; i++) {
-		classe = newDirectory + "/" + std::to_string(i) + "/";
-		qtdImg = classesNumber(classe+"/treino/");
-		if (qtdImg == 0){
-			qtdImg = classesNumber(classe);
-		}
-		totalImage.push_back(qtdImg);
-		if (qtdImg > maior){
-			maiorClasse = i;
-			maior = qtdImg;
-		}
-	}
-
-	for (eachClass = 0; eachClass < qtdClasses; ++eachClass) {
-		/* Find out how many samples are needed to rebalance */
-		rebalance = totalImage[maiorClasse] - totalImage[eachClass];
-		if (rebalance > 0) {
-
-			minorityClass = newDirectory + "/" + std::to_string(eachClass) + "/treino/";
-			std::cout << "Class: " << minorityClass << " contain " << totalImage[eachClass] << " images" << std::endl;
-			minDir = opendir(minorityClass.c_str());
-			if (!minDir) {
-				std::cout << "Error! Directory " << minorityClass.c_str() << " doesn't exist. " << std::endl;
-				exit(1);
-			}
-			/* Add all minority images in std::vector<cv::Mat>images */
-			while ((sDir = readdir(minDir))) {
-				imgName = sDir->d_name;
-				img = cv::imread(minorityClass + imgName, CV_LOAD_IMAGE_COLOR);
-				if (!img.data) continue;
-				images.push_back(img);
-			}
-			if (images.size() == 0) {
-				std::cout << "The class " << minorityClass+imgName << " could't be read" << std::endl;
-				exit(-1);
-			}
-			closedir(minDir);
-
-			generatedPath = minorityClass + "/generated/";
-			minDir = opendir(generatedPath.c_str());
-			if (!minDir) {
-				str = "mkdir -p "+generatedPath+";";
-				system(str.c_str());
-				minDir = opendir(generatedPath.c_str());
-				if (!minDir) {
-					std::cout << "Error! Directory " << generatedPath.c_str() << " can't be created. " << std::endl;
-					exit(1);
-				}
-			}
-			closedir(minDir);
-
-			/* For each image needed to full rebalance*/
-			for (i = 0; i < rebalance; i++) {
-
-				/* Choose an operation
-				Case 1: All operations */
-				generationType = (whichOperation == 1) ? dis(gen) : whichOperation;
-
-				nameGeneratedImage = minorityClass + "/generated/" + std::to_string(totalImage[eachClass]+i) + ".png";
-				GenerateImage(images, nameGeneratedImage, totalImage[eachClass], generationType);
-			}
-			rebalanceTotal += rebalance;
-			std::cout << rebalance << " images were generated and this is now balanced." << std::endl;
-			std::cout << "-------------------------------------------------------" << std::endl;
-			images.clear();
-		}
-	}
-	return newDirectory;
-}
+// std::string Artificial::generate(std::string base, std::string newDirectory,
+// 	int whichOperation = 0) {
+//
+// 	int i, qtdClasses = 0, generationType, rebalanceTotal = 0;
+// 	int maiorClasse, rebalance, eachClass, qtdImg, maior;
+// 	cv::Mat img, noise;
+// 	std::string imgName, classe, minorityClass, str, nameGeneratedImage, generatedPath;
+// 	struct dirent *sDir = NULL;
+// 	DIR *dir = NULL, *minDir = NULL;
+// 	std::vector<int> totalImage, vectorRand;
+// 	std::vector<cv::Mat> images;
+//
+// 	std::random_device rd;
+// 	std::mt19937 gen(rd());
+// 	std::uniform_int_distribution<> dis(2, 10);
+//
+// 	dir = opendir(base.c_str());
+// 	if (!dir) {
+// 		std::cout << "Error! Directory " << base << " doesn't exist." << std::endl;
+// 		exit(1);
+// 	}
+// 	closedir(dir);
+//
+// 	str = "rm -f -r "+newDirectory+"/*;";
+// 	str += "mkdir -p "+newDirectory+";";
+// 	str += "mkdir -p "+newDirectory+"/original/;";
+// 	str += "cp -R "+base+"/* "+newDirectory+"/original/;";
+// 	system(str.c_str());
+// 	str = "rm -f -r "+newDirectory+"/features/;";
+// 	str += "mkdir -p "+newDirectory+"/features/;";
+// 	system(str.c_str());
+//
+// 	newDirectory += "/original/";
+// 	dir = opendir(newDirectory.c_str());;
+// 	if (!dir) {
+// 		std::cout << "Error! Directory " << newDirectory << " doesn't exist. " << std::endl;
+// 		exit(1);
+// 	}
+//
+// 	std::cout << "-------------------------------------------------" << std::endl;
+// 	std::cout << "Artifical generation of images to rebalance classes";
+// 	std::cout << std::endl;
+// 	std::cout << "-------------------------------------------------" << std::endl;
+//
+// 	qtdClasses = classesNumber(newDirectory);
+// 	std::cout << "Number of classes: " << qtdClasses << std::endl;
+// 	closedir(dir);
+// 	/* Count how many files there are in classes and which is the majority */
+// 	maior = -1;
+// 	for(i = 0; i < qtdClasses; i++) {
+// 		classe = newDirectory + "/" + std::to_string(i) + "/";
+// 		qtdImg = classesNumber(classe+"/treino/");
+// 		if (qtdImg == 0){
+// 			qtdImg = classesNumber(classe);
+// 		}
+// 		totalImage.push_back(qtdImg);
+// 		if (qtdImg > maior){
+// 			maiorClasse = i;
+// 			maior = qtdImg;
+// 		}
+// 	}
+//
+// 	for (eachClass = 0; eachClass < qtdClasses; ++eachClass) {
+// 		/* Find out how many samples are needed to rebalance */
+// 		rebalance = totalImage[maiorClasse] - totalImage[eachClass];
+// 		if (rebalance > 0) {
+//
+// 			minorityClass = newDirectory + "/" + std::to_string(eachClass) + "/treino/";
+// 			std::cout << "Class: " << minorityClass << " contain " << totalImage[eachClass] << " images" << std::endl;
+// 			minDir = opendir(minorityClass.c_str());
+// 			if (!minDir) {
+// 				std::cout << "Error! Directory " << minorityClass.c_str() << " doesn't exist. " << std::endl;
+// 				exit(1);
+// 			}
+// 			/* Add all minority images in std::vector<cv::Mat>images */
+// 			while ((sDir = readdir(minDir))) {
+// 				imgName = sDir->d_name;
+// 				img = cv::imread(minorityClass + imgName, CV_LOAD_IMAGE_COLOR);
+// 				if (!img.data) continue;
+// 				images.push_back(img);
+// 			}
+// 			if (images.size() == 0) {
+// 				std::cout << "The class " << minorityClass+imgName << " could't be read" << std::endl;
+// 				exit(-1);
+// 			}
+// 			closedir(minDir);
+//
+// 			generatedPath = minorityClass + "/generated/";
+// 			minDir = opendir(generatedPath.c_str());
+// 			if (!minDir) {
+// 				str = "mkdir -p "+generatedPath+";";
+// 				system(str.c_str());
+// 				minDir = opendir(generatedPath.c_str());
+// 				if (!minDir) {
+// 					std::cout << "Error! Directory " << generatedPath.c_str() << " can't be created. " << std::endl;
+// 					exit(1);
+// 				}
+// 			}
+// 			closedir(minDir);
+//
+// 			/* For each image needed to full rebalance*/
+// 			for (i = 0; i < rebalance; i++) {
+//
+// 				/* Choose an operation
+// 				Case 1: All operations */
+// 				generationType = (whichOperation == 1) ? dis(gen) : whichOperation;
+//
+// 				nameGeneratedImage = minorityClass + "/generated/" + std::to_string(totalImage[eachClass]+i) + ".png";
+// 				GenerateImage(images, nameGeneratedImage, totalImage[eachClass], generationType);
+// 			}
+// 			rebalanceTotal += rebalance;
+// 			std::cout << rebalance << " images were generated and this is now balanced." << std::endl;
+// 			std::cout << "-------------------------------------------------------" << std::endl;
+// 			images.clear();
+// 		}
+// 	}
+// 	return newDirectory;
+// }

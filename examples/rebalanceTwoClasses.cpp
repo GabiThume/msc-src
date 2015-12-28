@@ -79,27 +79,34 @@ int main(int argc, char const *argv[]) {
 
   double factor = 0.1;
 
-  // Check how many classes and images there are
-  qtd_classes = qtdArquivos(baseDir+"/");
-  if (qtd_classes < 2) {
-    std::cout << "Error. There is less than two classes in " << baseDir << std::endl;
-    exit(-1);
-  }
-
-  NumberImgInClass(baseDir, 0, &prev, &treino);
-  count_diff = 0;
-  for (i = 1; i < qtd_classes; i++) {
-    NumberImgInClass(baseDir, i, &numImages, &treino);
-    count_diff = count_diff + abs(numImages - prev);
-    prev = numImages;
-  }
+  // // Check how many classes and images there are
+  // qtd_classes = qtdArquivos(baseDir+"/");
+  // if (qtd_classes < 2) {
+  //   std::cout << "Error. There is less than two classes in " << baseDir << std::endl;
+  //   exit(-1);
+  // }
+  //
+  // NumberImgInClass(baseDir, 0, &prev, &treino);
+  // count_diff = 0;
+  // for (i = 1; i < qtd_classes; i++) {
+  //   NumberImgInClass(baseDir, i, &numImages, &treino);
+  //   count_diff = count_diff + abs(numImages - prev);
+  //   prev = numImages;
+  // }
 
   d = 1; m = 1;
   operation = 1;
 
   // std::cout << "Classification using original data" << std::endl;
-  // originalDescriptor = description(baseDir, featuresDir, d, m, "original");
-  // csvOriginal = analysisDir+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
+  Rebalance r;
+  r.extractor.ccvThreshold = 25;
+  r.extractor.accDistances = {1, 3, 5, 7};
+  r.extractor.normalization = 0;
+  r.extractor.resizeFactor = 1.0;
+
+  r.readImageDirectory(baseDir);
+  r.performFeatureExtraction(d, m);
+
   // // perform(originalDescriptor, 10, prob, csvOriginal);
   // std::vector<ImageClass> data = ReadFeaturesFromFile(originalDescriptor);
   //

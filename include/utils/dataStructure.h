@@ -1,5 +1,5 @@
 #ifndef _DATA_H
-#define __DATA_H
+#define _DATA_H
 
 #include <string>
 #include <opencv2/highgui/highgui.hpp>
@@ -26,6 +26,7 @@ class Data {
 		int grayscaleMethod, featureExtractionMethod;
 		std::vector<ImageClass> classes;
 
+		void release(void);
 		int numClasses(void);
 		int numTrainingImages(int id);
 		int numTestingImages(int id);

@@ -1223,7 +1223,10 @@ std::string FeatureExtraction::getName(int method) {
   return name;
 }
 
-void FeatureExtraction::extract(int method, cv::Mat img, cv::Mat *features) {
+void FeatureExtraction::extract(int colors, int norm, int method, cv::Mat img, cv::Mat *features) {
+
+  numColors = colors;
+  normalization = norm;
 
   switch (method) {
     case 1:

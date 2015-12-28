@@ -60,14 +60,9 @@ class FeatureExtraction {
     double resizeFactor;
     std::vector<int> accDistances;
 
-    FeatureExtraction(int colors, int norm) {
-      numColors = colors;
-      normalization = norm;
-    }
-
     std::string getName(int method);
 
-    void extract(int method, cv::Mat img, cv::Mat *features);
+    void extract(int colors, int norm, int method, cv::Mat img, cv::Mat *features);
 
     void VerifyNeighborPixel(cv::Mat img, int index_height, int index_width,
       uchar pixel_color, std::vector< std::vector<bool> > *visited, std::queue<Pixel> *pixels,

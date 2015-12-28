@@ -393,7 +393,9 @@ void GrayscaleConversion::reduceImageColors(cv::Mat *img, int nColors) {
   merge(channel, (*img));
 }
 
-void GrayscaleConversion::convert(int method, cv::Mat img, cv::Mat *gray) {
+void GrayscaleConversion::convert(int colors, int method, cv::Mat img, cv::Mat *gray) {
+
+  numColors = colors;
 
   switch (method) {
     case 1:

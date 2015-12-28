@@ -35,6 +35,25 @@ Master's thesis in Computer Science
 
 #include "utils/dataStructure.h"
 
+void Data::release(void) {
+	std::vector<Image>::iterator itImage;
+	std::vector<ImageClass>::iterator itClass;
+
+	for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
+		itClass->training_fold.clear();
+		itClass->testing_fold.clear();
+		itClass->smote_fold.clear();
+		itClass->generated_fold.clear();
+		for(itImage = itClass->images.begin();
+				itImage != itClass->images.end();
+				++itImage) {
+			itImage->features.release();
+		}
+		itClass->images.clear();
+	}
+	classes.clear();
+}
+
 int Data::numTrainingImages(int id) {
 	int numberImages = 0;
 	std::vector<Image>::iterator itImage;
@@ -385,9 +404,9 @@ bool Data::writeFeatures(std::string id, std::string name) {
 		}
 	}
 
-  std::cout << "---------------------------------------------------------------------------------------" << std::endl;
+  std::cout << "-------------------------------------------------" << std::endl;
   std::cout << "Wrote on data file named " << name << std::endl;
-  std::cout << "---------------------------------------------------------------------------------------" << std::endl;
+  std::cout << "-------------------------------------------------" << std::endl;
   arq.close();
   return true;
 }
