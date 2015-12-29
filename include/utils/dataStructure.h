@@ -45,7 +45,7 @@ class Data {
 		void addFoldGenerated(int id, int smote_fold);
 		void addFoldTraining(int id, int smote_fold);
 		void addFoldTesting(int id, int smote_fold);
-		bool writeFeatures(std::string id, std::string name);
+		bool writeFeatures(std::string name);
 		int numFeatures(void);
 };
 

@@ -22,21 +22,15 @@ class Rebalance {
       GrayscaleConversion quantization;
 
       void readImageDirectory(std::string directory);
-      void ShuffleImages(std::vector<Image> *img);
-      void SeparateInFolds(std::vector<ImageClass> *original_data, int k);
+      void shuffleImages(std::vector<Image> *img);
+      void separateInFolds(int k);
       std::vector<std::vector<double> > classify(std::string descriptorFile,
         int repeat, double prob, std::string csv);
       void performFeatureExtraction(int extractMethod, int grayMethod);
-      std::string PerformSmote(Data imbalancedData, int operation);
+      std::string performSmote(Data imbalancedData, int operation);
       void writeFeatures(std::string id);
 };
 
 int qtdArquivos(std::string directory);
-int NumberImagesInDataset(std::string base, int qtdClasses,
-  std::vector<int> *objClass);
-cv::Mat FindImgInClass(std::string database, int img_class, int img_number,
-  int index, int treino, cv::Mat *trainTest, std::vector<std::string> *path, cv::Mat *isGenerated);
-void NumberImgInClass(std::string database, int img_class, int *num_imgs,
-  int *num_train);
 
 #endif

@@ -97,49 +97,59 @@ int main(int argc, char const *argv[]) {
   d = 1; m = 1;
   operation = 1;
 
-  // std::cout << "Classification using original data" << std::endl;
   Rebalance r;
   r.extractor.ccvThreshold = 25;
   r.extractor.accDistances = {1, 3, 5, 7};
   r.extractor.normalization = 0;
   r.extractor.resizeFactor = 1.0;
+  r.extractor.numColors = 64;
 
   r.readImageDirectory(baseDir);
   r.performFeatureExtraction(d, m);
+  // r.writeFeatures("original");
 
-  // // perform(originalDescriptor, 10, prob, csvOriginal);
+  // Arrange original images in k folds each
+  r.separateInFolds(k);
+  // r.writeFeatures("original-folds");
+
+  for (i = 0; i < k; i++) {
+    for (j = 0; j < k; j++) {
+      if (j != i) {
+        for (thisClass = 0; thisClass < r.data.classes.size(); thisClass++) {
+          r.data.classes[thisClass].testing_fold.clear();
+          r.data.classes[thisClass].training_fold.clear();
+          r.data.classes[thisClass].testing_fold.push_back(i);
+          if (thisClass == minorityClass) {
+            r.data.classes[thisClass].training_fold.push_back(j);
+          }
+          else {
+            for (x = 0; x < k; x++) {
+              if (x != i) {
+                r.data.classes[thisClass].training_fold.push_back(x);
+              }
+            }
+          }
+        }
+        for (thisClass = 0; thisClass < r.data.classes.size(); thisClass++) {
+          std::cout << "Classe " << thisClass << std::endl;
+          for (x = 0; x < r.data.classes[thisClass].testing_fold.size(); x++) {
+            std::cout << "Testing fold " << r.data.classes[thisClass].testing_fold[x] << std::endl;
+          }
+          for (x = 0; x < r.data.classes[thisClass].training_fold.size(); x++) {
+            std::cout << "\n Training fold " << r.data.classes[thisClass].training_fold[x] << std::endl;
+          }
+        }
+
+        std::vector<ImageClass> generated = a.generateImagesFromData(
+          r.data.classes, newDir+"/Artificial/", operation);
+        // featuresDir = newDir+"/Artificial/"+"/features/";
+        // artificialDescriptor = PerformFeatureExtraction(generated, featuresDir, d, 64, 1, 0, paramCCV, 0, m, "artificial");
+        exit(0);
+      }
+    }
+  }
+
   // std::vector<ImageClass> data = ReadFeaturesFromFile(originalDescriptor);
-  //
-  // // Arrange original images in k folds each, creating k fold_i.txt files
-  // SeparateInFolds(&data, k);
-  //
-  // for (i = 0; i < k; i++) {
-  //   for (j = 0; j < k; j++) {
-  //     if (j != i) {
-  //       for (thisClass = 0; thisClass < data.size(); thisClass++) {
-  //         data[thisClass].testing_fold.push_back(i);
-  //         if (thisClass == minorityClass) {
-  //           data[thisClass].training_fold.push_back(j);
-  //         }
-  //         else {
-  //           for (x = 0; x < k; x++) {
-  //             if (x != i) {
-  //               data[thisClass].training_fold.push_back(x);
-  //             }
-  //           }
-  //         }
-  //       }
-  //       std::vector<ImageClass> generated = a.generateImagesFromData(data, newDir+"/Artificial/", operation);
-  //       featuresDir = newDir+"/Artificial/"+"/features/";
-  //       artificialDescriptor = PerformFeatureExtraction(generated, featuresDir, d, 64, 1, 0, paramCCV, 0, m, "artificial");
-  //       // artificialDescriptor = description(dirRebalanced, featuresDir, d, m, "artificial");
-  //       // csvRebalance = analysisDir+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-  //       // perform(artificialDescriptor, 1, prob, csvRebalance);
-  //
-  //       exit(1);
-  //     }
-  //   }
-  // }
 
   // std::cout << "\n\n------------------------------------------------------------------------------------" << std::endl;
   // std::cout << "Select a single fold to train the  minority class:" << std::endl;
@@ -201,6 +211,7 @@ int main(int argc, char const *argv[]) {
   //   allRebalanced.clear();
   // }
 
-  std::cout << "Done." << std::endl;
+  std::cout << "-------------------------------------------------" << std::endl;
+  std::cout << "Rebalance done." << std::endl;
   return 0;
 }

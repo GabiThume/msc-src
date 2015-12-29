@@ -35,8 +35,6 @@ Master's thesis in Computer Science
 #include <sys/stat.h>
 #include "utils/rebalance.h"
 
-/*******************************************************************************
-*******************************************************************************/
 int qtdArquivos(std::string directory) {
   int count = 0;
   struct dirent *sDir = NULL;
@@ -85,9 +83,9 @@ void Rebalance::readImageDirectory(std::string directory) {
       // For each file inside this directory
       while ((classesDir = readdir(root))) {
         if ((strcmp(classesDir->d_name, ".") != 0) &&
-        (strcmp(classesDir->d_name, "..") != 0) &&
-        (strcmp(classesDir->d_name, ".DS_Store") != 0) &&
-        (strcmp(classesDir->d_name, ".directory") != 0)) {
+            (strcmp(classesDir->d_name, "..") != 0) &&
+            (strcmp(classesDir->d_name, ".DS_Store") != 0) &&
+            (strcmp(classesDir->d_name, ".directory") != 0)) {
 
           classPath = imagesDirectory + "/" + classesDir->d_name;
           // Is is invalid, skip it
@@ -128,24 +126,26 @@ void Rebalance::readImageDirectory(std::string directory) {
       }
     }
   }
+  std::cout << "Reading done." << std::endl;
 }
 
 void Rebalance::writeFeatures(std::string id) {
 
   std::string name;
 
+  std::cout << "-------------------------------------------------" << std::endl;
   // Decide the features file's name
   name = featuresDirectory;
   name += extractor.getName(extractor.method-1) + "_";
   name += quantization.getName(quantization.method-1) + "_";
   name += std::to_string(extractor.numColors) + "_";
-  name += std::to_string(extractor.resizeFactor) + "_";
+  name += std::to_string(data.numFeatures()) + "_";
   name += id + ".csv";
 
-  data.writeFeatures(id, name);
+  data.writeFeatures(name);
 }
 
-void Rebalance::ShuffleImages(std::vector<Image> *img) {
+void Rebalance::shuffleImages(std::vector<Image> *img) {
 
   int i, k, numImages;
   Image aux;
@@ -161,18 +161,21 @@ void Rebalance::ShuffleImages(std::vector<Image> *img) {
 }
 
 // Arrange original images in k folds each, creating k fold_i.txt files
-void Rebalance::SeparateInFolds(std::vector<ImageClass> *original_data, int k) {
+void Rebalance::separateInFolds(int k) {
 
   int i, j, fold, numClasses, numImages, resto, imgsInThisFold, next;
   cv::Mat labels, trainTest, isGenerated, img;
 
-  numClasses = (*original_data).size();
+  std::cout << "-------------------------------------------------" << std::endl;
+  std::cout << "Arrange images in " << k << " folds each " << std::endl;
+
+  numClasses = data.classes.size();
   for (i = 0; i < numClasses; i++) {
     resto = 0; next = 0;
 
-    Rebalance::ShuffleImages(&(*original_data)[i].images);
+    Rebalance::shuffleImages(&data.classes[i].images);
 
-    numImages = (*original_data)[i].images.size();
+    numImages = data.classes[i].images.size();
     for (fold = 0; fold < k; fold++) {
       // If the number of images per fold is less than the total, increase each extra image in a fold
       imgsInThisFold = floor(numImages/k);
@@ -182,23 +185,22 @@ void Rebalance::SeparateInFolds(std::vector<ImageClass> *original_data, int k) {
       }
       // For each image requested for this fold, add the fold indication
       for (j = 0; j < imgsInThisFold; j++) {
-        (*original_data)[i].images[next].fold = fold;
+        data.classes[i].images[next].fold = fold;
         next++;
       }
     }
   }
+  std::cout << "Separation in folds done." << std::endl;
 }
-
 
 void Rebalance::performFeatureExtraction(int extractMethod, int grayMethod) {
 
   int dataClass, image;
   cv::Mat img, newimg;
 
-  std::cout << "\n---------------------------------------------------------" << std::endl;
+  std::cout << "-------------------------------------------------" << std::endl;
   std::cout << "Image feature extraction using " << extractor.getName(extractMethod-1);
   std::cout << " and " << quantization.getName(grayMethod-1) << std::endl;
-  std::cout << "-----------------------------------------------------------" << std::endl;
 
   extractor.method = extractMethod;
   quantization.method = grayMethod;
@@ -232,7 +234,7 @@ void Rebalance::performFeatureExtraction(int extractMethod, int grayMethod) {
   std::cout << "Feature extraction done." << std::endl;
 }
 
-std::string Rebalance::PerformSmote(Data imbalancedData, int operation) {
+std::string Rebalance::performSmote(Data imbalancedData, int operation) {
 
   int biggestTraining, trainingInThisClass, amountSmote, numFeatures;
   int neighbors, x, pos, index;
@@ -241,6 +243,9 @@ std::string Rebalance::PerformSmote(Data imbalancedData, int operation) {
   cv::Mat synthetic;
   SMOTE s;
   std::string name;
+
+  std::cout << "-------------------------------------------------" << std::endl;
+  std::cout << "SMOTE " << std::endl;
 
   biggestTraining = imbalancedData.numTrainingImages(imbalancedData.biggestTrainingClass());
 
@@ -306,5 +311,6 @@ std::string Rebalance::PerformSmote(Data imbalancedData, int operation) {
 
   Rebalance::writeFeatures("smote");
 
+  std::cout << "SMOTE done." << std::endl;
   return name;
 }

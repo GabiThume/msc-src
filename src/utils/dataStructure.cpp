@@ -371,9 +371,9 @@ bool Data::readFeaturesFromFile(std::string filename) {
 Write the features of cv::Mat features in a csv file
 
 Requires
-- std::string directory path to the new csv file
+- std::string name of the new csv file
 *******************************************************************************/
-bool Data::writeFeatures(std::string id, std::string name) {
+bool Data::writeFeatures(std::string name) {
 
   std::ofstream arq;
   std::vector<ImageClass>::iterator itClass;
@@ -404,9 +404,7 @@ bool Data::writeFeatures(std::string id, std::string name) {
 		}
 	}
 
-  std::cout << "-------------------------------------------------" << std::endl;
-  std::cout << "Wrote on data file named " << name << std::endl;
-  std::cout << "-------------------------------------------------" << std::endl;
+  std::cout << "Wrote current features on data file named " << name << std::endl;
   arq.close();
   return true;
 }
