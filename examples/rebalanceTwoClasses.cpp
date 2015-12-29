@@ -140,8 +140,9 @@ int main(int argc, char const *argv[]) {
           }
         }
 
-        std::vector<ImageClass> generated = a.generateImagesFromData(
-          r.data.classes, newDir+"/Artificial/", operation);
+        a.generateImagesFromData(&r.data,
+          newDir+"/Artificial/", operation);
+        r.writeFeatures("artificial");
         // featuresDir = newDir+"/Artificial/"+"/features/";
         // artificialDescriptor = PerformFeatureExtraction(generated, featuresDir, d, 64, 1, 0, paramCCV, 0, m, "artificial");
         exit(0);

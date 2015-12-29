@@ -32,6 +32,7 @@ class Data {
 		int numTestingImages(int id);
 		int biggestClass(void);
 		int biggestTrainingClass(void);
+		int biggestTrainingNumber(void);
 		int smallerClass(void);
 		int smallerTrainingClass(void);
 		int isFreeTrainOrTest(int id, int fold);

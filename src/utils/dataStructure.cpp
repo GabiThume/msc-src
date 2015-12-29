@@ -119,6 +119,19 @@ int Data::biggestTrainingClass(void) {
 	return biggestClass;
 }
 
+int Data::biggestTrainingNumber(void) {
+	int biggest = -1, trainingImages = 0;
+	std::vector<ImageClass>::iterator itClass;
+
+	for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
+		trainingImages = numTrainingImages(itClass->id);
+		if (trainingImages > biggest) {
+			biggest = trainingImages;
+		}
+	}
+	return biggest;
+}
+
 int Data::smallerClass(void) {
 	double smaller = std::numeric_limits<double>::infinity();
 	int smallerClass = -1, trainingImages, testingImages;
@@ -391,16 +404,18 @@ bool Data::writeFeatures(std::string name) {
 	for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
 		// For each image
 		for(itImage = itClass->images.begin(); itImage != itClass->images.end(); ++itImage) {
-			// Write the image name, the respective class and fold
-      arq << itImage->path << ',' << itClass->id << ',' << itImage->fold << ',';
-			arq << isFreeTrainOrTest(itClass->id, itImage->fold) << ',';
-			arq << isOriginalSmoteOrGenerated(itClass->id, itImage->fold) << ',';
+			if (itImage->features.cols) {
+				// Write the image name, the respective class and fold
+	      arq << itImage->path << ',' << itClass->id << ',' << itImage->fold << ',';
+				arq << isFreeTrainOrTest(itClass->id, itImage->fold) << ',';
+				arq << isOriginalSmoteOrGenerated(itClass->id, itImage->fold) << ',';
 
-			// Write the feature std::vector related to the current image
-			for (col = 0; col < itImage->features.cols-1; col++) {
-	      arq << itImage->features.at<float>(0, col) << ",";
-	    }
-	    arq << itImage->features.at<float>(0, col) << std::endl;
+				// Write the feature std::vector related to the current image
+				for (col = 0; col < itImage->features.cols-1; col++) {
+		      arq << itImage->features.at<float>(0, col) << ",";
+		    }
+		    arq << itImage->features.at<float>(0, col) << std::endl;
+			}
 		}
 	}
 

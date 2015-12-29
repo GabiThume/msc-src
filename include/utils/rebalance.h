@@ -15,7 +15,7 @@ class Rebalance {
       int colors;
       int normalization;
 
-      Data data;
+      Data data, generatedData, smoteData;
       std::string imagesDirectory, featuresDirectory, analysisDirectory;
 
       FeatureExtraction extractor;
