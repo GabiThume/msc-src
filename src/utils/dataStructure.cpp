@@ -54,6 +54,57 @@ void Data::release(void) {
 	classes.clear();
 }
 
+int Data::newFold(int id) {
+	int fold = 0;
+	std::vector<ImageClass>::iterator itClass;
+	std::vector<int>::iterator itFold;
+
+	for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
+		if (itClass->id == id){
+			std::cout << "Id " << itClass->id << std::endl;
+			while(fold < itClass->images.size()) {
+				std::cout << "fold " << fold << std::endl;
+				if (std::find(itClass->training_fold.begin(),
+											itClass->training_fold.end(),
+											fold)
+						!= itClass->training_fold.end()) {
+					fold++;
+				}
+				else if (std::find(itClass->testing_fold.begin(),
+													itClass->testing_fold.end(),
+													fold)
+								!= itClass->testing_fold.end()) {
+					fold++;
+				}
+				else if (std::find(itClass->original_fold.begin(),
+													itClass->original_fold.end(),
+													fold)
+								!= itClass->original_fold.end()) {
+					fold++;
+				}
+				else if (std::find(itClass->smote_fold.begin(),
+													itClass->smote_fold.end(),
+													fold)
+								!= itClass->smote_fold.end()) {
+					fold++;
+				}
+				else if (std::find(itClass->generated_fold.begin(),
+													itClass->generated_fold.end(),
+													fold)
+								!= itClass->generated_fold.end()) {
+					fold++;
+				}
+				else {
+					std::cout << "return " << fold << std::endl;
+					return fold;
+				}
+			}
+		}
+	}
+
+	return -1;
+}
+
 int Data::numTrainingImages(int id) {
 	int numberImages = 0;
 	std::vector<Image>::iterator itImage;
@@ -382,6 +433,7 @@ bool Data::readFeaturesFromFile(std::string filename) {
 
 /*******************************************************************************
 Write the features of cv::Mat features in a csv file
+	path, id, fold, isFreeTrainOrTest, isOriginalSmoteOrGenerated, features
 
 Requires
 - std::string name of the new csv file

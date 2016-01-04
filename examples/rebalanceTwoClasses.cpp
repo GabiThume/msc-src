@@ -142,6 +142,7 @@ int main(int argc, char const *argv[]) {
 
         a.generateImagesFromData(&r.data,
           newDir+"/Artificial/", operation);
+        r.performFeatureExtraction(d, m);
         r.writeFeatures("artificial");
         // featuresDir = newDir+"/Artificial/"+"/features/";
         // artificialDescriptor = PerformFeatureExtraction(generated, featuresDir, d, 64, 1, 0, paramCCV, 0, m, "artificial");

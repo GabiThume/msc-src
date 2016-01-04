@@ -18,7 +18,7 @@ struct Image {
 struct ImageClass {
 	int id;
 	std::vector<Image> images;
-	std::vector<int> training_fold, testing_fold, smote_fold, generated_fold;
+	std::vector<int> training_fold, testing_fold, smote_fold, generated_fold, original_fold;
 };
 
 class Data {
@@ -48,6 +48,7 @@ class Data {
 		void addFoldTesting(int id, int smote_fold);
 		bool writeFeatures(std::string name);
 		int numFeatures(void);
+		int newFold(int id);
 };
 
 #endif

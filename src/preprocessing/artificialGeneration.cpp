@@ -502,7 +502,7 @@ void Artificial::generateImagesFromData(Data *originalData,
 		std::string newDirectory, int whichOperation) {
 
 	int i, generationType, rebalanceTotal = 0, biggest, trainingImagesInClass;
-	int rebalance, j, training_fold;
+	int rebalance, j, training_fold, generatedFold;
 	cv::Mat img, noise;
 	std::string imgName, classe, minorityClass, str, nameGeneratedImage, generatedPath;
 	DIR *dir = NULL, *minDir = NULL;
@@ -590,11 +590,7 @@ void Artificial::generateImagesFromData(Data *originalData,
 			std::mt19937 gen(rd());
 			std::uniform_int_distribution<> dis(2, 10);
 
-			// thisClass.classNumber = eachClass;
-			// thisClass.images.clear();
-			// thisClass.fixedTrainOrTest = 1;
-			// thisClass.training_fold.clear();
-			// thisClass.testing_fold.clear();
+			generatedFold = (*originalData).newFold(itClass->id);
 
 			/* For each image needed to full rebalance*/
 			for (i = 0; i < rebalance; i++) {
@@ -608,13 +604,17 @@ void Artificial::generateImagesFromData(Data *originalData,
 				GenerateImage(images, nameGeneratedImage, trainingImagesInClass, generationType);
 
 				newImage.features.release();
-				newImage.fold = -1;
+				newImage.fold = generatedFold;
 				newImage.generationType = generationType;
 				newImage.path = nameGeneratedImage;
 				itClass->images.push_back(newImage);
 			}
+			itClass->generated_fold.push_back(generatedFold);
+			itClass->training_fold.push_back(generatedFold);
+
 			rebalanceTotal += rebalance;
-			std::cout << rebalance << " images were generated and this is now balanced." << std::endl;
+			std::cout << rebalance << " images were generated and the class ";
+			std::cout << itClass->id << " is now balanced." << std::endl;
 			std::cout << "---------------------------------------------" << std::endl;
 			images.clear();
 		}

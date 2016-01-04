@@ -188,6 +188,9 @@ void Rebalance::separateInFolds(int k) {
         data.classes[i].images[next].fold = fold;
         next++;
       }
+      if (imgsInThisFold > 0) {
+        data.classes[i].original_fold.push_back(fold);
+      }
     }
   }
   std::cout << "Separation in folds done." << std::endl;
