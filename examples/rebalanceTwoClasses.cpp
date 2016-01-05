@@ -74,25 +74,7 @@ int main(int argc, char const *argv[]) {
   // std::vector <int> descriptors {1, 6, 7};
   // std::vector <int> quant {1, 3, 2};
 
-  std::vector <int> descriptors {1};
-  std::vector <int> quant {1};
-
   double factor = 0.1;
-
-  // // Check how many classes and images there are
-  // qtd_classes = qtdArquivos(baseDir+"/");
-  // if (qtd_classes < 2) {
-  //   std::cout << "Error. There is less than two classes in " << baseDir << std::endl;
-  //   exit(-1);
-  // }
-  //
-  // NumberImgInClass(baseDir, 0, &prev, &treino);
-  // count_diff = 0;
-  // for (i = 1; i < qtd_classes; i++) {
-  //   NumberImgInClass(baseDir, i, &numImages, &treino);
-  //   count_diff = count_diff + abs(numImages - prev);
-  //   prev = numImages;
-  // }
 
   d = 1; m = 1;
   operation = 1;
@@ -106,11 +88,9 @@ int main(int argc, char const *argv[]) {
 
   r.readImageDirectory(baseDir);
   r.performFeatureExtraction(d, m);
-  // r.writeFeatures("original");
-
   // Arrange original images in k folds each
   r.separateInFolds(k);
-  // r.writeFeatures("original-folds");
+  r.writeFeatures("original-folds");
 
   for (i = 0; i < k; i++) {
     for (j = 0; j < k; j++) {
@@ -118,6 +98,8 @@ int main(int argc, char const *argv[]) {
         for (thisClass = 0; thisClass < r.data.classes.size(); thisClass++) {
           r.data.classes[thisClass].testing_fold.clear();
           r.data.classes[thisClass].training_fold.clear();
+          r.data.classes[thisClass].generated_fold.clear();
+          r.data.classes[thisClass].smote_fold.clear();
           r.data.classes[thisClass].testing_fold.push_back(i);
           if (thisClass == minorityClass) {
             r.data.classes[thisClass].training_fold.push_back(j);
@@ -140,22 +122,21 @@ int main(int argc, char const *argv[]) {
           }
         }
 
+        r.performSmote(&r.data, operation);
+        r.writeFeatures("smote");
+
         a.generateImagesFromData(&r.data,
           newDir+"/Artificial/", operation);
         r.performFeatureExtraction(d, m);
         r.writeFeatures("artificial");
-        // featuresDir = newDir+"/Artificial/"+"/features/";
-        // artificialDescriptor = PerformFeatureExtraction(generated, featuresDir, d, 64, 1, 0, paramCCV, 0, m, "artificial");
+
+        c.classify(0.5,	2, r.data, "resultado", 1);
         exit(0);
       }
     }
   }
 
   // std::vector<ImageClass> data = ReadFeaturesFromFile(originalDescriptor);
-
-  // std::cout << "\n\n------------------------------------------------------------------------------------" << std::endl;
-  // std::cout << "Select a single fold to train the  minority class:" << std::endl;
-  // std::cout << "---------------------------------------------------------------------------------------" << std::endl;
   // images_directory = RemoveSamples(baseDir, newDir, prob, factor);
 
   // // For each rebalancing operation

@@ -210,37 +210,38 @@ void Rebalance::performFeatureExtraction(int extractMethod, int grayMethod) {
 
   for (dataClass = 0; dataClass < (int)data.classes.size(); dataClass++) {
     for (image = 0; image < (int)data.classes[dataClass].images.size(); image++) {
+      if (data.classes[dataClass].images[image].features.empty()) {
+        img = cv::imread(data.classes[dataClass].images[image].path, CV_LOAD_IMAGE_COLOR);
+        if (!img.empty()) {
+          img.copyTo(newimg);
+          if (extractor.resizeFactor != 1.0) {
+            // Resize the image given the input factor
+            cv::resize(img, newimg, cv::Size(), extractor.resizeFactor, extractor.resizeFactor, CV_INTER_AREA);
+          }
 
-      img = cv::imread(data.classes[dataClass].images[image].path, CV_LOAD_IMAGE_COLOR);
-      if (!img.empty()) {
-        img.copyTo(newimg);
-        if (extractor.resizeFactor != 1.0) {
-          // Resize the image given the input factor
-          cv::resize(img, newimg, cv::Size(), extractor.resizeFactor, extractor.resizeFactor, CV_INTER_AREA);
+          // Convert the image to grayscale
+          quantization.convert(64, grayMethod, newimg, &newimg);
+
+          // Call the description method
+          extractor.extract(64, 1, extractMethod, newimg, &data.classes[dataClass].images[image].features);
+          if (data.classes[dataClass].images[image].features.cols == 0) {
+            std::cout << "Error: the feature vector is empty" << std::endl;
+            exit(1);
+          }
+
+          img.release();
+          newimg.release();
         }
-
-        // Convert the image to grayscale
-        quantization.convert(64, grayMethod, newimg, &newimg);
-
-        // Call the description method
-        extractor.extract(64, 1, extractMethod, newimg, &data.classes[dataClass].images[image].features);
-        if (data.classes[dataClass].images[image].features.cols == 0) {
-          std::cout << "Error: the feature vector is empty" << std::endl;
-          exit(1);
-        }
-
-        img.release();
-        newimg.release();
       }
     }
   }
   std::cout << "Feature extraction done." << std::endl;
 }
 
-std::string Rebalance::performSmote(Data imbalancedData, int operation) {
+void Rebalance::performSmote(Data *imbalancedData, int operation) {
 
   int biggestTraining, trainingInThisClass, amountSmote, numFeatures;
-  int neighbors, x, pos, index;
+  int neighbors, x, pos, index, smoteFold;
   std::vector<ImageClass>::iterator itClass;
   std::vector<Image>::iterator itImage;
   cv::Mat synthetic;
@@ -250,16 +251,16 @@ std::string Rebalance::performSmote(Data imbalancedData, int operation) {
   std::cout << "-------------------------------------------------" << std::endl;
   std::cout << "SMOTE " << std::endl;
 
-  biggestTraining = imbalancedData.numTrainingImages(imbalancedData.biggestTrainingClass());
+  biggestTraining = (*imbalancedData).biggestTrainingNumber();
 
-  for (itClass = imbalancedData.classes.begin();
-      itClass != imbalancedData.classes.end();
+  for (itClass = (*imbalancedData).classes.begin();
+      itClass != (*imbalancedData).classes.end();
       ++itClass) {
 
     /* Find out how many samples are needed to rebalance */
-    trainingInThisClass = imbalancedData.numTrainingImages(itClass->id);
+    trainingInThisClass = (*imbalancedData).numTrainingImages(itClass->id);
     amountSmote = biggestTraining - trainingInThisClass;
-    numFeatures = imbalancedData.numFeatures();
+    numFeatures = (*imbalancedData).numFeatures();
 
     std::cout << "In class " << itClass->id << " were found " << trainingInThisClass;
     std::cout << " original training images"<< std::endl;
@@ -269,51 +270,53 @@ std::string Rebalance::performSmote(Data imbalancedData, int operation) {
       cv::Mat dataTraining(0, numFeatures, CV_32FC1);
 
       //neighbors = 5;
-      neighbors = (double)biggestTraining/(double)trainingInThisClass;
+      neighbors = (double)amountSmote/(double)trainingInThisClass;
       std::cout << "Number of neighbors: " << neighbors << std::endl;
-      std::cout << "Number of images in class: " << itClass->images.size() << std::endl;
 
       for (itImage = itClass->images.begin();
           itImage != itClass->images.end();
           ++itImage){
-        if (imbalancedData.isTraining(itClass->id, itImage->fold)) {
+        if ((*imbalancedData).isTraining(itClass->id, itImage->fold)) {
           dataTraining.push_back(itImage->features);
         }
       }
 
-      std::cout << "Number of training in class: " << dataTraining.size() << std::endl;
+      std::cout << "Number of training in class: " << dataTraining.rows << std::endl;
+      smoteFold = (*imbalancedData).newFold(itClass->id);
+
       if (dataTraining.rows > 0) {
-        if (operation != 0){
+        if (operation != 0) {
           synthetic = s.smote(dataTraining, amountSmote, neighbors);
+          std::cout << "Generated " << amountSmote << " new synthetic samples" << std::endl;
         }
         else {
+          std::cout << "Replicated " << amountSmote << " new samples" << std::endl;
           synthetic.create(amountSmote, numFeatures, CV_32FC1);
-          for (x = 0; x < amountSmote; x++){
+          for (x = 0; x < amountSmote; x++) {
             pos = rand() % (dataTraining.size().height);
             cv::Mat tmp = synthetic.row(x);
             dataTraining.row(pos).copyTo(tmp);
           }
         }
 
-        std::cout << "SMOTE generated " << amountSmote << " new synthetic samples" << std::endl;
-
         Image newSample;
         /* Concatenate original with synthetic data*/
         for (index = 0; index < synthetic.rows; index++) {
+          newSample.features.release();
           synthetic.row(index).copyTo(newSample.features);
+          // std::cout << newSample.features << std::endl << std::endl;
           newSample.path = "smote";
-          newSample.fold = -1;
+          newSample.fold = smoteFold;
           newSample.generationType = -1;
           itClass->images.push_back(newSample);
         }
+        itClass->smote_fold.push_back(smoteFold);
+  			// itClass->training_fold.push_back(smoteFold);
         dataTraining.release();
         synthetic.release();
       }
     }
   }
 
-  Rebalance::writeFeatures("smote");
-
   std::cout << "SMOTE done." << std::endl;
-  return name;
 }

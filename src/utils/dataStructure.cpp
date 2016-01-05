@@ -61,9 +61,7 @@ int Data::newFold(int id) {
 
 	for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
 		if (itClass->id == id){
-			std::cout << "Id " << itClass->id << std::endl;
 			while(fold < itClass->images.size()) {
-				std::cout << "fold " << fold << std::endl;
 				if (std::find(itClass->training_fold.begin(),
 											itClass->training_fold.end(),
 											fold)
@@ -95,7 +93,6 @@ int Data::newFold(int id) {
 					fold++;
 				}
 				else {
-					std::cout << "return " << fold << std::endl;
 					return fold;
 				}
 			}
@@ -257,15 +254,11 @@ int Data::isOriginalSmoteOrGenerated(int id, int fold) {
 }
 
 bool Data::isTraining(int id, int fold) {
-  bool training;
-  training = (Data::isFreeTrainOrTest(id, fold) == 1) ? true : false;
-  return training;
+  return (Data::isFreeTrainOrTest(id, fold) == 1) ? true : false;
 }
 
 bool Data::isTesting(int id, int fold) {
-  bool training;
-  training = (Data::isFreeTrainOrTest(id, fold) == 2) ? true : false;
-  return training;
+  return (Data::isFreeTrainOrTest(id, fold) == 2) ? true : false;
 }
 
 int Data::numClasses(void) {

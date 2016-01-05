@@ -610,7 +610,7 @@ void Artificial::generateImagesFromData(Data *originalData,
 				itClass->images.push_back(newImage);
 			}
 			itClass->generated_fold.push_back(generatedFold);
-			itClass->training_fold.push_back(generatedFold);
+			// itClass->training_fold.push_back(generatedFold);
 
 			rebalanceTotal += rebalance;
 			std::cout << rebalance << " images were generated and the class ";

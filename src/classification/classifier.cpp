@@ -110,14 +110,11 @@ void Classifier::printAccuracy(double id, std::vector<std::vector<double> > fSco
 	}
 	fscoreStd = calculateStandardDeviation(fscoresStd);
 
-	std::cout << "-----------------------------------------------------------" << std::endl;
-	std::cout << "Image classification using KNN classifier" << std::endl;
-	std::cout << "-----------------------------------------------------------" << std::endl;
-	std::cout << "Number of classes: " << numClasses << std::endl;
+  std::cout << std::endl;
 	std::cout << "Total samples: " << totalTest + totalTrain << std::endl;
 	std::cout << "\tTesting samples: " << totalTest << std::endl;
 	std::cout << "\tTraining samples: " << totalTrain << std::endl;
-	std::cout <<  "Random cross validation with "<< accuracy.size() <<" k-fold:" << std::endl;
+	std::cout <<  "Random cross validation with " << accuracy.size() << " k-fold:" << std::endl;
 	std::cout << "\tMean Accuracy: " << mean << std::endl;
 	if (std != 0)
 		std::cout << "\t\tStandard Deviation: " << std << std::endl;
@@ -127,11 +124,8 @@ void Classifier::printAccuracy(double id, std::vector<std::vector<double> > fSco
 	std::cout << "\tMean F1Score: " << fscoreMean << std::endl;
 	if (fscoreStd != 0)
 		std::cout << "\t\tStandard Deviation: " << fscoreStd << std::endl;
-	std::cout << "-----------------------------------------------------------" << std::endl;
 
 	if (outputName != ""){
-		std::cout << "Write on " << (outputName+"FScore.csv").c_str() << std::endl;
-		std::cout << "---------------------------------------------------------" << std::endl;
 
 		outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), std::ios::out | std::ios::app);
 		outputFile << balancedMean << "\n";
@@ -144,6 +138,7 @@ void Classifier::printAccuracy(double id, std::vector<std::vector<double> > fSco
 		// 	outputFile << fscores[i] << "\n";
 		// }
 		outputFile.close();
+    std::cout << "Wrote on " << (outputName+"FScore.csv").c_str() << std::endl;
 	}
 }
 
@@ -248,8 +243,8 @@ cv::Mat Classifier::confusionMatrix(int numClasses, cv::Mat labelsTesting, cv::M
 	}
 
 	if (print) {
-    std::cout << "---------------------------------------------------------" << std::endl;
-    std::cout << "\t\t\t\tConfusion Matrix" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Confusion Matrix" << std::endl;
     std::cout << "\t\tPredicted" << std::endl << "\t";
     for(i = 0; i < confusionMat.cols; i++){
         std::cout << "\t" << i;
@@ -294,30 +289,45 @@ std::vector< std::vector<double> > Classifier::classify(double trainingRatio,
 	std::vector<ImageClass>::iterator it;
 	std::vector<Image>::iterator itImage;
 
+  std::cout << "-------------------------------------------------" << std::endl;
+  std::cout << "Image classification using KNN classifier" << std::endl;
+
 	numClasses = data.numClasses();
+  std::cout << "Number of classes: " << numClasses << std::endl;
 	numFeatures = data.numFeatures();
+  std::cout << "Number of features: " << numFeatures << std::endl;
 
-	cv::Mat dataTraining(0, numFeatures, CV_32FC1);
-	cv::Mat labelsTraining(0, 1, CV_32S);
-	cv::Mat dataTesting(0, numFeatures, CV_32FC1);
-	cv::Mat labelsTesting(0, 1, CV_32S);
+  cv::Mat dataTraining(0, numFeatures, CV_32FC1);
+  cv::Mat labelsTraining(0, 1, CV_32S);
+  cv::Mat dataTesting(0, numFeatures, CV_32FC1);
+  cv::Mat labelsTesting(0, 1, CV_32S);
 
-	for (rep = 0; rep <= numRepetition; ++rep) {
+	for (rep = 0; rep < numRepetition; ++rep) {
+
+    dataTraining.release();
+  	labelsTraining.release();
+  	dataTesting.release();
+  	labelsTesting.release();
 
 		for (it = data.classes.begin(); it != data.classes.end(); ++it) {
 			for (itImage = it->images.begin();
 					itImage != it->images.end();
 					++itImage) {
 				if (data.isTraining(it->id, itImage->fold)) {
+          std::cout << ">> fold training" << itImage->fold << std::endl;
 					dataTraining.push_back(itImage->features);
-					labelsTraining.at<int>(dataTraining.rows-1, 0) = it->id;
+					labelsTraining.push_back(it->id);
 				}
 				else if (data.isTesting(it->id, itImage->fold)) {
-					dataTesting.push_back(itImage->features);
-					labelsTesting.at<int>(dataTesting.rows-1, 0) = it->id;
+          std::cout << ">> fold testing" << itImage->fold << std::endl;
+          dataTesting.push_back(itImage->features);
+          labelsTesting.push_back(it->id);
 				}
 			}
 		}
+
+    std::cout << ">>>> dataTraining" << dataTraining.rows << std::endl;
+    std::cout << ">>>> dataTesting" << dataTesting.rows << std::endl;
 
 		if (dataTraining.rows == 0) {
 			for (it = data.classes.begin(); it != data.classes.end(); ++it) {
@@ -331,7 +341,7 @@ std::vector< std::vector<double> > Classifier::classify(double trainingRatio,
 					pos = rand() % numImages;
 					if (!count(vectorRand.begin(), vectorRand.end(), pos)) {
 						dataTraining.push_back(it->images[pos].features);
-						labelsTraining.at<int>(dataTraining.rows-1, 0) = it->id;
+						labelsTraining.push_back(it->id);
 						rand_training++;
 						vectorRand.push_back(pos);
 					}
@@ -341,16 +351,11 @@ std::vector< std::vector<double> > Classifier::classify(double trainingRatio,
 				for (i = 0; i < (int) it->images.size(); i++) {
 					if (!count(vectorRand.begin(), vectorRand.end(), i)) {
 						dataTesting.push_back(it->images[pos].features);
-						labelsTesting.at<int>(dataTesting.rows-1, 0) = it->id;
+						labelsTesting.push_back(it->id);
 					}
 				}
 				vectorRand.clear();
 			}
-		}
-
-		for (i = 0; i < numClasses; i++) {
-	    std::cout << "\tTraining: " << dataTraining.rows << std::endl;
-	    std::cout << "\tTesting: " << dataTesting.rows << std::endl;
 		}
 
 		/* Train and predict using the Normal Bayes classifier */
@@ -400,6 +405,8 @@ std::vector< std::vector<double> > Classifier::classify(double trainingRatio,
 	balancedAccuracy.clear();
 	precision.clear();
 	recall.clear();
+
+  std::cout << "Classification done." << std::endl;
 
 	return fscore;
 }

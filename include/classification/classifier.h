@@ -9,7 +9,7 @@
 class Classifier{
 
     std::vector<double> accuracy, balancedAccuracy, precision, recall;
-    int totalTest, totalTrain, numClasses;
+    int totalTest, totalTrain;
     std::string outputName;
 
     public:
