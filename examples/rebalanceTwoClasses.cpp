@@ -48,8 +48,9 @@ int main(int argc, char const *argv[]) {
   std::string descSmote, smoteDescriptor, dirRebalanced, artificialDescriptor;
   std::vector<ImageClass> imbalancedData;
   Artificial a;
-  int minorityClass = 1, thisClass, j, x;
+  int minorityClass = 1, j, x;
   std::vector<int> testing_fold, majority_fold, minority_fold;
+  std::vector<ImageClass>::iterator itClass;
 
   int k = 10;
   repeatRebalance = 1;
@@ -95,42 +96,75 @@ int main(int argc, char const *argv[]) {
   for (i = 0; i < k; i++) {
     for (j = 0; j < k; j++) {
       if (j != i) {
-        for (thisClass = 0; thisClass < r.data.classes.size(); thisClass++) {
-          r.data.classes[thisClass].testing_fold.clear();
-          r.data.classes[thisClass].training_fold.clear();
-          r.data.classes[thisClass].generated_fold.clear();
-          r.data.classes[thisClass].smote_fold.clear();
-          r.data.classes[thisClass].testing_fold.push_back(i);
-          if (thisClass == minorityClass) {
-            r.data.classes[thisClass].training_fold.push_back(j);
+        for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+          itClass->testing_fold.clear();
+          itClass->training_fold.clear();
+          itClass->generated_fold.clear();
+          itClass->smote_fold.clear();
+          itClass->testing_fold.push_back(i);
+          if (itClass->id == minorityClass) {
+            itClass->training_fold.push_back(j);
           }
           else {
             for (x = 0; x < k; x++) {
               if (x != i) {
-                r.data.classes[thisClass].training_fold.push_back(x);
+                itClass->training_fold.push_back(x);
               }
             }
           }
         }
-        for (thisClass = 0; thisClass < r.data.classes.size(); thisClass++) {
-          std::cout << "Classe " << thisClass << std::endl;
-          for (x = 0; x < r.data.classes[thisClass].testing_fold.size(); x++) {
-            std::cout << "Testing fold " << r.data.classes[thisClass].testing_fold[x] << std::endl;
+        for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+          std::cout << "Class " << itClass->id << std::endl;
+          for (x = 0; x < itClass->testing_fold.size(); x++) {
+            std::cout << "\t Testing fold " << itClass->testing_fold[x] << std::endl;
           }
-          for (x = 0; x < r.data.classes[thisClass].training_fold.size(); x++) {
-            std::cout << "\n Training fold " << r.data.classes[thisClass].training_fold[x] << std::endl;
+          for (x = 0; x < itClass->training_fold.size(); x++) {
+            std::cout << "\t Training fold " << itClass->training_fold[x] << std::endl;
           }
         }
 
-        r.performSmote(&r.data, operation);
-        r.writeFeatures("smote");
+        // Classify original folds
+        r.writeFeatures("original");
+        c.classify(0.5,  2, r.data, "original", 1);
 
+        // Perform SMOTE subsampling
+        r.performSmote(&r.data, operation);
+        for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+          for (x = 0; x < itClass->smote_fold.size(); x++) {
+            itClass->training_fold.push_back(itClass->smote_fold[x]);
+          }
+        }
+        r.writeFeatures("smote");
+        c.classify(0.5,  2, r.data, "smote", 1);
+        for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+          for (x = 0; x < itClass->smote_fold.size(); x++) {
+            itClass->training_fold.erase(std::remove(itClass->training_fold.begin(),
+                                                    itClass->training_fold.end(),
+                                                    itClass->smote_fold[x]),
+                                        itClass->training_fold.end());
+          }
+        }
+
+        // Perform images artificial generation
         a.generateImagesFromData(&r.data,
           newDir+"/Artificial/", operation);
+          for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+            for (x = 0; x < itClass->generated_fold.size(); x++) {
+              itClass->training_fold.push_back(itClass->generated_fold[x]);
+            }
+          }
         r.performFeatureExtraction(d, m);
         r.writeFeatures("artificial");
+        c.classify(0.5,  2, r.data, "artificial", 1);
+        for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+          for (x = 0; x < itClass->smote_fold.size(); x++) {
+            itClass->training_fold.erase(std::remove(itClass->training_fold.begin(),
+                                                    itClass->training_fold.end(),
+                                                    itClass->generated_fold[x]),
+                                        itClass->training_fold.end());
+          }
+        }
 
-        c.classify(0.5,	2, r.data, "resultado", 1);
         exit(0);
       }
     }

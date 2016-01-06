@@ -314,20 +314,15 @@ std::vector< std::vector<double> > Classifier::classify(double trainingRatio,
 					itImage != it->images.end();
 					++itImage) {
 				if (data.isTraining(it->id, itImage->fold)) {
-          std::cout << ">> fold training" << itImage->fold << std::endl;
 					dataTraining.push_back(itImage->features);
 					labelsTraining.push_back(it->id);
 				}
 				else if (data.isTesting(it->id, itImage->fold)) {
-          std::cout << ">> fold testing" << itImage->fold << std::endl;
           dataTesting.push_back(itImage->features);
           labelsTesting.push_back(it->id);
 				}
 			}
 		}
-
-    std::cout << ">>>> dataTraining" << dataTraining.rows << std::endl;
-    std::cout << ">>>> dataTesting" << dataTesting.rows << std::endl;
 
 		if (dataTraining.rows == 0) {
 			for (it = data.classes.begin(); it != data.classes.end(); ++it) {
