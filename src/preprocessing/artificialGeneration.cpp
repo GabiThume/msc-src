@@ -517,26 +517,16 @@ void Artificial::generateImagesFromData(Data *originalData,
 	std::cout << std::endl;
 	std::cout << "-------------------------------------------------" << std::endl;
 
-	str = "rm -f -r "+newDirectory+"/*;";
-	str += "mkdir -p "+newDirectory+";";
-	system(str.c_str());
-	dir = opendir(newDirectory.c_str());;
+	dir = opendir(newDirectory.c_str());
 	if (!dir) {
-		std::cout << "Error! Directory " << newDirectory;
-		std::cout << " can't be created. " << std::endl;
-		exit(1);
-	}
-	closedir(dir);
-
-	// str += "mkdir -p "+newDirectory+"/original/;";
-	// str += "cp -R "+base+"/* "+newDirectory+"/original/;";
-	str = "rm -f -r "+newDirectory+"/features/;";
-	str += "mkdir -p "+newDirectory+"/features/;";
-	system(str.c_str());
-	dir = opendir((newDirectory+"/features/").c_str());;
-	if (!dir) {
-		std::cout << "Error! Directory " << newDirectory << " can't be created. " << std::endl;
-		exit(1);
+		str = "mkdir -p "+newDirectory+";";
+		system(str.c_str());
+		dir = opendir(newDirectory.c_str());
+		if (!dir) {
+			std::cout << "Error! Directory " << newDirectory;
+			std::cout << " can't be created. " << std::endl;
+			exit(1);
+		}
 	}
 	closedir(dir);
 

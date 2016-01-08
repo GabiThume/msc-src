@@ -135,12 +135,12 @@ void Rebalance::writeFeatures(std::string id) {
 
   std::cout << "-------------------------------------------------" << std::endl;
   // Decide the features file's name
-  name = featuresDirectory;
+  name = id + "_";
   name += extractor.getName(extractor.method-1) + "_";
   name += quantization.getName(quantization.method-1) + "_";
   name += std::to_string(extractor.numColors) + "_";
-  name += std::to_string(data.numFeatures()) + "_";
-  name += id + ".csv";
+  name += std::to_string(data.numFeatures());
+  name += ".csv";
 
   data.writeFeatures(name);
 }

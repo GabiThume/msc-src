@@ -39,16 +39,11 @@ Master's thesis in Computer Science
 int main(int argc, char const *argv[]) {
   Classifier c;
   cv::Size size;
-  int m, d, operation, indexDescriptor, i, numImages, experiment;
-  int repeatRebalance, repeat, count_diff, prev, qtd_classes, treino;
-  double prob = 0.5;
-  std::string name, method, newDir, baseDir, featuresDir, csvOriginal, csvSmote;
-  std::string csvRebalance, analysisDir, csvDesbalanced, directory, str, op;
-  std::string images_directory, imbalancedDescriptor, originalDescriptor;
-  std::string descSmote, smoteDescriptor, dirRebalanced, artificialDescriptor;
+  int m, d, operation, i, experiment, repeatRebalance, repeat, minorityClass, j, x;
+  std::string newDir, baseDir, featuresDir, analysisDir, generationDir, str;
   std::vector<ImageClass> imbalancedData;
   Artificial a;
-  int minorityClass = 1, j, x;
+  DIR *dir = NULL;
   std::vector<int> testing_fold, majority_fold, minority_fold;
   std::vector<ImageClass>::iterator itClass;
 
@@ -64,9 +59,6 @@ int main(int argc, char const *argv[]) {
   baseDir = std::string(argv[2]);
   if (argc == 4) repeatRebalance = atoi(argv[3]);
 
-  analysisDir = newDir+"/analysis/";
-  featuresDir = newDir+"/features/";
-
   srand(time(NULL));
   //  Available methods:
   // Description {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"}
@@ -74,9 +66,6 @@ int main(int argc, char const *argv[]) {
 
   // std::vector <int> descriptors {1, 6, 7};
   // std::vector <int> quant {1, 3, 2};
-
-  double factor = 0.1;
-
   d = 1; m = 1;
   operation = 1;
 
@@ -91,8 +80,10 @@ int main(int argc, char const *argv[]) {
   r.performFeatureExtraction(d, m);
   // Arrange original images in k folds each
   r.separateInFolds(k);
-  r.writeFeatures("original-folds");
+  r.writeFeatures(newDir+"/original-folds");
 
+  // minorityClass = r.data.smallerTrainingClass();
+  minorityClass = 1;
   experiment = 0;
   for (i = 0; i < k; i++) {
     for (j = 0; j < k; j++) {
@@ -124,9 +115,30 @@ int main(int argc, char const *argv[]) {
           }
         }
 
+        generationDir = newDir+"/artificial/experiment-"+to_string(experiment)+"/operation-"+to_string(operation)+"/";
+        featuresDir = generationDir+"features/";
+        analysisDir = generationDir+"analysis/";
+
+        dir = opendir(generationDir.c_str());
+      	if (!dir) {
+      		// str = "rm -f -r "+generationDir+"/*;";
+      		str = "mkdir -p "+generationDir+";";
+          str += "mkdir -p "+featuresDir+";";
+          str += "mkdir -p "+analysisDir+";";
+      		system(str.c_str());
+      		dir = opendir(generationDir.c_str());
+      		if (!dir) {
+      			std::cout << "Error! Directory " << generationDir;
+      			std::cout << " can't be created. " << std::endl;
+      			exit(1);
+      		}
+      	}
+      	closedir(dir);
+
+
         // Classify original folds
-        r.writeFeatures(newDir+"/Artificial/features/"+"original"+to_string(experiment));
-        c.classify(0.5,  2, r.data, newDir+"/Artificial/"+"original"+to_string(experiment), 1);
+        r.writeFeatures(featuresDir+"original");
+        c.classify(0.5,  2, r.data, analysisDir+"original", 1);
 
         // Perform SMOTE subsampling
         r.performSmote(&r.data, operation);
@@ -135,8 +147,8 @@ int main(int argc, char const *argv[]) {
             itClass->training_fold.push_back(itClass->smote_fold[x]);
           }
         }
-        r.writeFeatures(newDir+"/Artificial/features"+"smote"+to_string(experiment));
-        c.classify(0.5,  2, r.data, newDir+"/Artificial/"+"smote"+to_string(experiment), 1);
+        r.writeFeatures(featuresDir+"smote");
+        c.classify(0.5,  2, r.data, analysisDir+"smote", 1);
         for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
           for (x = 0; x < itClass->smote_fold.size(); x++) {
             itClass->training_fold.erase(std::remove(itClass->training_fold.begin(),
@@ -155,15 +167,16 @@ int main(int argc, char const *argv[]) {
 
         // Perform images artificial generation
         a.generateImagesFromData(&r.data,
-          newDir+"/Artificial/"+to_string(experiment)+"/", operation);
+                                generationDir+"/images/",
+                                operation);
           for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
             for (x = 0; x < itClass->generated_fold.size(); x++) {
               itClass->training_fold.push_back(itClass->generated_fold[x]);
             }
           }
         r.performFeatureExtraction(d, m);
-        r.writeFeatures(newDir+"/Artificial/features/"+"artificial"+to_string(experiment));
-        c.classify(0.5,  2, r.data, newDir+"/Artificial/"+"artificial"+to_string(experiment), 1);
+        r.writeFeatures(featuresDir+"artificial");
+        c.classify(0.5,  2, r.data, analysisDir+"artificial", 1);
         for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
           for (x = 0; x < itClass->generated_fold.size(); x++) {
             itClass->training_fold.erase(std::remove(itClass->training_fold.begin(),
