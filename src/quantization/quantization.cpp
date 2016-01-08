@@ -398,28 +398,28 @@ void GrayscaleConversion::convert(int colors, int method, cv::Mat img, cv::Mat *
   numColors = colors;
 
   switch (method) {
-    case 1:
+    case 0:
       GrayscaleConversion::Intensity(img, gray, numColors);
       break;
-    case 2:
+    case 1:
       GrayscaleConversion::Luminance(img, gray, numColors);
       break;
-    case 3:
+    case 2:
       GrayscaleConversion::Gleam(img, gray, numColors);
       break;
-    case 4:
+    case 3:
       GrayscaleConversion::MSB(img, gray, numColors);
       break;
-    case 5:
+    case 4:
       GrayscaleConversion::MSBModified(img, gray, numColors);
       break;
-    case 6: // Keep in BRG
+    case 5: // Keep in BRG
       break;
-    case 7: // Convert BGR -> HSV
+    case 6: // Convert BGR -> HSV
       cv::cvtColor(img, (*gray), CV_BGR2HSV);
       break;
     default:
-      std::cout << "Error: quantization method " << method;
+      std::cout << "Error: Color Quantization method " << method;
       std::cout << " does not exists." << std::endl;
   }
   // cv::namedWindow("Display window", WINDOW_AUTOSIZE );

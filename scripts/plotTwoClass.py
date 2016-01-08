@@ -38,21 +38,24 @@ for measure in measurements:
             for i in range(0, len(algorithms)):
                 accuracy = []
                 samples = []
-                for operation in range(0,10):
-                    alg = directory+str(operation)+"-"+algorithms[i]+"_"
-                    fileName = alg+desc+"_"+met+"_"+measure+".csv"
+                # for operation in range(0,10):
+                for experiment in range(0,20):
+                    alg = directory+"/experiment-"+str(experiment)+"/analysis/";
+                    fileName = alg+desc+"_"+met+"_"+algorithms[i]+measure+".csv"
+
                     if os.path.exists(fileName):
-                        # print fileName
+                        print fileName
                         csvData = np.loadtxt(open(fileName, "rb"), delimiter=",", skiprows=0)
-                        if len(csvData) > 2:
-                            csvData = [b[1] for b in csvData]
-                            csvData = np.nanmean(csvData)
-                        else:
-                            csvData = csvData[1]
+                        print csvData
+                        # if len(csvData) > 2:
+                            # csvData = [b[1] for b in csvData]
+                        csvData = np.nanmean(csvData)
+                        # else:
+                        #     csvData = csvData[0]
 
                         # csvData = [[int(x), np.nanmean([b[1] for b in csvData if b[0] == x])] for x in np.unique(csvData[:, :1])]
                         # csvData = np.array(csvData)
-                        samples.append(operation)
+                        samples.append(experiment)
                         # if i < 2:
                         # if (accuracy == []):
                         #     accuracy.append(csvData[1])

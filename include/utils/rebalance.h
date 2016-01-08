@@ -26,7 +26,8 @@ class Rebalance {
       void separateInFolds(int k);
       std::vector<std::vector<double> > classify(std::string descriptorFile,
         int repeat, double prob, std::string csv);
-      void performFeatureExtraction(int extractMethod, int grayMethod);
+      void performFeatureExtraction(int extractMethod, int grayMethod,
+        bool writeOnlyWhenEmpty);
       void performSmote(Data *imbalancedData, int operation);
       void writeFeatures(std::string id);
 };

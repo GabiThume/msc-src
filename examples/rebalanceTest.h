@@ -6,6 +6,7 @@
 #include <opencv2/ml/ml.hpp>
 #include <fstream>
 #include <dirent.h>
+#include <iterator>
 
 #include "utils/rebalance.h"
 #include "classification/classifier.h"

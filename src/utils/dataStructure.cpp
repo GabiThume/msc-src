@@ -61,7 +61,7 @@ int Data::newFold(int id) {
 
 	for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
 		if (itClass->id == id){
-			while(fold < itClass->images.size()) {
+			while(fold < (int) itClass->images.size()) {
 				if (std::find(itClass->training_fold.begin(),
 											itClass->training_fold.end(),
 											fold)

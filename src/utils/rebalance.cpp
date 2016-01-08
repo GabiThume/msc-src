@@ -135,9 +135,9 @@ void Rebalance::writeFeatures(std::string id) {
 
   std::cout << "-------------------------------------------------" << std::endl;
   // Decide the features file's name
-  name = id + "_";
-  name += extractor.getName(extractor.method-1) + "_";
-  name += quantization.getName(quantization.method-1) + "_";
+  name = id;
+  name += extractor.getName() + "_";
+  name += quantization.getName() + "_";
   name += std::to_string(extractor.numColors) + "_";
   name += std::to_string(data.numFeatures());
   name += ".csv";
@@ -196,20 +196,25 @@ void Rebalance::separateInFolds(int k) {
   std::cout << "Separation in folds done." << std::endl;
 }
 
-void Rebalance::performFeatureExtraction(int extractMethod, int grayMethod) {
+void Rebalance::performFeatureExtraction(int extractMethod, int grayMethod,
+  bool writeOnlyWhenEmpty) {
 
   int dataClass, image;
   cv::Mat img, newimg;
 
-  std::cout << "-------------------------------------------------" << std::endl;
-  std::cout << "Image feature extraction using " << extractor.getName(extractMethod-1);
-  std::cout << " and " << quantization.getName(grayMethod-1) << std::endl;
-
   extractor.method = extractMethod;
   quantization.method = grayMethod;
 
+  std::cout << "-------------------------------------------------" << std::endl;
+  std::cout << "Image feature extraction using " << extractor.getName();
+  std::cout << " and " << quantization.getName() << std::endl;
+
   for (dataClass = 0; dataClass < (int)data.classes.size(); dataClass++) {
     for (image = 0; image < (int)data.classes[dataClass].images.size(); image++) {
+      if (!writeOnlyWhenEmpty) {
+        data.classes[dataClass].images[image].features.release();
+      }
+
       if (data.classes[dataClass].images[image].features.empty()) {
         img = cv::imread(data.classes[dataClass].images[image].path, CV_LOAD_IMAGE_COLOR);
         if (!img.empty()) {

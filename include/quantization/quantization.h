@@ -52,8 +52,8 @@ class GrayscaleConversion {
     int numColors;
     int method;
 
-    std::string getName(int method) {
-      std::string name = ((sizeof(quantization)/sizeof(quantization[0])) > method) ? quantization[method] : "";
+    std::string getName(void) {
+      std::string name = ((int)(sizeof(quantization)/sizeof(quantization[0])) > method) ? quantization[method] : "";
       return name;
     }
 

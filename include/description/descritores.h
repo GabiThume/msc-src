@@ -60,7 +60,7 @@ class FeatureExtraction {
     double resizeFactor;
     std::vector<int> accDistances;
 
-    std::string getName(int method);
+    std::string getName(void);
 
     void extract(int colors, int norm, int method, cv::Mat img, cv::Mat *features);
 

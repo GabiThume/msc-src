@@ -1212,9 +1212,9 @@ void FeatureExtraction::MaxMinNormalization(cv::Mat *features, int norm) {
   }
 }
 
-std::string FeatureExtraction::getName(int method) {
+std::string FeatureExtraction::getName(void) {
   std::string name;
-  if (sizeof(descriptors)/sizeof(descriptors[0]) > method) {
+  if ((int)(sizeof(descriptors)/sizeof(descriptors[0])) > method) {
       name = descriptors[method];
   }
   else {
@@ -1229,32 +1229,32 @@ void FeatureExtraction::extract(int colors, int norm, int method, cv::Mat img, c
   normalization = norm;
 
   switch (method) {
-    case 1:
+    case 0:
       FeatureExtraction::BIC(img, features);
       break;
-    case 2:
+    case 1:
       FeatureExtraction::GCH(img, features);
       break;
-    case 3:
+    case 2:
       FeatureExtraction::CCV(img, features);
       break;
-    case 4:
+    case 3:
       FeatureExtraction::HARALICK(img, features);
       break;
-    case 5:
+    case 4:
       FeatureExtraction::ACC(img, features);
       break;
-    case 6:
+    case 5:
       FeatureExtraction::LBP(img, features);
       break;
-    case 7:
+    case 6:
       FeatureExtraction::HOG(img, features);
       break;
-    case 8:
+    case 7:
       FeatureExtraction::contourExtraction(img, features);
       break;
     default:
-      std::cout << "Error: this description method " << method;
+      std::cout << "Error: Feature Extraction method " << method;
       std::cout << " does not exists." << std::endl;
   }
 }
