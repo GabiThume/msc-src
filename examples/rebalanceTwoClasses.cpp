@@ -39,7 +39,7 @@ Master's thesis in Computer Science
 int main(int argc, char const *argv[]) {
   Classifier c;
   cv::Size size;
-  int m, d, operation, indexDescriptor, i, numImages;
+  int m, d, operation, indexDescriptor, i, numImages, experiment;
   int repeatRebalance, repeat, count_diff, prev, qtd_classes, treino;
   double prob = 0.5;
   std::string name, method, newDir, baseDir, featuresDir, csvOriginal, csvSmote;
@@ -67,7 +67,7 @@ int main(int argc, char const *argv[]) {
   analysisDir = newDir+"/analysis/";
   featuresDir = newDir+"/features/";
 
-  srand(1);
+  srand(time(NULL));
   //  Available methods:
   // Description {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"}
   // Quantization {"Intensity", "Luminance", "Gleam", "MSB", "MSB-Modified", "BGR", "HSV"}
@@ -93,6 +93,7 @@ int main(int argc, char const *argv[]) {
   r.separateInFolds(k);
   r.writeFeatures("original-folds");
 
+  experiment = 0;
   for (i = 0; i < k; i++) {
     for (j = 0; j < k; j++) {
       if (j != i) {
@@ -124,8 +125,8 @@ int main(int argc, char const *argv[]) {
         }
 
         // Classify original folds
-        r.writeFeatures("original");
-        c.classify(0.5,  2, r.data, "original", 1);
+        r.writeFeatures(newDir+"/Artificial/features/"+"original"+to_string(experiment));
+        c.classify(0.5,  2, r.data, newDir+"/Artificial/"+"original"+to_string(experiment), 1);
 
         // Perform SMOTE subsampling
         r.performSmote(&r.data, operation);
@@ -134,38 +135,52 @@ int main(int argc, char const *argv[]) {
             itClass->training_fold.push_back(itClass->smote_fold[x]);
           }
         }
-        r.writeFeatures("smote");
-        c.classify(0.5,  2, r.data, "smote", 1);
+        r.writeFeatures(newDir+"/Artificial/features"+"smote"+to_string(experiment));
+        c.classify(0.5,  2, r.data, newDir+"/Artificial/"+"smote"+to_string(experiment), 1);
         for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
           for (x = 0; x < itClass->smote_fold.size(); x++) {
             itClass->training_fold.erase(std::remove(itClass->training_fold.begin(),
                                                     itClass->training_fold.end(),
                                                     itClass->smote_fold[x]),
                                         itClass->training_fold.end());
+            int current_fold = itClass->smote_fold[x];
+            itClass->images.erase(std::remove_if(itClass->images.begin(),
+                                                itClass->images.end(),
+                                                [current_fold] (Image y){
+                                                  return (y.fold == current_fold);
+                                                }),
+                                  itClass->images.end());
           }
         }
 
         // Perform images artificial generation
         a.generateImagesFromData(&r.data,
-          newDir+"/Artificial/", operation);
+          newDir+"/Artificial/"+to_string(experiment)+"/", operation);
           for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
             for (x = 0; x < itClass->generated_fold.size(); x++) {
               itClass->training_fold.push_back(itClass->generated_fold[x]);
             }
           }
         r.performFeatureExtraction(d, m);
-        r.writeFeatures("artificial");
-        c.classify(0.5,  2, r.data, "artificial", 1);
+        r.writeFeatures(newDir+"/Artificial/features/"+"artificial"+to_string(experiment));
+        c.classify(0.5,  2, r.data, newDir+"/Artificial/"+"artificial"+to_string(experiment), 1);
         for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
-          for (x = 0; x < itClass->smote_fold.size(); x++) {
+          for (x = 0; x < itClass->generated_fold.size(); x++) {
             itClass->training_fold.erase(std::remove(itClass->training_fold.begin(),
                                                     itClass->training_fold.end(),
                                                     itClass->generated_fold[x]),
                                         itClass->training_fold.end());
+            int current_fold = itClass->generated_fold[x];
+            itClass->images.erase(std::remove_if(itClass->images.begin(),
+                                                itClass->images.end(),
+                                                [current_fold] (Image y) {
+                                                  return (y.fold == current_fold);
+                                                }),
+                                  itClass->images.end());
           }
         }
-
-        exit(0);
+        experiment++;
+        // exit(0);
       }
     }
   }
