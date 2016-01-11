@@ -39,15 +39,15 @@ Master's thesis in Computer Science
 int main(int argc, char const *argv[]) {
   Classifier c;
   cv::Size size;
-  int m, d, operation, i, experiment, minorityClass;
-  int j, x, indexDescriptor;
+  int m, d, operation, i, experiment, j, x, indexDescriptor;
   std::string newDir, baseDir, featuresDir, analysisDir, generationDir, str;
   std::string experimentDir;
   std::vector<ImageClass> imbalancedData;
   Artificial a;
   DIR *dir = NULL;
-  std::vector<int> testing_fold, majority_fold, minority_fold;
-  std::vector<ImageClass>::iterator itClass;
+  std::vector<int> testing_fold, majority_fold, minority_fold, generated_fold;
+  std::vector<ImageClass>::iterator itClass, minorityClass;
+  std::vector<int>::iterator itOperation;
   std::vector< vector<int> > foldsByGeneration;
 
   int k = 5;
@@ -70,6 +70,7 @@ int main(int argc, char const *argv[]) {
 
   std::vector <int> descriptors {0};
   std::vector <int> quant {0};
+  std::vector <int> operations {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
   Rebalance r;
   r.extractor.ccvThreshold = 25;
@@ -85,111 +86,160 @@ int main(int argc, char const *argv[]) {
   // r.writeFeatures(newDir+"/original-folds");
 
   // minorityClass = r.data.smallerTrainingClass();
-  minorityClass = 1;
   experiment = 0;
-  for (i = 0; i < k; i++) {
-    for (j = 0; j < k; j++) {
-      if (j != i) {
-        for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
-          itClass->testing_fold.clear();
-          itClass->training_fold.clear();
-          itClass->generated_fold.clear();
-          itClass->smote_fold.clear();
-          itClass->testing_fold.push_back(i);
-          if (itClass->id == minorityClass) {
-            itClass->training_fold.push_back(j);
-          }
-          else {
-            for (x = 0; x < k; x++) {
-              if (x != i) {
-                itClass->training_fold.push_back(x);
+  for (minorityClass = r.data.classes.begin(); minorityClass != r.data.classes.end(); ++minorityClass) {
+
+    for (i = 0; i < k; i++) {
+      for (j = 0; j < k; j++) {
+        if (j != i) {
+          // Select which folds are going to be training and testing
+          for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+            itClass->testing_fold.clear();
+            itClass->training_fold.clear();
+            itClass->generated_fold.clear();
+            itClass->smote_fold.clear();
+
+            itClass->testing_fold.push_back(i);
+            if (itClass->id == minorityClass->id) {
+              itClass->training_fold.push_back(j);
+            }
+            else {
+              for (x = 0; x < k; x++) {
+                if (x != i) {
+                  itClass->training_fold.push_back(x);
+                }
               }
             }
           }
-        }
 
-        experimentDir = newDir+"/artificial/experiment-"+to_string(experiment)+"/";
-        featuresDir = experimentDir+"features/";
-        analysisDir = experimentDir+"analysis/";
-        dir = opendir(experimentDir.c_str());
-        if (!dir) {
-          // str = "rm -f -r "+generationDir+"/*;";
-          str = "mkdir -p "+experimentDir+";";
-          str += "mkdir -p "+featuresDir+";";
-          str += "mkdir -p "+analysisDir+";";
-          system(str.c_str());
+          experimentDir = newDir+"/artificial/experiment-"+to_string(experiment)+"/";
+          featuresDir = experimentDir+"features/";
+          analysisDir = experimentDir+"analysis/";
           dir = opendir(experimentDir.c_str());
           if (!dir) {
-            std::cout << "Error! Directory " << experimentDir;
-            std::cout << " can't be created. " << std::endl;
-            exit(1);
-          }
-        }
-        closedir(dir);
-
-        std::ofstream FILE(newDir+"/artificial/experiment-"+to_string(experiment)+"/folds.txt", std::ios::out);
-        for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
-          FILE << "Class " << itClass->id << "\n Testing-folds: ";
-          std::copy(itClass->testing_fold.begin(), itClass->testing_fold.end(), std::ostream_iterator<int>(FILE, " "));
-          FILE << "\n Training-folds: ";
-          std::copy(itClass->training_fold.begin(), itClass->training_fold.end(), std::ostream_iterator<int>(FILE, " "));
-          FILE << "\n";
-        }
-        FILE.close();
-
-        for (operation = 1; operation <= 1; operation++) {
-          generationDir = experimentDir+"/operation-"+to_string(operation)+"/";
-          dir = opendir(generationDir.c_str());
-        	if (!dir) {
-        		str = "mkdir -p "+generationDir+";";
-        		system(str.c_str());
-        		dir = opendir(generationDir.c_str());
-        		if (!dir) {
-        			std::cout << "Error! Directory " << generationDir;
-        			std::cout << " can't be created. " << std::endl;
-        			exit(1);
-        		}
-        	}
-        	closedir(dir);
-
-          // Perform images artificial generation
-          a.generateImagesFromData(&r.data, generationDir, operation);
-          for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
-            foldsByGeneration.push_back(itClass->generated_fold);
-          }
-        }
-
-        for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++) {
-          d = descriptors[indexDescriptor];
-          m = quant[indexDescriptor];
-
-          r.performFeatureExtraction(d, m, false);
-
-          // Perform SMOTE subsampling
-          r.performSmote(&r.data, operation);
-
-          r.writeFeatures(featuresDir);
-
-          // Classify original folds
-          c.classify(0.5,  2, r.data, analysisDir+r.extractor.getName()+"_"+r.quantization.getName()+"_unbalanced", 1);
-
-          // Add smote fold as training
-          for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
-            for (x = 0; x < (int) itClass->smote_fold.size(); x++) {
-              itClass->training_fold.push_back(itClass->smote_fold[x]);
+            // str = "rm -f -r "+generationDir+"/*;";
+            str = "mkdir -p "+experimentDir+";";
+            str += "mkdir -p "+featuresDir+";";
+            str += "mkdir -p "+analysisDir+";";
+            system(str.c_str());
+            dir = opendir(experimentDir.c_str());
+            if (!dir) {
+              std::cout << "Error! Directory " << experimentDir;
+              std::cout << " can't be created. " << std::endl;
+              exit(1);
             }
           }
-          // Classify using smote fold as training
-          c.classify(0.5,  1, r.data, analysisDir+r.extractor.getName()+"_"+r.quantization.getName()+"_smote", 1);
+          closedir(dir);
+
+          std::ofstream FILE(newDir+"/artificial/experiment-"+to_string(experiment)+"/folds.txt", std::ios::out);
           for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+            FILE << "Class " << itClass->id << "\n Testing-folds: ";
+            std::copy(itClass->testing_fold.begin(), itClass->testing_fold.end(), std::ostream_iterator<int>(FILE, " "));
+            FILE << "\n Training-folds: ";
+            std::copy(itClass->training_fold.begin(), itClass->training_fold.end(), std::ostream_iterator<int>(FILE, " "));
+            FILE << "\n";
+          }
+          FILE.close();
+
+          foldsByGeneration.clear();
+
+          for (itOperation = operations.begin(); itOperation != operations.end(); ++itOperation) {
+            generationDir = experimentDir+"/operation-"+to_string(*itOperation)+"/";
+            dir = opendir(generationDir.c_str());
+          	if (!dir) {
+          		str = "mkdir -p "+generationDir+";";
+          		system(str.c_str());
+          		dir = opendir(generationDir.c_str());
+          		if (!dir) {
+          			std::cout << "Error! Directory " << generationDir;
+          			std::cout << " can't be created. " << std::endl;
+          			exit(1);
+          		}
+          	}
+          	closedir(dir);
+
+            // Perform images artificial generation
+            generated_fold = a.generateImagesFromData(&r.data, generationDir, *itOperation);
+            foldsByGeneration.push_back(generated_fold);
+          }
+
+          for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++) {
+            d = descriptors[indexDescriptor];
+            m = quant[indexDescriptor];
+
+            r.performFeatureExtraction(d, m, false);
+
+            // Perform SMOTE subsampling
+            r.performSmote(&r.data, 1);
+
+            r.writeFeatures(featuresDir+"unbalanced_");
+
+            // Classify original folds
+            c.classify(0.5,  1, r.data, analysisDir+r.extractor.getName()+"_"+r.quantization.getName()+"_unbalanced_", 1);
+
+            // Add smote fold as training
+            for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+              for (x = 0; x < (int) itClass->smote_fold.size(); x++) {
+                itClass->training_fold.push_back(itClass->smote_fold[x]);
+              }
+            }
+            // Classify using smote fold as training
+            r.writeFeatures(featuresDir+"smote_");
+            c.classify(0.5,  1, r.data, analysisDir+r.extractor.getName()+"_"+r.quantization.getName()+"_smote_", 1);
+            for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+              for (x = 0; x < (int) itClass->smote_fold.size(); x++) {
+                // Remove smote fold as training
+                itClass->training_fold.erase(std::remove(itClass->training_fold.begin(),
+                                                        itClass->training_fold.end(),
+                                                        itClass->smote_fold[x]),
+                                            itClass->training_fold.end());
+                int current_fold = itClass->smote_fold[x];
+                // Remove all smote data
+                itClass->images.erase(std::remove_if(itClass->images.begin(),
+                                                    itClass->images.end(),
+                                                    [current_fold] (Image y) {
+                                                      return (y.fold == current_fold);
+                                                    }),
+                                      itClass->images.end());
+              }
+            }
+
+            for (operation = 0; operation < (int)foldsByGeneration.size(); operation++) {
+              // Add generated fold as training
+              for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+                for (x = 0; x < (int) foldsByGeneration[operation].size(); x++) {
+                  itClass->training_fold.push_back(foldsByGeneration[operation][x]);
+                }
+              }
+              // Classify using generated fold as training
+              r.writeFeatures(featuresDir+"artificial_"+to_string(operations[operation])+"_");
+              c.classify(0.5,  1, r.data, analysisDir+r.extractor.getName()+"_"+r.quantization.getName()+"_artificial_"+to_string(operations[operation])+"_", 1);
+              for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+                for (x = 0; x < (int) foldsByGeneration[operation].size(); x++) {
+                  // Remove generated fold as training
+                  itClass->training_fold.erase(std::remove(itClass->training_fold.begin(),
+                                                          itClass->training_fold.end(),
+                                                          foldsByGeneration[operation][x]),
+                                              itClass->training_fold.end());
+                }
+              }
+            }
+          }
+
+          for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+            for (x = 0; x < (int) itClass->generated_fold.size(); x++) {
+              int current_fold = itClass->generated_fold[x];
+              // Remove all generated data
+              itClass->images.erase(std::remove_if(itClass->images.begin(),
+                                                  itClass->images.end(),
+                                                  [current_fold] (Image y) {
+                                                    return (y.fold == current_fold);
+                                                  }),
+                                    itClass->images.end());
+            }
             for (x = 0; x < (int) itClass->smote_fold.size(); x++) {
-              // Remove smote fold as training
-              itClass->training_fold.erase(std::remove(itClass->training_fold.begin(),
-                                                      itClass->training_fold.end(),
-                                                      itClass->smote_fold[x]),
-                                          itClass->training_fold.end());
               int current_fold = itClass->smote_fold[x];
-              // Remove all smote data
+              // Remove all generated data
               itClass->images.erase(std::remove_if(itClass->images.begin(),
                                                   itClass->images.end(),
                                                   [current_fold] (Image y) {
@@ -199,41 +249,8 @@ int main(int argc, char const *argv[]) {
             }
           }
 
-          for (operation = 1; operation <= 1; operation++) {
-            // Add generated fold as training
-            for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
-              for (x = 0; x < (int) foldsByGeneration[operation].size(); x++) {
-                itClass->training_fold.push_back(foldsByGeneration[operation][x]);
-              }
-            }
-            // Classify using generated fold as training
-            c.classify(0.5,  1, r.data, analysisDir+r.extractor.getName()+"_"+r.quantization.getName()+"_artificial", 1);
-            for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
-              for (x = 0; x < (int) foldsByGeneration[operation].size(); x++) {
-                // Remove generated fold as training
-                itClass->training_fold.erase(std::remove(itClass->training_fold.begin(),
-                                                        itClass->training_fold.end(),
-                                                        foldsByGeneration[operation][x]),
-                                            itClass->training_fold.end());
-              }
-            }
-          }
+          experiment++;
         }
-
-        for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
-          for (x = 0; x < (int) itClass->generated_fold.size(); x++) {
-            int current_fold = itClass->generated_fold[x];
-            // Remove all generated data
-            itClass->images.erase(std::remove_if(itClass->images.begin(),
-                                                itClass->images.end(),
-                                                [current_fold] (Image y) {
-                                                  return (y.fold == current_fold);
-                                                }),
-                                  itClass->images.end());
-          }
-        }
-
-        experiment++;
       }
     }
   }

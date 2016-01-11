@@ -498,7 +498,7 @@ void Artificial::GenerateImage(std::vector<cv::Mat> images, std::string name,
 	}
 }
 
-void Artificial::generateImagesFromData(Data *originalData,
+std::vector<int> Artificial::generateImagesFromData(Data *originalData,
 		std::string newDirectory, int whichOperation) {
 
 	int i, generationType, rebalanceTotal = 0, biggest, trainingImagesInClass;
@@ -506,7 +506,7 @@ void Artificial::generateImagesFromData(Data *originalData,
 	cv::Mat img, noise;
 	std::string imgName, classe, minorityClass, str, nameGeneratedImage, generatedPath;
 	DIR *dir = NULL, *minDir = NULL;
-	std::vector<int> vectorRand;
+	std::vector<int> vectorRand, generated_fold;
 	std::vector<cv::Mat> images;
 	std::vector<ImageClass>::iterator itClass;
 	ImageClass thisClass;
@@ -600,7 +600,7 @@ void Artificial::generateImagesFromData(Data *originalData,
 				itClass->images.push_back(newImage);
 			}
 			itClass->generated_fold.push_back(generatedFold);
-			// itClass->training_fold.push_back(generatedFold);
+			generated_fold.push_back(generatedFold);
 
 			rebalanceTotal += rebalance;
 			std::cout << rebalance << " images were generated and the class ";
@@ -609,4 +609,5 @@ void Artificial::generateImagesFromData(Data *originalData,
 			images.clear();
 		}
 	}
+	return generated_fold;
 }

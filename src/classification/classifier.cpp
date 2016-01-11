@@ -114,7 +114,7 @@ void Classifier::printAccuracy(double id, std::vector<std::vector<double> > fSco
 	std::cout << "Total samples: " << totalTest + totalTrain << std::endl;
 	std::cout << "\tTesting samples: " << totalTest << std::endl;
 	std::cout << "\tTraining samples: " << totalTrain << std::endl;
-	std::cout <<  "Random cross validation with " << accuracy.size() << " k-fold:" << std::endl;
+	std::cout <<  "Random cross validation with " << accuracy.size() << " fold (k = 1 probably means that folds are fixed):" << std::endl;
 	std::cout << "\tMean Accuracy: " << mean << std::endl;
 	if (std != 0)
 		std::cout << "\t\tStandard Deviation: " << std << std::endl;
@@ -176,7 +176,7 @@ double Classifier::calculateBalancedAccuracy(cv::Mat confusionMat) {
 		balancedAccuracyMean += (sensitivity + specificity)/(2.0);
 	}
 
-	return (balancedAccuracyMean/confusionMat.rows)*100.0;
+	return (balancedAccuracyMean/(double)confusionMat.rows)*100.0;
 }
 
 /*******************************************************************************
@@ -230,8 +230,8 @@ Confusion Matrix
 actual class   truePositive   | falseNegative
                falsePositive  | trueNegative
 *******************************************************************************/
-cv::Mat Classifier::confusionMatrix(int numClasses, cv::Mat labelsTesting, cv::Mat result,
-	int print) {
+cv::Mat Classifier::confusionMatrix(int numClasses, cv::Mat labelsTesting,
+	cv::Mat result, int print) {
 
 	int i, rightClass, guessedClass;
 	cv::Mat confusionMat = cv::Mat::zeros(numClasses, numClasses, CV_32S);

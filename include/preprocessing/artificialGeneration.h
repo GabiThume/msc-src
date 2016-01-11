@@ -31,8 +31,8 @@ class Artificial {
     cv::Mat generateThreshold(cv::Mat first, cv::Mat second);
     cv::Mat generateSaliency(cv::Mat first, cv::Mat second);
     cv::Mat generateSmoteImg(cv::Mat first, cv::Mat second);
-    void generateImagesFromData(Data *original_data, std::string newDirectory,
-      int whichOperation);
+    cv::vector<int> generateImagesFromData(Data *original_data,
+      std::string newDirectory, int whichOperation);
 };
 
 #endif

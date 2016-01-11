@@ -141,12 +141,13 @@ cv::Mat SMOTE::smote(cv::Mat minority, int amountSmote, int nearestNeighbors) {
   computeNeighbors(minority, nearestNeighbors, &neighbors);
 
   /* For each sample, generate it(s) synthetic(s) sample(s) */
-  i = 0;
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> dis(0, minority.rows-1);
+
   while (amountSmote > 0) {
-    if (i == minority.rows) i = 0;
-    populate(minority, neighbors, &synthetic, &index, 1, i, nearestNeighbors);
+    populate(minority, neighbors, &synthetic, &index, 1, dis(gen), nearestNeighbors);
     amountSmote--;
-    i++;
   }
   return synthetic;
 }
