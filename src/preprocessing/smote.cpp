@@ -101,7 +101,7 @@ void SMOTE::computeNeighbors(cv::Mat minority, int nearestNeighbors,
 /* Synthetic Minority Over-sampling Technique */
 cv::Mat SMOTE::smote(cv::Mat minority, int amountSmote, int nearestNeighbors) {
   cv::Size s = minority.size();
-  int i, samples, pos, index = 0;
+  int samples, pos, index = 0;
   int minoritySamples = s.height;
   int attributes = s.width;
   std::vector<int> vectorRand;
