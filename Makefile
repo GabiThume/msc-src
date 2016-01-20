@@ -18,9 +18,9 @@ UTILS = $(SRC_DIR)/utils
 EXAMPLES = examples
 OBJS = dataStructure.o description.o quantization.o classifier.o smote.o rebalance.o artificialGeneration.o
 
-# all: clean descriptorTest artificialGenerationTest rebalanceTest smoteTest rebalanceTwoClasses rebalanceMultiClasses staticRebalance classifierTest cleanLink
+# all: clean descriptorTest artificialGenerationTest rebalanceTest smoteTest experiment rebalanceMultiClasses staticRebalance classifierTest cleanLink
 
-all: clean rebalanceTwoClasses
+all: clean experiment
 
 # run: run-desbalanced
 #
@@ -73,8 +73,8 @@ artificialGenerationTest: $(OBJS)
 rebalanceTest: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o bin/rebalanceTest $(EXAMPLES)/rebalanceTest.cpp $(INCLUDES)
 
-rebalanceTwoClasses: $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o bin/rebalanceTwoClasses $(EXAMPLES)/rebalanceTwoClasses.cpp $(INCLUDES)
+experiment: $(OBJS)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o bin/experiment $(EXAMPLES)/experiment.cpp $(INCLUDES)
 
 rebalanceMultiClasses: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o bin/rebalanceMultiClasses $(EXAMPLES)/rebalanceMultiClasses.cpp $(INCLUDES)

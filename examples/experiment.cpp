@@ -87,13 +87,17 @@ int main(int argc, char const *argv[]) {
 
   // minorityClass = r.data.smallerTrainingClass();
   experiment = 0;
-  for (minorityClass = r.data.classes.begin(); minorityClass != r.data.classes.end(); ++minorityClass) {
+  for (minorityClass = r.data.classes.begin();
+      minorityClass != r.data.classes.end();
+      ++minorityClass) {
 
     for (i = 0; i < k; i++) {
       for (j = 0; j < k; j++) {
         if (j != i) {
           // Select which folds are going to be training and testing
-          for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+          for (itClass = r.data.classes.begin();
+              itClass != r.data.classes.end();
+              ++itClass) {
             itClass->testing_fold.clear();
             itClass->training_fold.clear();
             itClass->generated_fold.clear();
@@ -131,20 +135,28 @@ int main(int argc, char const *argv[]) {
           }
           closedir(dir);
 
-          std::ofstream FILE(newDir+"/artificial/experiment-"+to_string(experiment)+"/folds.txt", std::ios::out);
-          for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+          std::ofstream FILE(newDir + "/artificial/experiment-" +
+                            to_string(experiment) + "/folds.txt", std::ios::out);
+          for (itClass = r.data.classes.begin();
+              itClass != r.data.classes.end();
+              ++itClass) {
             FILE << "Class " << itClass->id << "\n Testing-folds: ";
             std::copy(itClass->testing_fold.begin(), itClass->testing_fold.end(), std::ostream_iterator<int>(FILE, " "));
+
             FILE << "\n Training-folds: ";
-            std::copy(itClass->training_fold.begin(), itClass->training_fold.end(), std::ostream_iterator<int>(FILE, " "));
+            std::copy(itClass->training_fold.begin(),
+                      itClass->training_fold.end(), std::ostream_iterator<int>(FILE, " "));
             FILE << "\n";
           }
           FILE.close();
 
           foldsByGeneration.clear();
 
-          for (itOperation = operations.begin(); itOperation != operations.end(); ++itOperation) {
-            generationDir = experimentDir+"/operation-"+to_string(*itOperation)+"/";
+          for (itOperation = operations.begin();
+              itOperation != operations.end();
+              ++itOperation) {
+            generationDir = experimentDir + "/operation-" +
+                            to_string(*itOperation) + "/";
             dir = opendir(generationDir.c_str());
           	if (!dir) {
           		str = "mkdir -p "+generationDir+";";
@@ -159,11 +171,14 @@ int main(int argc, char const *argv[]) {
           	closedir(dir);
 
             // Perform images artificial generation
-            generated_fold = a.generateImagesFromData(&r.data, generationDir, *itOperation);
+            generated_fold = a.generateImagesFromData(&r.data, generationDir,
+                                                      *itOperation);
             foldsByGeneration.push_back(generated_fold);
           }
 
-          for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++) {
+          for (indexDescriptor = 0;
+              indexDescriptor < (int)descriptors.size();
+              indexDescriptor++) {
             d = descriptors[indexDescriptor];
             m = quant[indexDescriptor];
 
@@ -175,143 +190,113 @@ int main(int argc, char const *argv[]) {
             r.writeFeatures(featuresDir+"unbalanced_");
 
             // Classify original folds
-            c.classify(0.5,  1, r.data, analysisDir+r.extractor.getName()+"_"+r.quantization.getName()+"_unbalanced_", 1);
+            c.classify(0.5,  1, r.data, analysisDir + r.extractor.getName() +
+                      "_" + r.quantization.getName() + "_unbalanced_", 1);
 
             // Add smote fold as training
-            for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+            for (itClass = r.data.classes.begin();
+                itClass != r.data.classes.end();
+                ++itClass) {
               for (x = 0; x < (int) itClass->smote_fold.size(); x++) {
                 itClass->training_fold.push_back(itClass->smote_fold[x]);
               }
             }
             // Classify using smote fold as training
             r.writeFeatures(featuresDir+"smote_");
-            c.classify(0.5,  1, r.data, analysisDir+r.extractor.getName()+"_"+r.quantization.getName()+"_smote_", 1);
-            for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+            c.classify(0.5,  1, r.data, analysisDir + r.extractor.getName() +
+                      "_" + r.quantization.getName() + "_smote_", 1);
+
+            for (itClass = r.data.classes.begin();
+                itClass != r.data.classes.end();
+                ++itClass) {
               for (x = 0; x < (int) itClass->smote_fold.size(); x++) {
                 // Remove smote fold as training
-                itClass->training_fold.erase(std::remove(itClass->training_fold.begin(),
-                                                        itClass->training_fold.end(),
-                                                        itClass->smote_fold[x]),
-                                            itClass->training_fold.end());
+                itClass->training_fold.erase(
+                  std::remove(itClass->training_fold.begin(),
+                              itClass->training_fold.end(),
+                              itClass->smote_fold[x]),
+                  itClass->training_fold.end()
+                );
                 int current_fold = itClass->smote_fold[x];
                 // Remove all smote data
-                itClass->images.erase(std::remove_if(itClass->images.begin(),
-                                                    itClass->images.end(),
-                                                    [current_fold] (Image y) {
-                                                      return (y.fold == current_fold);
-                                                    }),
-                                      itClass->images.end());
+                itClass->images.erase(
+                  std::remove_if(itClass->images.begin(),
+                                itClass->images.end(),
+                                [current_fold] (Image y) {
+                                  return (y.fold == current_fold);
+                                }),
+                  itClass->images.end()
+                );
               }
             }
 
-            for (operation = 0; operation < (int)foldsByGeneration.size(); operation++) {
+            for (operation = 0;
+                operation < (int)foldsByGeneration.size();
+                operation++) {
               // Add generated fold as training
-              for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
-                for (x = 0; x < (int) foldsByGeneration[operation].size(); x++) {
-                  itClass->training_fold.push_back(foldsByGeneration[operation][x]);
+              for (itClass = r.data.classes.begin();
+                  itClass != r.data.classes.end();
+                  ++itClass) {
+                for (x = 0; x < (int)foldsByGeneration[operation].size(); x++) {
+                  itClass->training_fold.push_back(
+                    foldsByGeneration[operation][x]
+                  );
                 }
               }
               // Classify using generated fold as training
-              r.writeFeatures(featuresDir+"artificial_"+to_string(operations[operation])+"_");
-              c.classify(0.5,  1, r.data, analysisDir+r.extractor.getName()+"_"+r.quantization.getName()+"_artificial_"+to_string(operations[operation])+"_", 1);
-              for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
-                for (x = 0; x < (int) foldsByGeneration[operation].size(); x++) {
+              r.writeFeatures(featuresDir + "artificial_" +
+                              to_string(operations[operation]) + "_");
+              c.classify(0.5,  1, r.data, analysisDir + r.extractor.getName() +
+                        "_" + r.quantization.getName() + "_artificial_" + to_string(operations[operation]) + "_", 1);
+              for (itClass = r.data.classes.begin();
+                  itClass != r.data.classes.end();
+                  ++itClass) {
+                for (x = 0; x < (int)foldsByGeneration[operation].size(); x++) {
                   // Remove generated fold as training
-                  itClass->training_fold.erase(std::remove(itClass->training_fold.begin(),
-                                                          itClass->training_fold.end(),
-                                                          foldsByGeneration[operation][x]),
-                                              itClass->training_fold.end());
+                  itClass->training_fold.erase(
+                    std::remove(itClass->training_fold.begin(),
+                                itClass->training_fold.end(),
+                                foldsByGeneration[operation][x]),
+                    itClass->training_fold.end()
+                  );
                 }
               }
             }
           }
 
-          for (itClass = r.data.classes.begin(); itClass != r.data.classes.end(); ++itClass) {
+          for (itClass = r.data.classes.begin();
+              itClass != r.data.classes.end();
+              ++itClass) {
             for (x = 0; x < (int) itClass->generated_fold.size(); x++) {
               int current_fold = itClass->generated_fold[x];
               // Remove all generated data
-              itClass->images.erase(std::remove_if(itClass->images.begin(),
-                                                  itClass->images.end(),
-                                                  [current_fold] (Image y) {
-                                                    return (y.fold == current_fold);
-                                                  }),
-                                    itClass->images.end());
+              itClass->images.erase(
+                std::remove_if(itClass->images.begin(),
+                              itClass->images.end(),
+                              [current_fold] (Image y) {
+                                return (y.fold == current_fold);
+                                }),
+                itClass->images.end()
+              );
             }
             for (x = 0; x < (int) itClass->smote_fold.size(); x++) {
               int current_fold = itClass->smote_fold[x];
               // Remove all generated data
-              itClass->images.erase(std::remove_if(itClass->images.begin(),
-                                                  itClass->images.end(),
-                                                  [current_fold] (Image y) {
-                                                    return (y.fold == current_fold);
-                                                  }),
-                                    itClass->images.end());
+              itClass->images.erase(
+                std::remove_if(itClass->images.begin(),
+                              itClass->images.end(),
+                              [current_fold] (Image y) {
+                                return (y.fold == current_fold);
+                              }),
+                itClass->images.end()
+              );
             }
           }
-
           experiment++;
         }
       }
     }
   }
-
-  // std::vector<ImageClass> data = ReadFeaturesFromFile(originalDescriptor);
-  // images_directory = RemoveSamples(baseDir, newDir, prob, factor);
-
-  // // For each rebalancing operation
-  // for (operation = 0; operation <= 0; operation++){
-  //
-  //   std::vector<String> allRebalanced;
-  //   std::stringstream operationstr;
-  //   operationstr << operation;
-  //   op = operationstr.str();
-  //
-  //   /* Generate Artificial Images */
-  //   repeatRebalance = 1;
-  //   for (repeat = 0; repeat < repeatRebalance; repeat++) {
-  //     std::stringstream repeatStr;
-  //     repeatStr << repeat;
-  //     std::string newDirectory = newDir+"/Artificial/"+op+"-Rebalanced"+repeatStr.str();
-  //     std::string dirRebalanced = a.generate(images_directory, newDirectory, operation);
-  //     allRebalanced.push_back(dirRebalanced);
-  //   }
-  //
-  //   for (indexDescriptor = 0; indexDescriptor < (int)descriptors.size(); indexDescriptor++){
-  //     d = descriptors[indexDescriptor];
-  //     m = quant[indexDescriptor];
-  //
-  //     // Feature extraction from images
-  //     if (count_diff == 0) {
-  //       std::cout << "Classification using original data" << std::endl;
-  //       std::string originalDescriptor = description(baseDir, featuresDir, d, m, "original");
-  //       csvOriginal = analysisDir+op+"-original_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-  //       perform(originalDescriptor, 10, prob, csvOriginal);
-  //     }
-  //
-  //     std::cout << "Classification using desbalanced data" << std::endl;
-  //     std::string imbalancedDescriptor = description(images_directory, featuresDir, d, m, "desbalanced");
-  //     csvDesbalanced = analysisDir+op+"-desbalanced_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-  //     perform(imbalancedDescriptor, 1, prob, csvDesbalanced);
-  //
-  //     for (i = 0; i < (int)allRebalanced.size(); i++) {
-  //       // Generate Synthetic SMOTE samples
-  //       imbalancedData = ReadFeaturesFromFile(imbalancedDescriptor);
-  //       descSmote = newDir+"/features/"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-  //       smoteDescriptor = PerformSmote(imbalancedData, operation, descSmote);
-  //       std::cout << "Classification using SMOTE" << std::endl;
-  //       csvSmote = analysisDir+op+"-smote_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-  //       perform(smoteDescriptor, 1, prob, csvSmote);
-  //       imbalancedData.clear();
-  //
-  //       std::cout << "Classification using rebalanced data" << std::endl;
-  //       featuresDir = allRebalanced[i]+"/../features/";
-  //       std::string artificialDescriptor = description(allRebalanced[i], featuresDir, d, m, "artificial");
-  //       csvRebalance = analysisDir+op+"-artificial_"+descriptorMethod[d-1]+"_"+quantizationMethod[m-1]+"_";
-  //       perform(artificialDescriptor, 1, prob, csvRebalance);
-  //     }
-  //   }
-  //   allRebalanced.clear();
-  // }
 
   std::cout << "-------------------------------------------------" << std::endl;
   std::cout << "Rebalance done." << std::endl;

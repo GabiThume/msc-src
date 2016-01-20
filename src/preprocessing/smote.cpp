@@ -39,37 +39,44 @@ Based on paper's "SMOTE: Synthetic Minority Over-sampling Technique" pseudo-code
 #include "preprocessing/smote.h"
 
 /* Generate the synthetic samples to over-sample the minority class */
-void SMOTE::populate(cv::Mat minority, cv::Mat neighbors, cv::Mat *synthetic, int *index,
-    int amountSmote, int i, int nearestNeighbors) {
+void SMOTE::populate(cv::Mat minority, cv::Mat neighbors, cv::Mat *synthetic,
+    int *index, int amount_smote, int i, int nearestNeighbors) {
+
   int attributes, nn, attr;
   double gap, dif, attrOriginal, neighbor;
   std::vector<int> vectorRand;
-  cv::Size s = minority.size();
-  attributes = s.width;
+  attributes = minority.size().width;
 
-  /* amountSmote is how many synthetic samples need to be generated for i */
-  while (amountSmote != 0) {
-    /* Choose randomly one of the nearest neighbors of i */
-    /* The first is the sample itself */
-    nn = 1 + (rand() % (nearestNeighbors-1));
-    if (!count(vectorRand.begin(), vectorRand.end(), nn)) {
-      vectorRand.push_back(nn);
-      neighbor = neighbors.at<float>(i, nn);
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<double> dis(0, 1);
 
-      for (attr = 0; attr < attributes; attr++) {
-        attrOriginal = minority.at<float>(i, attr);
-        /* The difference between the feature std::vector under and its
-        nearest neighbor*/
-        dif = minority.at<float>(neighbor, attr) - attrOriginal;
-        /* Multiply this difference with a number between 0 and 1 */
-        gap = rand()/static_cast<double>(RAND_MAX);
-        /* Add it to the original feature std::vector */
-        (*synthetic).at<float>((*index), attr) = attrOriginal + gap*dif;
-      }
-      (*index)++;
-      amountSmote = amountSmote - 1;
-    }
+  // /* amountSmote is how many synthetic samples need to be generated for i */
+  // Control this in smote's main function.
+  // while (amountSmote != 0) {
+
+  /* Choose randomly one of the nearest neighbors of i */
+  /* The first is the sample itself */
+  nn = 1 + (rand() % (nearestNeighbors-1));
+  // if (!count(vectorRand.begin(), vectorRand.end(), nn)) {
+  //   vectorRand.push_back(nn);
+  neighbor = neighbors.at<float>(i, nn);
+
+  for (attr = 0; attr < attributes; attr++) {
+    attrOriginal = minority.at<float>(i, attr);
+    /* The difference between the feature std::vector under and its
+    nearest neighbor*/
+    dif = minority.at<float>(neighbor, attr) - attrOriginal;
+    /* Multiply this difference with a number between 0 and 1 */
+    // gap = rand()/static_cast<double>(RAND_MAX);
+    gap = dis(gen);
+    /* Add it to the original feature std::vector */
+    (*synthetic).at<float>((*index), attr) = attrOriginal + gap*dif;
   }
+  (*index)++;
+    // amountSmote = amountSmote - 1;
+  // }
+  // }
 }
 
 /* Compute the nearest neighbors */
@@ -146,6 +153,8 @@ cv::Mat SMOTE::smote(cv::Mat minority, int amountSmote, int nearestNeighbors) {
   std::uniform_int_distribution<> dis(0, minority.rows-1);
 
   while (amountSmote > 0) {
+    // Mat minority, Mat neighbors, Mat *synthetic, int *index, int amountSmote, int i, int nearestNeighbors)
+
     populate(minority, neighbors, &synthetic, &index, 1, dis(gen), nearestNeighbors);
     amountSmote--;
   }
