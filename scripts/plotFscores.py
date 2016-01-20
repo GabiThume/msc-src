@@ -12,18 +12,19 @@ import sys
 import os
 import itertools
 
-if len(sys.argv) <= 1:
-    print "\n\tUsage: python plot.py $directory with csv files from analysis$\n"
+if len(sys.argv) <= 2:
+    print "\n\tUsage: python plot.py $directory with csv files from analysis$ $id of the database$\n"
     sys.exit()
 
 directory = sys.argv[1]
+name = sys.argv[2]
 
 algorithms = ["original", "unbalanced", "artificial", "smote"]
 labels = ["Original", "Desbalanced", "SMOTE"]
 color = ["b", "k", "r", "g"]
 descriptors = ["BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour", "Fisher"]
 quantizations = ["Intensity", "Gleam", "Luminance", "MSB", "MSBModified", "BGR", "HSV"]
-operations = ["Replication", "ALL", "Blur", "Blending", "UnsharpMasking", "Composition", "ThresholdCombination", "Saliency", "VisualSmote", "Noise", "VisualSmote", "Composition", "Composition", "Composition", "Composition", "Composition", "Noise"]
+operations = ["Replicação", "Todos", "Borramento", "Mistura", "UnsharpMasking", "Composição de 16 quadrantes", "Combinação de Thresholds", "Saliência", "Smote Visual", "Ruído", "Composição de 4 quadrantes"]
 measurements = ["FScore", "BalancedAccuracy"]
 marker = itertools.cycle(('+', 'o', '^', 's'))
 plt.figure(figsize=(10,10))
@@ -52,25 +53,31 @@ for descriptor in descriptors:
             csvData = np.loadtxt(open(fileName, "rb"), delimiter=",", skiprows=0)
             smote_data.append(csvData)
 
-        for generationType in range(0,10):
+        for generationType in range(1,11):
             fileName = directory + "/experiment-" + str(experiment) + "/analysis/" + descriptor + "_" + quantization + "_artificial_" + str(generationType) + "_FScore.csv"
 
             if os.path.exists(fileName):
                 csvData = np.loadtxt(open(fileName, "rb"), delimiter=",", skiprows=0)
                 generated_data[generationType].append(csvData)
 
-    data = pd.DataFrame({ 'unbalanced' : pd.Series(unbalanced_data, dtype='float'),
-                          'smote' : pd.Series(smote_data, dtype='float'),
-                          'artificial - 0' : pd.Series(generated_data[0], dtype='float'),
-                          'artificial - 1' : pd.Series(generated_data[1], dtype='float'),
-                          'artificial - 2' : pd.Series(generated_data[2], dtype='float'),
-                          'artificial - 3' : pd.Series(generated_data[3], dtype='float'),
-                          'artificial - 4' : pd.Series(generated_data[4], dtype='float'),
-                          'artificial - 5' : pd.Series(generated_data[5], dtype='float'),
-                          'artificial - 6' : pd.Series(generated_data[6], dtype='float'),
-                          'artificial - 7' : pd.Series(generated_data[7], dtype='float'),
-                          'artificial - 8' : pd.Series(generated_data[8], dtype='float'),
-                          'artificial - 9' : pd.Series(generated_data[9], dtype='float'),
-                        #   'artificial -10' : pd.Series(generated_data[10], dtype='int32'),
-                        })
-    print data.mean()
+    data = pd.DataFrame({
+        'Unbalanced' : pd.Series(unbalanced_data, dtype='float'),
+        'Smote' : pd.Series(smote_data, dtype='float'),
+        # 'Artificial - 0: '+operations[0] : pd.Series(generated_data[0], dtype='float'),
+        'Artificial - 1: '+operations[1] : pd.Series(generated_data[1], dtype='float'),
+        'Artificial - 2: '+operations[2] : pd.Series(generated_data[2], dtype='float'),
+        'Artificial - 3: '+operations[3] : pd.Series(generated_data[3], dtype='float'),
+        'Artificial - 4: '+operations[4] : pd.Series(generated_data[4], dtype='float'),
+        'Artificial - 5: '+operations[5] : pd.Series(generated_data[5], dtype='float'),
+        'Artificial - 6: '+operations[6] : pd.Series(generated_data[6], dtype='float'),
+        'Artificial - 7: '+operations[7] : pd.Series(generated_data[7], dtype='float'),
+        'Artificial - 8: '+operations[8] : pd.Series(generated_data[8], dtype='float'),
+        'Artificial - 9: '+operations[9] : pd.Series(generated_data[9], dtype='float'),
+        'Artificial -10: '+operations[10] : pd.Series(generated_data[10], dtype='float'),
+    })
+    print data
+    # print data.describe().transpose()[['mean', 'std', 'max', 'min']]
+    # print data.describe().transpose()[['mean', 'std']]
+    p = data.plot(kind='box', vert=False)
+    fig = p.get_figure()
+    fig.savefig(directory+descriptor+'_'+quantization+'_'+name+'.png', bbox_inches='tight')
