@@ -502,13 +502,14 @@ std::vector<int> Artificial::generateImagesFromData(Data *originalData,
 		std::string newDirectory, int whichOperation) {
 
 	int i, generationType, rebalanceTotal = 0, biggest, trainingImagesInClass;
-	int rebalance, j, training_fold, generatedFold;
+	int rebalance, generatedFold;
 	cv::Mat img, noise;
 	std::string imgName, classe, minorityClass, str, nameGeneratedImage, generatedPath;
 	DIR *dir = NULL, *minDir = NULL;
 	std::vector<int> vectorRand, generated_fold;
 	std::vector<cv::Mat> images;
 	std::vector<ImageClass>::iterator itClass;
+  std::vector<Image>::iterator itImage;
 	ImageClass thisClass;
 	Image newImage;
 
@@ -530,7 +531,8 @@ std::vector<int> Artificial::generateImagesFromData(Data *originalData,
 	}
 	closedir(dir);
 
-	std::cout << "Number of classes: " << (*originalData).numClasses() << std::endl;
+	std::cout << "Number of classes: " << (*originalData).numClasses();
+  std::cout << std::endl;
 
 	biggest = (*originalData).biggestTrainingNumber();
 
@@ -543,16 +545,20 @@ std::vector<int> Artificial::generateImagesFromData(Data *originalData,
 		if (rebalance > 0) {
 
 			/* Add all minority images in std::vector<cv::Mat>images */
-			for(j = 0; j < (int) itClass->images.size(); j++) {
-				for (training_fold = 0;
-						training_fold < (int) itClass->training_fold.size(); training_fold++) {
-					if (itClass->images[j].fold == training_fold) {
-						imgName = itClass->images[j].path;
+      for(itImage = itClass->images.begin();
+  				itImage != itClass->images.end();
+  				++itImage) {
+
+        if (std::find(itClass->training_fold.begin(),
+                      itClass->training_fold.end(),
+                      itImage->fold)
+          != itClass->training_fold.end()) {
+
+            imgName = itImage->path;
 						img = cv::imread(imgName, CV_LOAD_IMAGE_COLOR);
 						if (!img.data) continue;
 						images.push_back(img);
-					}
-				}
+        }
 			}
 
 			if (images.size() == 0) {
@@ -591,7 +597,9 @@ std::vector<int> Artificial::generateImagesFromData(Data *originalData,
 
 				nameGeneratedImage = generatedPath + std::to_string(trainingImagesInClass+i) + ".png";
 
-				GenerateImage(images, nameGeneratedImage, trainingImagesInClass, generationType);
+        // vector<Mat> images, string name, int total, int generationType
+				GenerateImage(images, nameGeneratedImage, trainingImagesInClass,
+                      generationType);
 
 				newImage.features.release();
 				newImage.fold = generatedFold;

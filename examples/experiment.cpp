@@ -70,7 +70,7 @@ int main(int argc, char const *argv[]) {
 
   std::vector <int> descriptors {0};
   std::vector <int> quant {0};
-  std::vector <int> operations {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  std::vector <int> operations {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
   Rebalance r;
   r.extractor.ccvThreshold = 25;

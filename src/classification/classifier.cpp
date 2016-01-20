@@ -37,7 +37,7 @@ Master's thesis in Computer Science
 
 /* Train and predict using the Normal Bayes classifier */
 void Classifier::bayesClassifier(cv::Mat dataTraining, cv::Mat labelsTraining,
-		cv::Mat dataTesting, cv::Mat& result){
+		cv::Mat dataTesting, cv::Mat& result) {
 	CvNormalBayesClassifier classifier;
 	classifier.train(dataTraining, labelsTraining);
 	classifier.predict(dataTesting, &result);
@@ -45,8 +45,8 @@ void Classifier::bayesClassifier(cv::Mat dataTraining, cv::Mat labelsTraining,
 }
 
 /* Train and predict using 1-KNN */
-void Classifier::knn(cv::Mat dataTraining, cv::Mat labelsTraining, cv::Mat dataTesting,
-		int k, cv::Mat& result) {
+void Classifier::knn(cv::Mat dataTraining, cv::Mat labelsTraining,
+    cv::Mat dataTesting, int k, cv::Mat& result) {
 	cv::Mat responses, dist, nearests(1, k, CV_32F);
 	CvKNearest knn(dataTraining, labelsTraining, responses, false, k);
 	knn.find_nearest(dataTesting, k, result, nearests, dist);
@@ -90,7 +90,8 @@ double Classifier::calculateStandardDeviation(std::vector<double> accuracy) {
 	return std;
 }
 
-void Classifier::printAccuracy(double id, std::vector<std::vector<double> > fScore) {
+void Classifier::printAccuracy(double id,
+    std::vector<std::vector<double> > fScore) {
 	int i;
 	std::ofstream outputFile;
 	std::vector<double> fscores, fscoresStd;
@@ -114,7 +115,9 @@ void Classifier::printAccuracy(double id, std::vector<std::vector<double> > fSco
 	std::cout << "Total samples: " << totalTest + totalTrain << std::endl;
 	std::cout << "\tTesting samples: " << totalTest << std::endl;
 	std::cout << "\tTraining samples: " << totalTrain << std::endl;
-	std::cout <<  "Random cross validation with " << accuracy.size() << " fold (k = 1 probably means that folds are fixed):" << std::endl;
+	std::cout << "Random cross validation with " << accuracy.size();
+  std::cout << " fold (k = 1 probably means that folds are fixed):";
+  std::cout << std::endl;
 	std::cout << "\tMean Accuracy: " << mean << std::endl;
 	if (std != 0)
 		std::cout << "\t\tStandard Deviation: " << std << std::endl;
@@ -125,13 +128,15 @@ void Classifier::printAccuracy(double id, std::vector<std::vector<double> > fSco
 	if (fscoreStd != 0)
 		std::cout << "\t\tStandard Deviation: " << fscoreStd << std::endl;
 
-	if (outputName != ""){
+	if (outputName != "") {
 
-		outputFile.open((outputName+"BalancedAccuracy.csv").c_str(), std::ios::out | std::ios::app);
-		outputFile << balancedMean << "\n";
-		outputFile.close();
+		// outputFile.open((outputName+"BalancedAccuracy.csv").c_str(),
+    //                 std::ios::out | std::ios::app);
+		// outputFile << balancedMean << "\n";
+		// outputFile.close();
 
-		outputFile.open((outputName+"FScore.csv").c_str(), std::ios::out | std::ios::app);
+		outputFile.open((outputName+"FScore.csv").c_str(),
+                    std::ios::out | std::ios::app);
 		outputFile << fscoreMean << "\n";
 		// outputFile << fscoreMean << "\n";
 		// for (i = 0; i < (int) fscores.size(); i++){
@@ -183,7 +188,7 @@ double Classifier::calculateBalancedAccuracy(cv::Mat confusionMat) {
 Positive: minority class
 Negative: majority class
 *******************************************************************************/
-std::vector<double> Classifier::calculateFscore(cv::Mat confusionMat){
+std::vector<double> Classifier::calculateFscore(cv::Mat confusionMat) {
 	double fscore, truePositive, falseNegative, falsePositive;
 	double trueNegative, precisionRate, recallRate, positive;
 	std::vector<double> fScore;
@@ -231,7 +236,7 @@ actual class   truePositive   | falseNegative
                falsePositive  | trueNegative
 *******************************************************************************/
 cv::Mat Classifier::confusionMatrix(int numClasses, cv::Mat labelsTesting,
-	cv::Mat result, int print) {
+    cv::Mat result, int print) {
 
 	int i, rightClass, guessedClass;
 	cv::Mat confusionMat = cv::Mat::zeros(numClasses, numClasses, CV_32S);
@@ -277,7 +282,7 @@ cv::Mat Classifier::confusionMatrix(int numClasses, cv::Mat labelsTesting,
 }
 
 std::vector< std::vector<double> > Classifier::classify(double trainingRatio,
-	int numRepetition, Data data, std::string name, double id) {
+    int numRepetition, Data data, std::string name, double id) {
 
 	cv::Mat result, confusionMat;
 	int i, hits, numFeatures, numClasses, rep, numImages, numTraining;
