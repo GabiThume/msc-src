@@ -120,11 +120,12 @@ int main(int argc, char const *argv[]) {
           featuresDir = experimentDir+"features/";
           analysisDir = experimentDir+"analysis/";
           dir = opendir(experimentDir.c_str());
+          std::cout << "newDir " << newDir << std::endl;
           if (!dir) {
             // str = "rm -f -r "+generationDir+"/*;";
-            str = "mkdir -p "+experimentDir+";";
-            str += "mkdir -p "+featuresDir+";";
-            str += "mkdir -p "+analysisDir+";";
+            str = "mkdir -p \""+experimentDir+" \";";
+            str += "mkdir -p \""+featuresDir+"\";";
+            str += "mkdir -p \""+analysisDir+"\";";
             system(str.c_str());
             dir = opendir(experimentDir.c_str());
             if (!dir) {
@@ -159,7 +160,7 @@ int main(int argc, char const *argv[]) {
                             to_string(*itOperation) + "/";
             dir = opendir(generationDir.c_str());
           	if (!dir) {
-          		str = "mkdir -p "+generationDir+";";
+          		str = "mkdir -p \""+generationDir+"\";";
           		system(str.c_str());
           		dir = opendir(generationDir.c_str());
           		if (!dir) {
