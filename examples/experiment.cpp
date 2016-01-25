@@ -39,7 +39,7 @@ Master's thesis in Computer Science
 int main(int argc, char const *argv[]) {
   Classifier c;
   cv::Size size;
-  int m, d, operation, i, experiment, j, x, indexDescriptor;
+  int m, d, operation, i, experiment, j, x, indexDescriptor, indexQuantization;
   std::string newDir, baseDir, featuresDir, analysisDir, generationDir, str;
   std::string experimentDir;
   std::vector<ImageClass> imbalancedData;
@@ -65,12 +65,15 @@ int main(int argc, char const *argv[]) {
   // Description {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"}
   // Quantization {"Intensity", "Luminance", "Gleam", "MSB", "MSB-Modified", "BGR", "HSV"}
 
-  // std::vector <int> descriptors {0, 5, 6};
-  // std::vector <int> quant {0, 2, 1};
+  std::vector <int> descriptors {0, 1, 2, 3, 4, 5, 6, 7};
+  std::vector <int> quantizations {0, 1, 2, 3, 4, 5, 6};
 
-  std::vector <int> descriptors {0};
-  std::vector <int> quant {0};
-  std::vector <int> operations {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  // std::vector <int> descriptors {0, 5, 6};
+  // std::vector <int> quantizations {0, 2, 1};
+
+  // std::vector <int> descriptors {0};
+  // std::vector <int> quantizations {0};
+  std::vector <int> operations {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
   Rebalance r;
   r.extractor.ccvThreshold = 25;
@@ -120,12 +123,12 @@ int main(int argc, char const *argv[]) {
           featuresDir = experimentDir+"features/";
           analysisDir = experimentDir+"analysis/";
           dir = opendir(experimentDir.c_str());
-          std::cout << "newDir " << newDir << std::endl;
           if (!dir) {
             // str = "rm -f -r "+generationDir+"/*;";
-            str = "mkdir -p \""+experimentDir+" \";";
+            str = "mkdir -p \""+experimentDir+"\";";
             str += "mkdir -p \""+featuresDir+"\";";
             str += "mkdir -p \""+analysisDir+"\";";
+            std::cout << str << std::endl;
             system(str.c_str());
             dir = opendir(experimentDir.c_str());
             if (!dir) {
@@ -161,6 +164,7 @@ int main(int argc, char const *argv[]) {
             dir = opendir(generationDir.c_str());
           	if (!dir) {
           		str = "mkdir -p \""+generationDir+"\";";
+              std::cout << str << std::endl;
           		system(str.c_str());
           		dir = opendir(generationDir.c_str());
           		if (!dir) {
@@ -181,56 +185,61 @@ int main(int argc, char const *argv[]) {
               indexDescriptor < (int)descriptors.size();
               indexDescriptor++) {
             d = descriptors[indexDescriptor];
-            m = quant[indexDescriptor];
 
-            r.performFeatureExtraction(d, m, false);
+            for (indexQuantization = 0;
+                indexQuantization < (int)quantizations.size();
+                indexQuantization++) {
 
-            // Perform SMOTE subsampling
-            r.performSmote(&r.data, 1);
+              m = quantizations[indexQuantization];
 
-            r.writeFeatures(featuresDir+"unbalanced_");
+              r.performFeatureExtraction(d, m, false);
 
-            // Classify original folds
-            c.classify(0.5,  1, r.data, analysisDir + r.extractor.getName() +
-                      "_" + r.quantization.getName() + "_unbalanced_", 1);
+              // Perform SMOTE subsampling
+              r.performSmote(&r.data, 1);
 
-            // Add smote fold as training
-            for (itClass = r.data.classes.begin();
-                itClass != r.data.classes.end();
-                ++itClass) {
-              for (x = 0; x < (int) itClass->smote_fold.size(); x++) {
-                itClass->training_fold.push_back(itClass->smote_fold[x]);
+              r.writeFeatures(featuresDir+"unbalanced_");
+
+              // Classify original folds
+              c.classify(0.5,  1, r.data, analysisDir + r.extractor.getName() +
+                        "_" + r.quantization.getName() + "_unbalanced_", 1);
+
+              // Add smote fold as training
+              for (itClass = r.data.classes.begin();
+                  itClass != r.data.classes.end();
+                  ++itClass) {
+                for (x = 0; x < (int) itClass->smote_fold.size(); x++) {
+                  itClass->training_fold.push_back(itClass->smote_fold[x]);
+                }
+              }
+              // Classify using smote fold as training
+              r.writeFeatures(featuresDir+"smote_");
+              c.classify(0.5,  1, r.data, analysisDir + r.extractor.getName() +
+                        "_" + r.quantization.getName() + "_smote_", 1);
+
+              for (itClass = r.data.classes.begin();
+                  itClass != r.data.classes.end();
+                  ++itClass) {
+                for (x = 0; x < (int) itClass->smote_fold.size(); x++) {
+                  // Remove smote fold as training
+                  itClass->training_fold.erase(
+                    std::remove(itClass->training_fold.begin(),
+                                itClass->training_fold.end(),
+                                itClass->smote_fold[x]),
+                    itClass->training_fold.end()
+                  );
+                  int current_fold = itClass->smote_fold[x];
+                  // Remove all smote data
+                  itClass->images.erase(
+                    std::remove_if(itClass->images.begin(),
+                                  itClass->images.end(),
+                                  [current_fold] (Image y) {
+                                    return (y.fold == current_fold);
+                                  }),
+                    itClass->images.end()
+                  );
+                }
               }
             }
-            // Classify using smote fold as training
-            r.writeFeatures(featuresDir+"smote_");
-            c.classify(0.5,  1, r.data, analysisDir + r.extractor.getName() +
-                      "_" + r.quantization.getName() + "_smote_", 1);
-
-            for (itClass = r.data.classes.begin();
-                itClass != r.data.classes.end();
-                ++itClass) {
-              for (x = 0; x < (int) itClass->smote_fold.size(); x++) {
-                // Remove smote fold as training
-                itClass->training_fold.erase(
-                  std::remove(itClass->training_fold.begin(),
-                              itClass->training_fold.end(),
-                              itClass->smote_fold[x]),
-                  itClass->training_fold.end()
-                );
-                int current_fold = itClass->smote_fold[x];
-                // Remove all smote data
-                itClass->images.erase(
-                  std::remove_if(itClass->images.begin(),
-                                itClass->images.end(),
-                                [current_fold] (Image y) {
-                                  return (y.fold == current_fold);
-                                }),
-                  itClass->images.end()
-                );
-              }
-            }
-
             for (operation = 0;
                 operation < (int)foldsByGeneration.size();
                 operation++) {

@@ -521,6 +521,7 @@ std::vector<int> Artificial::generateImagesFromData(Data *originalData,
 	dir = opendir(newDirectory.c_str());
 	if (!dir) {
 		str = "mkdir -p \""+newDirectory+"\";";
+    std::cout << str << std::endl;
 		system(str.c_str());
 		dir = opendir(newDirectory.c_str());
 		if (!dir) {
@@ -576,7 +577,8 @@ std::vector<int> Artificial::generateImagesFromData(Data *originalData,
 				system(str.c_str());
 				minDir = opendir(generatedPath.c_str());
 				if (!minDir) {
-					std::cout << "Error! Directory " << generatedPath.c_str() << " can't be created." << std::endl;
+					std::cout << "Error! Directory " << generatedPath.c_str();
+          std::cout << " can't be created." << std::endl;
 					exit(1);
 				}
 			}
