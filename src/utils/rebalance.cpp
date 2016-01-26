@@ -239,6 +239,15 @@ void Rebalance::performFeatureExtraction(int extractMethod, int grayMethod,
           // Convert the image to grayscale
           quantization.convert(quantization.numColors, grayMethod, newimg, &newimg);
 
+          /* Write grayscale image
+          // cv::namedWindow("Display window", WINDOW_AUTOSIZE );
+          // imshow("Grayscale Image", *gray);
+          // cv::waitKey(0);
+          std::string quantization[8] = {"Intensity", "Luminance", "Gleam", "MSB", "MSBModified", "Luma", "BGR", "HSV"};
+
+          cv::imwrite(quantization[grayMethod]+"_gray.png", newimg);
+          */
+
           // Call the description method
           extractor.extract(extractor.numColors, 1, extractMethod, newimg, &data.classes[dataClass].images[image].features);
           if (data.classes[dataClass].images[image].features.cols == 0) {
