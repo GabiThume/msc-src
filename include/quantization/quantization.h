@@ -47,7 +47,7 @@ Master's thesis in Computer Science
 
 class GrayscaleConversion {
 
-  std::string quantization[7] = {"Intensity", "Luminance", "Gleam", "MSB", "MSBModified", "BGR", "HSV"};
+  std::string quantization[8] = {"Intensity", "Luminance", "Gleam", "MSB", "MSBModified", "Luma", "BGR", "HSV"};
   public:
     int numColors;
     int method;

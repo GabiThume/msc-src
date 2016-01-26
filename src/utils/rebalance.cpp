@@ -73,6 +73,11 @@ void Rebalance::readImageDirectory(std::string directory) {
   // If it is a path to an image
   img = cv::imread(directory, CV_LOAD_IMAGE_COLOR);
   if (!img.empty()) {
+    data.addClass(classId);
+    newImage.path = directory;
+    newImage.fold = -1;
+    newImage.generationType = -1;
+    data.addImage(classId, newImage);
     img.release();
   } else { // If it is a directory
     root = opendir(directory.c_str());
@@ -82,38 +87,45 @@ void Rebalance::readImageDirectory(std::string directory) {
       imagesDirectory = directory;
       // For each file inside this directory
       while ((classesDir = readdir(root))) {
+        std::cout << ">>> " << classesDir->d_name << std::endl;
         if ((strcmp(classesDir->d_name, ".") != 0) &&
             (strcmp(classesDir->d_name, "..") != 0) &&
             (strcmp(classesDir->d_name, ".DS_Store") != 0) &&
             (strcmp(classesDir->d_name, ".directory") != 0)) {
 
-          classPath = imagesDirectory + "/" + classesDir->d_name;
-          // Is is invalid, skip it
-          if (stat(classPath.c_str(), &filestat)) continue;
-          // If it isn't, try to open and add it as an class
-          if (S_ISDIR(filestat.st_mode)) {
-            newImageClass = opendir(classPath.c_str());
-            if (newImageClass == NULL) {
-              std::cout << "Error while trying to open " << classPath << std::endl;
-            } else {
-              std::cout << "New class in " << classPath << std::endl;
-              data.addClass(classId);
-              // For each file inside it, try to read as an image
-              while ((imagesInClass = readdir(newImageClass))) {
-                filepath = classPath + "/" + imagesInClass->d_name;
-                // Is is invalid, skip it
-                if (stat(filepath.c_str(), &filestat)) continue;
-                img = cv::imread(filepath, CV_LOAD_IMAGE_COLOR);
-                if (!img.empty()) {
-                  std::cout << "Read " << filepath << std::endl;
-                  newImage.path = filepath;
-                  newImage.fold = -1;
-                  newImage.generationType = -1;
-                  data.addImage(classId, newImage);
-                  img.release();
+          img = cv::imread(classesDir->d_name, CV_LOAD_IMAGE_COLOR);
+          if (!img.empty()) {
+            img.release();
+          }
+          else {
+            classPath = imagesDirectory + "/" + classesDir->d_name;
+            // Is is invalid, skip it
+            if (stat(classPath.c_str(), &filestat)) continue;
+            // If it isn't, try to open and add it as an class
+            if (S_ISDIR(filestat.st_mode)) {
+              newImageClass = opendir(classPath.c_str());
+              if (newImageClass == NULL) {
+                std::cout << "Error while trying to open " << classPath << std::endl;
+              } else {
+                std::cout << "New class in " << classPath << std::endl;
+                data.addClass(classId);
+                // For each file inside it, try to read as an image
+                while ((imagesInClass = readdir(newImageClass))) {
+                  filepath = classPath + "/" + imagesInClass->d_name;
+                  // Is is invalid, skip it
+                  if (stat(filepath.c_str(), &filestat)) continue;
+                  img = cv::imread(filepath, CV_LOAD_IMAGE_COLOR);
+                  if (!img.empty()) {
+                    std::cout << "Read " << filepath << std::endl;
+                    newImage.path = filepath;
+                    newImage.fold = -1;
+                    newImage.generationType = -1;
+                    data.addImage(classId, newImage);
+                    img.release();
+                  }
                 }
+                classId++;
               }
-              classId++;
             }
           }
         } else {
@@ -225,10 +237,10 @@ void Rebalance::performFeatureExtraction(int extractMethod, int grayMethod,
           }
 
           // Convert the image to grayscale
-          quantization.convert(64, grayMethod, newimg, &newimg);
+          quantization.convert(quantization.numColors, grayMethod, newimg, &newimg);
 
           // Call the description method
-          extractor.extract(64, 1, extractMethod, newimg, &data.classes[dataClass].images[image].features);
+          extractor.extract(extractor.numColors, 1, extractMethod, newimg, &data.classes[dataClass].images[image].features);
           if (data.classes[dataClass].images[image].features.cols == 0) {
             std::cout << "Error: the feature vector is empty" << std::endl;
             exit(1);

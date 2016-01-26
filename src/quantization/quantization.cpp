@@ -413,16 +413,16 @@ void GrayscaleConversion::convert(int colors, int method, cv::Mat img, cv::Mat *
     case 4:
       GrayscaleConversion::MSBModified(img, gray, numColors);
       break;
-    case 5: // Keep in BRG
+    case 5:
+      GrayscaleConversion::Luma(img, gray, numColors);
       break;
-    case 6: // Convert BGR -> HSV
+    case 6: // Keep in BRG
+      break;
+    case 7: // Convert BGR -> HSV
       cv::cvtColor(img, (*gray), CV_BGR2HSV);
       break;
     default:
       std::cout << "Error: Color Quantization method " << method;
       std::cout << " does not exists." << std::endl;
   }
-  // cv::namedWindow("Display window", WINDOW_AUTOSIZE );
-  // imshow("Grayscale Image", *gray);
-  // cv::waitKey(0);
 }
