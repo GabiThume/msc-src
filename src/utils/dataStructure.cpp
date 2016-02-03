@@ -265,6 +265,32 @@ int Data::numClasses(void) {
   return classes.size();
 }
 
+int Data::numImages(void) {
+  int num = 0;
+  std::vector<ImageClass>::iterator itClass;
+  for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
+    num += itClass->images.size();
+  }
+  return num;
+}
+
+int Data::isBalanced(void) {
+  int num = -1;
+  std::vector<ImageClass>::iterator itClass;
+  for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
+    if (num == -1) {
+      num = itClass->images.size();
+    }
+    else {
+      if (num != (int) itClass->images.size()) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+
 int Data::numFeatures(void) {
   int num = 0;
   std::vector<ImageClass>::iterator itClass;

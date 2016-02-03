@@ -126,7 +126,7 @@ int main(int argc, char const *argv[]) {
               itClass->smote_fold.clear();
 
               itClass->testing_fold.push_back(i);
-              if (itClass->id == minorityClass->id) {
+              if ((itClass->id == minorityClass->id) && r.data.isBalanced()) {
                 itClass->training_fold.push_back(j);
               }
               else {

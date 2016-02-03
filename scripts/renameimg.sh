@@ -11,10 +11,14 @@
 #
 # done
 
-# zero filling
-mogrify -format png *.jpg; rm *.jpg;
+cd=$1
 
-i=$1
+# zero filling
+mogrify -format png */*.jpg;
+mogrify -resize 256x256 */*.png;
+# rm */*.jpg;
+
+i=$2
 for file in *.png
 do
         j=$( printf "%d" "$i" )

@@ -28,6 +28,7 @@ class Data {
 
 		void release(void);
 		int numClasses(void);
+    int numImages(void);
 		int numTrainingImages(int id);
 		int numTestingImages(int id);
 		int biggestClass(void);
@@ -35,6 +36,7 @@ class Data {
 		int biggestTrainingNumber(void);
 		int smallerClass(void);
 		int smallerTrainingClass(void);
+    int isBalanced(void);
 		int isFreeTrainOrTest(int id, int fold);
 		int isOriginalSmoteOrGenerated(int id, int fold);
 		bool readFeaturesFromFile(std::string filename);
