@@ -49,6 +49,8 @@ int main(int argc, char const *argv[]) {
   std::vector<ImageClass>::iterator itClass, minorityClass;
   std::vector<int>::iterator itOperation;
   std::vector< vector<int> > foldsByGeneration;
+  std::vector <int> descriptors;
+  std::vector <int> quantizations;
 
   int k = 5;
   if (argc < 3) {
@@ -60,19 +62,32 @@ int main(int argc, char const *argv[]) {
   newDir = std::string(argv[1]);
   baseDir = std::string(argv[2]);
 
-  srand(time(NULL));
-  //  Available methods:
-  // Description {"BIC", "GCH", "CCV", "Haralick6", "ACC", "LBP", "HOG", "Contour"}
-  // Quantization {"Intensity", "Luminance", "Gleam", "MSB", "MSB-Modified", "Luma", "BGR", "HSV"}
-
-  std::vector <int> descriptors {0, 1, 2, 3, 4, 5, 6, 7};
-  std::vector <int> quantizations {0, 1, 2, 3, 4, 5};
-
+  /*  Available methods
+    Description:
+  0-BIC, 1-GCH, 2-CCV, 3-Haralick6, 4-ACC, 5-LBP, 6-HOG, 7-Contour
+    Quantization:
+  0-Intensity, 1-Luminance, 2-Gleam, 3-MSB, 4-MSBModified, 5-Luma, 6-BGR, 7-HSV
+  */
   // std::vector <int> descriptors {0, 5, 6};
   // std::vector <int> quantizations {0, 2, 1};
+  if (argc == 5) {
+    descriptors.push_back(atoi(argv[3]));
+    quantizations.push_back(atoi(argv[4]));
+  }
+  else {
+    int b[6] = {0, 1, 2, 3, 4, 5};
+    quantizations.insert(quantizations.end(), b, b+(sizeof(b)/sizeof(b[0])));
+    if (argc == 6) {
+      descriptors.push_back(atoi(argv[5]));
+    }
+    else {
+      int d[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+      descriptors.insert(descriptors.end(), d, d+(sizeof(d)/sizeof(d[0])));
+    }
+  }
 
-  // std::vector <int> descriptors {0};
-  // std::vector <int> quantizations {0};
+  srand(time(NULL));
+
   std::vector <int> operations {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
   Rebalance r;
@@ -188,6 +203,7 @@ int main(int argc, char const *argv[]) {
             for (indexDescriptor = 0;
                 indexDescriptor < (int)descriptors.size();
                 indexDescriptor++) {
+
               d = descriptors[indexDescriptor];
 
               for (indexQuantization = 0;
@@ -243,36 +259,36 @@ int main(int argc, char const *argv[]) {
                     );
                   }
                 }
-              }
-              for (operation = 0;
-                  operation < (int)foldsByGeneration.size();
-                  operation++) {
-                // Add generated fold as training
-                for (itClass = r.data.classes.begin();
-                    itClass != r.data.classes.end();
-                    ++itClass) {
-                  for (x = 0; x < (int)foldsByGeneration[operation].size(); x++) {
-                    itClass->training_fold.push_back(
-                      foldsByGeneration[operation][x]
-                    );
+                for (operation = 0;
+                    operation < (int)foldsByGeneration.size();
+                    operation++) {
+                  // Add generated fold as training
+                  for (itClass = r.data.classes.begin();
+                      itClass != r.data.classes.end();
+                      ++itClass) {
+                    for (x = 0; x < (int)foldsByGeneration[operation].size(); x++) {
+                      itClass->training_fold.push_back(
+                        foldsByGeneration[operation][x]
+                      );
+                    }
                   }
-                }
-                // Classify using generated fold as training
-                r.writeFeatures(featuresDir + "artificial_" +
-                                to_string(operations[operation]) + "_");
-                c.classify(0.5,  1, r.data, analysisDir + r.extractor.getName() +
-                          "_" + r.quantization.getName() + "_artificial_" + to_string(operations[operation]) + "_", 1);
-                for (itClass = r.data.classes.begin();
-                    itClass != r.data.classes.end();
-                    ++itClass) {
-                  for (x = 0; x < (int)foldsByGeneration[operation].size(); x++) {
-                    // Remove generated fold as training
-                    itClass->training_fold.erase(
-                      std::remove(itClass->training_fold.begin(),
-                                  itClass->training_fold.end(),
-                                  foldsByGeneration[operation][x]),
-                      itClass->training_fold.end()
-                    );
+                  // Classify using generated fold as training
+                  r.writeFeatures(featuresDir + "artificial_" +
+                                  to_string(operations[operation]) + "_");
+                  c.classify(0.5,  1, r.data, analysisDir + r.extractor.getName() +
+                            "_" + r.quantization.getName() + "_artificial_" + to_string(operations[operation]) + "_", 1);
+                  for (itClass = r.data.classes.begin();
+                      itClass != r.data.classes.end();
+                      ++itClass) {
+                    for (x = 0; x < (int)foldsByGeneration[operation].size(); x++) {
+                      // Remove generated fold as training
+                      itClass->training_fold.erase(
+                        std::remove(itClass->training_fold.begin(),
+                                    itClass->training_fold.end(),
+                                    foldsByGeneration[operation][x]),
+                        itClass->training_fold.end()
+                      );
+                    }
                   }
                 }
               }

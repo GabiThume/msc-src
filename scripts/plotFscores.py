@@ -79,6 +79,6 @@ for descriptor in descriptors:
     # print data.describe().transpose()[['mean', 'std', 'max', 'min']]
     # print data.describe().transpose()[['mean', 'std']]
     if not data.empty:
-        p = data.plot(kind='box', vert=False)
+        p = data.plot(kind='box', vert=False, xlim=(30,100))
         fig = p.get_figure()
         fig.savefig(directory+descriptor+'_'+quantization+'_'+name+'.png', bbox_inches='tight')

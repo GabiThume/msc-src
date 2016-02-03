@@ -599,9 +599,14 @@ std::vector<int> Artificial::generateImagesFromData(Data *originalData,
 
 				nameGeneratedImage = generatedPath + std::to_string(trainingImagesInClass+i) + ".png";
 
-        // vector<Mat> images, string name, int total, int generationType
-				GenerateImage(images, nameGeneratedImage, trainingImagesInClass,
-                      generationType);
+        // If there is already this image, only to store in data is necessary
+        if (FILE *file = fopen(nameGeneratedImage.c_str(), "r")) {
+          fclose(file);
+        }
+        else {
+  				GenerateImage(images, nameGeneratedImage, trainingImagesInClass,
+            generationType);
+        }
 
 				newImage.features.release();
 				newImage.fold = generatedFold;

@@ -87,7 +87,6 @@ void Rebalance::readImageDirectory(std::string directory) {
       imagesDirectory = directory;
       // For each file inside this directory
       while ((classesDir = readdir(root))) {
-        std::cout << ">>> " << classesDir->d_name << std::endl;
         if ((strcmp(classesDir->d_name, ".") != 0) &&
             (strcmp(classesDir->d_name, "..") != 0) &&
             (strcmp(classesDir->d_name, ".DS_Store") != 0) &&
