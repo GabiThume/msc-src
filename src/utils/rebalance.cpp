@@ -294,8 +294,10 @@ void Rebalance::performSmote(Data *imbalancedData, int operation) {
     if (amountSmote > 0) {
       cv::Mat dataTraining(0, numFeatures, CV_32FC1);
 
-      //neighbors = 5;
       neighbors = (double)amountSmote/(double)trainingInThisClass;
+      if (neighbors < 2) {
+        neighbors = 5;
+      }
       std::cout << "Number of neighbors: " << neighbors << std::endl;
 
       for (itImage = itClass->images.begin();
