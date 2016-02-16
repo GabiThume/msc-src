@@ -332,7 +332,7 @@ int main(int argc, char const *argv[]) {
               }
             }
             experiment++;
-            if (argc < 5) {
+            if (argc == 5) {
               str = "rm -rf \""+featuresDir+"\";";
               std::cout << str << std::endl;
               system(str.c_str());
