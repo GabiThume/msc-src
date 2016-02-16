@@ -542,6 +542,7 @@ std::vector<int> Artificial::generateImagesFromData(Data *originalData,
 			++itClass) {
 		/* Find out how many samples are needed to rebalance */
 		trainingImagesInClass = (*originalData).numTrainingImages(itClass->id);
+
 		rebalance = biggest - trainingImagesInClass;
 		if (rebalance > 0) {
 
@@ -601,6 +602,8 @@ std::vector<int> Artificial::generateImagesFromData(Data *originalData,
 
         // If there is already this image, only to store in data is necessary
         if (FILE *file = fopen(nameGeneratedImage.c_str(), "r")) {
+          std::cout << "Image " << nameGeneratedImage;
+          std::cout << " already exists" << std::endl;
           fclose(file);
         }
         else {
@@ -621,7 +624,7 @@ std::vector<int> Artificial::generateImagesFromData(Data *originalData,
 			std::cout << rebalance << " images were generated and the class ";
 			std::cout << itClass->id << " is now balanced." << std::endl;
 			std::cout << "---------------------------------------------" << std::endl;
-			images.clear();
+      std::vector<cv::Mat>().swap(images);
 		}
 	}
 	return generated_fold;

@@ -53,7 +53,7 @@ for descriptor in descriptors:
             csvData = np.loadtxt(open(fileName, "rb"), delimiter=",", skiprows=0)
             smote_data.append(csvData)
 
-        for generationType in range(1,11):
+        for generationType in range(0,11):
             fileName = directory + "/experiment-" + str(experiment) + "/analysis/" + descriptor + "_" + quantization + "_artificial_" + str(generationType) + "_FScore.csv"
 
             if os.path.exists(fileName):
@@ -62,21 +62,20 @@ for descriptor in descriptors:
 
     data = pd.DataFrame({
         'Desbalanceado' : pd.Series(unbalanced_data, dtype='float'),
-        # ' SMOTE' : pd.Series(smote_data, dtype='float'),
-        # # 'Artificial - 0: '+operations[0] : pd.Series(generated_data[0], dtype='float'),
-        # operations[1] : pd.Series(generated_data[1], dtype='float'),
-        # operations[2] : pd.Series(generated_data[2], dtype='float'),
-        # operations[3] : pd.Series(generated_data[3], dtype='float'),
-        # operations[4] : pd.Series(generated_data[4], dtype='float'),
-        # operations[5] : pd.Series(generated_data[5], dtype='float'),
-        # operations[6] : pd.Series(generated_data[6], dtype='float'),
-        # operations[7] : pd.Series(generated_data[7], dtype='float'),
-        # operations[8] : pd.Series(generated_data[8], dtype='float'),
-        # operations[9] : pd.Series(generated_data[9], dtype='float'),
-        # operations[10] : pd.Series(generated_data[10], dtype='float'),
+        ' SMOTE'        : pd.Series(smote_data, dtype='float'),
+        # operations[0]   : pd.Series(generated_data[0], dtype='float'),
+        operations[1]   : pd.Series(generated_data[1], dtype='float'),
+        operations[2]   : pd.Series(generated_data[2], dtype='float'),
+        operations[3]   : pd.Series(generated_data[3], dtype='float'),
+        operations[4]   : pd.Series(generated_data[4], dtype='float'),
+        operations[5]   : pd.Series(generated_data[5], dtype='float'),
+        operations[6]   : pd.Series(generated_data[6], dtype='float'),
+        operations[7]   : pd.Series(generated_data[7], dtype='float'),
+        operations[8]   : pd.Series(generated_data[8], dtype='float'),
+        operations[9]   : pd.Series(generated_data[9], dtype='float'),
+        operations[10]  : pd.Series(generated_data[10], dtype='float'),
     })
     # print data
-    # print data.describe().transpose()[['mean', 'std', 'max', 'min']]
     print descriptor, quantization, data.describe().transpose()[['mean', 'std']]
     if not data.empty:
         p = data.plot(kind='box', vert=False, xlim=(30,100))
