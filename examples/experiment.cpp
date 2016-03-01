@@ -63,12 +63,6 @@ int main(int argc, char const *argv[]) {
   newDir = std::string(argv[1]);
   baseDir = std::string(argv[2]);
 
-  /*  Available methods
-    Description:
-  0-BIC, 1-GCH, 2-CCV, 3-Haralick6, 4-ACC, 5-LBP, 6-HOG, 7-Contour
-    Quantization:
-  0-Intensity, 1-Luminance, 2-Gleam, 3-MSB, 4-MSBModified, 5-Luma, 6-BGR, 7-HSV
-  */
   // std::vector <int> descriptors {0, 5, 6};
   // std::vector <int> quantizations {0, 2, 1};
   if (argc == 5) {
@@ -76,13 +70,21 @@ int main(int argc, char const *argv[]) {
     quantizations.push_back(atoi(argv[4]));
   }
   else {
-    int b[6] = {0, 1, 2, 3, 4, 5};
+    /*  Available methods
+      Quantization:
+    0-Intensity, 1-Luminance, 2-Gleam, 3-MSB, 4-MSBModified, 5-Luma, 6-BGR, 7-HSV
+    */
+    int b[6] = {0, 1, 2, 3, 5};
     quantizations.insert(quantizations.end(), b, b+(sizeof(b)/sizeof(b[0])));
     if (argc == 6) {
       descriptors.push_back(atoi(argv[5]));
     }
     else {
-      int d[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+      /*  Available methods
+        Description:
+      0-BIC, 1-GCH, 2-CCV, 3-Haralick6, 4-ACC, 5-LBP, 6-HOG, 7-Contour
+      */
+      int d[8] = {0, 1, 2, 3, 4, 5, 6};
       descriptors.insert(descriptors.end(), d, d+(sizeof(d)/sizeof(d[0])));
       useAllCombinations = true;
     }

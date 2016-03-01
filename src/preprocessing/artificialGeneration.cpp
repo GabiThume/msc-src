@@ -189,8 +189,8 @@ cv::Mat Artificial::generateBlending(cv::Mat first, cv::Mat second){
 /*******************************************************************************
 Artificial generation: Composition
 *******************************************************************************/
-cv::Mat Artificial::generateComposition(cv::Mat originalImage, std::vector<cv::Mat> images,
-		int total, int fator, bool option){
+cv::Mat Artificial::generateComposition(cv::Mat originalImage,
+  std::vector<cv::Mat> images, int total, int fator, bool option){
 
 	std::vector<int> vectorRand;
 	cv::Mat subImg, generated, img, roi, second;
@@ -203,7 +203,8 @@ cv::Mat Artificial::generateComposition(cv::Mat originalImage, std::vector<cv::M
 		do {
 			randomImg = rand() % total;
 		} while(count(vectorRand.begin(), vectorRand.end(), randomImg) &&
-						(int)vectorRand.size() < total);
+			 (int)vectorRand.size() < total);
+
 		vectorRand.push_back(randomImg);
 		images[randomImg].copyTo(img);
 
@@ -232,14 +233,15 @@ cv::Mat Artificial::generateComposition(cv::Mat originalImage, std::vector<cv::M
 		roiHeight = subImg.size().height/sqrt(fator);
 		roiWidth = subImg.size().width/sqrt(fator);
 
-		if (generated.size().width < roiWidth ||
-				generated.size().height < roiHeight){
+		if ((generated.size().width <= roiWidth) ||
+			(generated.size().height <= roiHeight)) {
 			subImage--;
 			continue;
 		}
+
 		if (option){
-			randW = rand() % (generated.size().width - roiWidth);
-			randH = rand() % (generated.size().height - roiHeight);
+			randW = (int) (rand() % (generated.size().width - roiWidth));
+			randH = (int) (rand() % (generated.size().height - roiHeight));
 			generated(cv::Rect(randW, randH, roiWidth, roiHeight)).copyTo(roi);
 		}
 		else{
@@ -487,6 +489,9 @@ void Artificial::GenerateImage(std::vector<cv::Mat> images, std::string name,
 		    break;
 			case 10:
 		    generated = generateComposition(first, images, total, 4, 1);
+		    break;
+      case 11:
+		    generated = generateComposition(first, images, total, 4, 0);
 		    break;
 			default:
 				break;
