@@ -1,0 +1,444 @@
+# elefante-cavalo
+ACC Gleam         Média      Desvio Padrão
+   Todos         91.090913  4.559066
+  Aguçamento     91.002678  4.907016
+  Borramento     89.394500  5.103498
+  Composição 16  90.934305  4.399334
+  Composição 4   91.773528  4.909852
+  Limiares       90.893133  5.285833
+  Mistura        90.177055  4.409787
+  Ruído          89.337770  5.169757
+  SMOTE Visual   88.616535  5.567976
+  Saliência      91.282655  4.230281
+ SMOTE           90.173808  4.566863
+Desbalanceado    88.258567  5.538461
+
+HOG MSB         Média       Desvio Padrão
+   Todos         60.000127  12.063967
+  Aguçamento     54.809555  10.610213
+  Borramento     55.588173  13.275734
+  Composição 16  55.667145  13.341421
+  Composição 4   55.652205  13.323408
+  Limiares       55.652268  11.547820
+  Mistura        57.826535  10.882912
+  Ruído          62.174910  10.746760
+  SMOTE Visual   58.920085  14.765860
+  Saliência      56.322367  12.169296
+ SMOTE           58.342450  13.768688
+Desbalanceado    55.667145  13.341421
+
+# leafs
+CCV Intensity         Média      Desvio Padrão
+   Todos         57.353742  7.836745
+  Aguçamento     56.445753  8.733590
+  Borramento     58.787980  6.171935
+  Composição 16  55.412412  7.886897
+  Composição 4   56.299638  8.453923
+  Limiares       57.655005  8.514697
+  Mistura        58.248577  8.153029
+  Ruído          55.554812  7.398869
+  SMOTE Visual   53.557565  9.091481
+  Saliência      60.390612  7.593063
+ SMOTE           59.572190  7.617556
+Desbalanceado    53.446988  9.096767
+HOG Luminance         Média      Desvio Padrão
+   Todos         89.419685  5.385949
+  Aguçamento     90.349900  4.957448
+  Borramento     88.192345  5.883145
+  Composição 16  88.192345  5.883145
+  Composição 4   88.192345  5.883145
+  Limiares       89.695107  5.133200
+  Mistura        88.516380  5.908127
+  Ruído          88.973907  5.733604
+  SMOTE Visual   89.573522  5.457095
+  Saliência      89.422038  5.529887
+ SMOTE           91.904057  4.951265
+Desbalanceado    88.192345  5.883145
+
+--------------------------------------------------------------------------------
+# shark-fish
+LBP Luma         Média      Desvio Padrão
+   Todos         77.128293  2.064232
+  Aguçamento     76.862198  1.786898
+  Borramento     73.919025  1.942236
+  Composição 16  75.435960  2.254193
+  Composição 4   74.359165  1.974563
+  Limiares       78.330465  1.768789
+  Mistura        77.381940  2.588103
+  Ruído          74.094233  1.743535
+  SMOTE Visual   74.569545  1.648100
+  Saliência      76.934077  2.114528
+ SMOTE           78.066890  2.107176
+Desbalanceado    73.378227  2.110355
+HOG Luma         Média       Desvio Padrão
+   Todos         51.441720  12.921923
+  Aguçamento     60.974365   4.566761
+  Borramento     56.753103   8.141379
+  Composição 16  56.729255   8.149596
+  Composição 4   56.723105   8.117873
+  Limiares       58.216875   6.972602
+  Mistura        59.222603   6.725825
+  Ruído          48.840517  12.176960
+  SMOTE Visual   49.560188  12.596971
+  Saliência      57.425075   7.524789
+ SMOTE           55.772368  10.372273
+Desbalanceado    56.729255   8.149596
+
+# deer-ship (na verdade HOG + Gleam eh o melhor, esse é o segundo.. Estou executando)
+BIC Intensity         Média      Desvio Padrão
+   Todos         65.431370  2.799342
+  Aguçamento     65.188915  3.281004
+  Borramento     63.488553  3.503907
+  Composição 16  62.939457  4.973968
+  Composição 4   64.817532  3.000917
+  Limiares       65.302370  3.971531
+  Mistura        66.622320  2.168573
+  Ruído          65.252775  3.708126
+  SMOTE Visual   63.970098  4.387996
+  Saliência      61.360243  6.375795
+ SMOTE           65.890510  2.580050
+Desbalanceado    61.324940  6.399931
+
+HOG Luminance         Média       Desvio Padrão
+   Todos         76.943262  11.987216
+  Aguçamento     88.543585   1.071653
+  Borramento     86.433785   1.237458
+  Composição 16  86.375845   1.283784
+  Composição 4   86.453155   1.490277
+  Limiares       88.765895   0.739739
+  Mistura        88.824668   0.778468
+  Ruído          70.955310  15.861263
+  SMOTE Visual   75.044527  13.370179
+  Saliência      86.364902   1.302785
+ SMOTE           59.963027   4.079902
+Desbalanceado    86.347927   1.296021
+
+# praia-montanha
+CCV Intensity         Média      Desvio Padrão
+   Todos         62.575862  9.905884
+  Aguçamento     63.814715  9.624739
+  Borramento     59.715540  9.573895
+  Composição 16  63.483600  9.254585
+  Composição 4   63.710293  9.712621
+  Limiares       62.672918  7.094490
+  Mistura        59.175832  9.285129
+  Ruído          62.400590  8.466055
+  SMOTE Visual   58.441063  9.922086
+  Saliência      63.798380  8.839500
+ SMOTE           65.135558  9.063208
+Desbalanceado    56.746177  9.851582
+CCV Luma         Média      Desvio Padrão
+   Todos         65.731522  6.094579
+  Aguçamento     66.517217  6.472761
+  Borramento     64.771162  8.350224
+  Composição 16  66.469050  6.735943
+  Composição 4   65.975583  6.829901
+  Limiares       64.821310  7.326461
+  Mistura        64.342090  8.274514
+  Ruído          65.570220  7.817569
+  SMOTE Visual   64.258052  8.338041
+  Saliência      65.701602  5.742212
+ SMOTE           67.829778  8.018073
+Desbalanceado    62.974503  8.351932
+
+--------------------------------------------------------------------------------
+
+# caltech
+CCV Luma           mean      Desvio Padrão
+   Todos         32.310205  5.124719
+  Aguçamento     32.323863  4.842180
+  Borramento     32.098333  4.964983
+  Composição 16  32.291380  4.749573
+  Composição 4   32.353122  4.842966
+  Limiares       32.881367  4.665450
+  Mistura        31.749173  4.806095
+  Ruído          31.551965  4.801347
+  SMOTE Visual   30.605105  4.748897
+  Saliência      32.021265  4.866437
+ SMOTE           32.609082  4.600097
+Desbalanceado    31.339258  4.904720
+HOG Intensity         Média      Desvio Padrão
+   Todos         77.591493  3.387543
+  Aguçamento     76.982412  3.482750
+  Borramento     75.736587  3.812333
+  Composição 16  75.742438  3.823391
+  Composição 4   75.787022  3.794589
+  Limiares       76.785628  3.652596
+  Mistura        77.186702  3.382386
+  Ruído          77.344959  3.664212
+  SMOTE Visual   75.486170  4.405685
+  Saliência      76.587268  3.600158
+ SMOTE           77.755417  3.529355
+Desbalanceado    75.732382  3.833682
+
+# corel
+LBP Gleam                       mean       std
+   Todos         61.216388  2.205391
+  Aguçamento     61.098384  2.275732
+  Borramento     60.369376  2.254895
+  Composição 16  60.630235  2.212156
+  Composição 4   60.568624  2.254904
+  Limiares       61.296003  2.101686
+  Mistura        61.366671  2.225635
+  Ruído          60.825884  2.358098
+  SMOTE Visual   60.886122  2.321783
+  Saliência      61.050988  2.271443
+ SMOTE           61.368896  2.148675
+Desbalanceado    60.362256  2.290263
+LBP MSB                       mean       std
+   Todos         57.210442  3.744924
+  Aguçamento     57.088167  3.804031
+  Borramento     56.733362  3.829360
+  Composição 16  57.002406  3.800792
+  Composição 4   56.863346  3.796709
+  Limiares       57.495513  3.869726
+  Mistura        57.751719  3.756804
+  Ruído          56.752651  3.678322
+  SMOTE Visual   56.400359  3.558930
+  Saliência      57.437298  3.773111
+ SMOTE           57.663756  3.887890
+Desbalanceado    56.554079  3.860002
+
+# dtd-3
+CCV MSB         Média      Desvio Padrão
+   Todos         50.014875  6.920990
+  Aguçamento     49.509720  7.668507
+  Borramento     49.948920  7.685131
+  Composição 16  49.610573  6.654422
+  Composição 4   50.452450  7.348440
+  Limiares       51.533113  7.352758
+  Mistura        50.718318  6.782458
+  Ruído          48.576857  8.047922
+  SMOTE Visual   49.313247  7.111819
+  Saliência      51.553817  7.135818
+ SMOTE           50.256637  6.988601
+Desbalanceado    47.045110  7.386726
+LBP Luminance         Média      Desvio Padrão
+   Todos         65.888525  5.160787
+  Aguçamento     65.113232  4.791274
+  Borramento     63.215212  6.113617
+  Composição 16  64.174632  5.985990
+  Composição 4   63.304767  6.020630
+  Limiares       66.111205  5.722652
+  Mistura        65.870268  5.092446
+  Ruído          64.808212  4.774068
+  SMOTE Visual   65.191322  5.502901
+  Saliência      65.721438  5.768244
+ SMOTE           65.738165  5.116455
+Desbalanceado    62.351115  5.689125
+
+# tropical_fruits1400
+LBP Luma         Média      Desvio Padrão
+   Todos         91.645504  1.953079
+  Aguçamento     91.461692  2.045135
+  Borramento     91.487007  2.020616
+  Composição 16  91.503759  2.031501
+  Composição 4   91.469747  2.029588
+  Limiares       91.792760  1.971010
+  Mistura        91.925818  1.928285
+  Ruído          91.489904  2.028988
+  SMOTE Visual   91.471437  2.027512
+  Saliência      91.744950  1.991271
+ SMOTE           91.853505  1.964750
+Desbalanceado    91.489904  2.028988
+HOG MSB         Média      Desvio Padrão
+   Todos         77.742523  3.439656
+  Aguçamento     86.937887  3.231634
+  Borramento     86.635640  3.399867
+  Composição 16  86.635640  3.399867
+  Composição 4   86.638271  3.399586
+  Limiares       86.818014  3.344101
+  Mistura        87.098318  3.270390
+  Ruído          75.722874  3.370713
+  SMOTE Visual   78.905535  5.169790
+  Saliência      86.860756  3.320881
+ SMOTE           85.543933  3.699019
+Desbalanceado    86.635640  3.399867
+
+#leafsnap-1000
+BIC Intensity                       mean       std
+   Todos         48.917594  4.560108
+  Aguçamento     48.910608  4.475141
+  Borramento     48.553919  4.560730
+  Composição 16  48.654596  4.547956
+  Composição 4   48.534639  4.530744
+  Limiares       48.753526  4.497595
+  Mistura        49.415185  4.569106
+  Ruído          48.569050  4.470451
+  SMOTE Visual   48.247184  4.450895
+  Saliência      48.791881  4.398131
+ SMOTE           49.199615  4.554478
+Desbalanceado    48.435470  4.529753
+LBP Luminance                       mean       std
+   Todos         78.905411  3.348997
+  Aguçamento     78.612489  3.300262
+  Borramento     78.593229  3.295912
+  Composição 16  78.616005  3.275804
+  Composição 4   78.628111  3.292501
+  Limiares       79.043149  3.300982
+  Mistura        79.173620  3.265524
+  Ruído          78.611838  3.282242
+  SMOTE Visual   78.640565  3.299991
+  Saliência      79.082399  3.265916
+ SMOTE           79.325838  3.291948
+Desbalanceado    78.611838  3.282242
+
+--------------------------------------------------------------------------------
+## Naturalmente desbalanceados
+
+# Bigben + museu
+CCV Intensity         Média      Desvio Padrão
+   Todos         56.212500  2.714247
+  Aguçamento     60.676030  4.710675
+  Borramento     60.351503  4.155252
+  Composição 16  66.580947  7.016479
+  Composição 4   63.987452  3.468676
+  Limiares       60.631843  2.907331
+  Mistura        56.600202  3.550611
+  Ruído          57.359880  3.574094
+  SMOTE Visual   59.479700  5.368689
+  Saliência      61.335735  3.363669
+ SMOTE           63.360295  4.908738
+Desbalanceado    66.259100  7.173544
+HOG Gleam         Média      Desvio Padrão
+   Todos         82.733200  3.231024
+  Aguçamento     95.067560  2.954127
+  Borramento     96.138760  1.333680
+  Composição 16  95.958713  1.412477
+  Composição 4   95.741642  1.708952
+  Limiares       94.405550  2.297024
+  Mistura        95.248790  1.945429
+  Ruído          85.424083  3.041741
+  SMOTE Visual   77.874767  3.500503
+  Saliência      95.767123  2.649306
+ SMOTE           86.364565  1.908916
+Desbalanceado    96.138760  1.333680
+
+# eiffel + trafalgar
+BIC Gleam         Média      Desvio Padrão
+   Todos         59.175302  2.532414
+  Aguçamento     58.049800  5.800853
+  Borramento     61.067525  4.546042
+  Composição 16  60.540642  4.572195
+  Composição 4   60.326013  4.834876
+  Limiares       60.277397  3.093546
+  Mistura        57.930468  3.552764
+  Ruído          61.145358  2.174345
+  SMOTE Visual   58.898637  4.688396
+  Saliência      59.591055  2.457358
+ SMOTE           60.810838  2.992142
+Desbalanceado    60.698560  6.584647
+HOG MSB         Média      Desvio Padrão
+   Todos         88.616130  1.952745
+  Aguçamento     98.345625  1.755180
+  Borramento     97.173480  2.760269
+  Composição 16  97.206953  2.712589
+  Composição 4   97.301088  2.381761
+  Limiares       98.628050  1.142830
+  Mistura        99.112148  0.837440
+  Ruído          91.499965  1.762218
+  SMOTE Visual   82.963755  2.678785
+  Saliência      98.246915  1.526565
+ SMOTE           98.471765  0.788747
+Desbalanceado    97.173480  2.760269
+
+# eiffel + ponte
+LBP Luma         Média       Desvio Padrão
+   Todos         69.303225   2.789350
+  Aguçamento     75.541880   8.889638
+  Borramento     80.487440  11.091993
+  Composição 16  75.096575   8.751236
+  Composição 4   78.556665   9.010462
+  Limiares       76.000980   6.099727
+  Mistura        73.056525   3.600406
+  Ruído          78.827550   9.912278
+  SMOTE Visual   73.581905   8.446787
+  Saliência      78.687970   5.561384
+ SMOTE           74.486350   5.233649
+Desbalanceado    82.413120  11.559015
+HOG Luminance         Média       Desvio Padrão
+   Todos         77.565535   5.736038
+  Aguçamento     87.831980   7.131054
+  Borramento     85.051780   9.944614
+  Composição 16  85.051780   9.944614
+  Composição 4   85.568245  10.297901
+  Limiares       86.213200  10.666406
+  Mistura        90.312440   7.453625
+  Ruído          75.816045   6.804065
+  SMOTE Visual   74.099885   4.337487
+  Saliência      85.713360  10.535782
+ SMOTE           90.439670   6.400823
+Desbalanceado    85.051780   9.944614
+
+# industrial + suburb
+BIC MSB         Média      Desvio Padrão
+   Todos         78.195328  3.418888
+  Aguçamento     78.581518  2.903253
+  Borramento     81.092040  3.245369
+  Composição 16  79.614572  3.239193
+  Composição 4   79.145692  2.975621
+  Limiares       80.118585  4.181324
+  Mistura        79.916205  3.253547
+  Ruído          78.214967  3.466563
+  SMOTE Visual   79.519672  3.150122
+  Saliência      80.908200  2.956950
+ SMOTE           81.167090  3.326338
+Desbalanceado    81.651020  3.148817
+HOG Luma         Média      Desvio Padrão
+   Todos         73.782638  3.246911
+  Aguçamento     86.121235  3.941179
+  Borramento     89.424940  2.199974
+  Composição 16  89.133062  2.157975
+  Composição 4   89.065823  2.066247
+  Limiares       85.824543  2.896445
+  Mistura        87.489563  2.597712
+  Ruído          66.763493  2.592067
+  SMOTE Visual   64.728147  3.372146
+  Saliência      88.876352  2.522921
+ SMOTE           79.530137  3.472731
+Desbalanceado    89.424940  2.199974
+
+# BigBen + EiffelTower + PisaTower
+Calculando....
+aproximadamente:
+HOG Luma            mean      Desvio Padrão
+   Todos         83.496547  1.196155
+  Aguçamento     87.251637  1.133154
+  Borramento     87.599020  1.454053
+  Composição 16  87.581190  1.422815
+  Composição 4   87.511742  1.454026
+  Limiares       87.515533  1.750865
+  Mistura        87.673032  1.544966
+  Ruído          84.720972  0.945714
+  SMOTE Visual   82.112053  1.084733
+  Saliência      87.835032  1.537915
+ SMOTE           85.031103  1.473573
+Desbalanceado    87.580400  1.418706
+
+# TrafalgarSquare + MadeleineChurch + Pantheon
+HOG Gleam           mean      Desvio Padrão
+   Todos         57.285167  6.383771
+  Aguçamento     69.726448  8.069939
+  Borramento     70.621480  8.314352
+  Composição 16  70.478478  8.366100
+  Composição 4   70.837125  7.811876
+  Limiares       67.965067  5.699239
+  Mistura        65.644708  6.112751
+  Ruído          60.777810  8.257640
+  SMOTE Visual   53.912270  7.907406
+  Saliência      67.584110  6.236710
+ SMOTE           62.322870  5.726037
+Desbalanceado    70.621480  8.314352
+LBP MSB            mean      Desvio Padrão
+   Todos         50.918755  5.202628
+  Aguçamento     55.421382  4.013506
+  Borramento     58.098552  5.141085
+  Composição 16  56.220720  4.458686
+  Composição 4   57.282263  4.516686
+  Limiares       50.161918  4.278987
+  Mistura        49.866195  5.770862
+  Ruído          58.392777  5.030586
+  SMOTE Visual   53.879860  3.292420
+  Saliência      53.224420  4.686609
+ SMOTE           54.340473  6.921971
+Desbalanceado    58.672760  4.916962
