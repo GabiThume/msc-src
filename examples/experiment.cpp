@@ -40,6 +40,7 @@ int main(int argc, char const *argv[]) {
   Classifier c;
   cv::Size size;
   int m, d, operation, i, experiment, j, x, indexDescriptor, indexQuantization;
+  int number_trainings_minority, biggest;
   std::string newDir, baseDir, featuresDir, analysisDir, generationDir, str;
   std::string experimentDir;
   std::vector<ImageClass> imbalancedData;
@@ -47,11 +48,12 @@ int main(int argc, char const *argv[]) {
   DIR *dir = NULL;
   std::vector<int> testing_fold, majority_fold, minority_fold, generated_fold;
   std::vector<ImageClass>::iterator itClass, minorityClass;
-  std::vector<int>::iterator itOperation;
+  std::vector<int>::iterator itOperation, classID;
   std::vector< vector<int> > foldsByGeneration;
   std::vector <int> descriptors;
   std::vector <int> quantizations;
   bool useAllCombinations = false;
+  std::vector<int> minorityClassSet;
 
   int k = 5;
   if (argc < 3) {
@@ -90,6 +92,9 @@ int main(int argc, char const *argv[]) {
     }
   }
 
+  /*  Available methods
+    Artificial Generation:
+  0-Replication, 1-All, 2-Blur, 3-Blending, 4-Unsharp, 5-Composition, 6-Threshold, 7-Saliency, 8-SmoteImg, 9-Noise, 10-Composition  */
   std::vector <int> operations {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
   Rebalance r;
@@ -110,34 +115,61 @@ int main(int argc, char const *argv[]) {
     srand(time(NULL));
 
     experiment = 0;
-    for (minorityClass = r.data.classes.begin();
-        minorityClass != r.data.classes.end();
-        ++minorityClass) {
+    if (r.data.isBalanced()){
+      for (minorityClass = r.data.classes.begin();
+          minorityClass != r.data.classes.end();
+          ++minorityClass) {
+        minorityClassSet.push_back(minorityClass->id);
+      }
+    }
+    else {
+      biggest = r.data.biggestNumber();
+      for (minorityClass = r.data.classes.begin();
+          minorityClass != r.data.classes.end();
+          ++minorityClass) {
+        if (minorityClass->images.size() < biggest) {
+          minorityClassSet.push_back(minorityClass->id);
+        }
+      }
+    }
 
+    for (classID = minorityClassSet.begin();
+        classID != minorityClassSet.end();
+        ++classID) {
       for (i = 0; i < k; i++) {
-        for (j = 0; j < k; j++) {
-          if (j != i) {
-            // Select which folds are going to be training and testing
-            for (itClass = r.data.classes.begin();
-                itClass != r.data.classes.end();
-                ++itClass) {
-              itClass->testing_fold.clear();
-              itClass->training_fold.clear();
-              itClass->generated_fold.clear();
-              itClass->smote_fold.clear();
+        if (r.data.isBalanced()) {
+          number_trainings_minority = k;
+        }
+        else {
+          number_trainings_minority = 1;
+        }
 
-              itClass->testing_fold.push_back(i);
-              if ((itClass->id == minorityClass->id) && r.data.isBalanced()) {
-                itClass->training_fold.push_back(j);
-              }
-              else {
-                for (x = 0; x < k; x++) {
-                  if (x != i) {
-                    itClass->training_fold.push_back(x);
-                  }
+        for (j = 0; j < number_trainings_minority; j++) {
+          if (r.data.isBalanced() && (j != i)){
+            continue;
+          }
+          // Select which folds are going to be training and testing
+          for (itClass = r.data.classes.begin();
+              itClass != r.data.classes.end();
+              ++itClass) {
+            itClass->testing_fold.clear();
+            itClass->training_fold.clear();
+            itClass->generated_fold.clear();
+            itClass->smote_fold.clear();
+
+            itClass->testing_fold.push_back(i);
+            // If is balanced and minority class turn
+            if ((itClass->id == *classID) && r.data.isBalanced()) {
+              itClass->training_fold.push_back(j);
+            }
+            else {
+              for (x = 0; x < k; x++) {
+                if (x != i) {
+                  itClass->training_fold.push_back(x);
                 }
               }
             }
+          }
 
             // Create folders to hold the experiments
             experimentDir = newDir + "/artificial/experiment-" +
@@ -344,11 +376,11 @@ int main(int argc, char const *argv[]) {
             }
             experiment++;
             // if (useAllCombinations) {
-              str = "rm -rf \""+featuresDir+"\";";
-              std::cout << str << std::endl;
-              system(str.c_str());
+              // str = "rm -rf \""+featuresDir+"\";";
+              // std::cout << str << std::endl;
+              // system(str.c_str());
             // }
-          }
+          // }
         }
       }
     }

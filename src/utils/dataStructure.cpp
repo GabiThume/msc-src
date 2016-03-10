@@ -180,6 +180,19 @@ int Data::biggestTrainingNumber(void) {
 	return biggest;
 }
 
+int Data::biggestNumber(void) {
+	int biggest = -1, numImages = 0;
+	std::vector<ImageClass>::iterator itClass;
+
+	for (itClass = classes.begin(); itClass != classes.end(); ++itClass) {
+		numImages = itClass->images.size();
+		if (numImages > biggest) {
+			biggest = numImages;
+		}
+	}
+	return biggest;
+}
+
 int Data::smallerClass(void) {
 	double smaller = std::numeric_limits<double>::infinity();
 	int smallerClass = -1, trainingImages, testingImages;

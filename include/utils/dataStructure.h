@@ -27,6 +27,7 @@ class Data {
 		std::vector<ImageClass> classes;
 
 		void release(void);
+    int biggestNumber(void);
 		int numClasses(void);
     int numImages(void);
 		int numTrainingImages(int id);
