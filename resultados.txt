@@ -28,7 +28,7 @@ HOG MSB         Média       Desvio Padrão
 Desbalanceado    55.667145  13.341421
 
 # leafs
-CCV Intensity         Média      Desvio Padrão
+CCV Intensity    Média      Desvio Padrão
    Todos         57.353742  7.836745
   Aguçamento     56.445753  8.733590
   Borramento     58.787980  6.171935
@@ -41,7 +41,7 @@ CCV Intensity         Média      Desvio Padrão
   Saliência      60.390612  7.593063
  SMOTE           59.572190  7.617556
 Desbalanceado    53.446988  9.096767
-HOG Luminance         Média      Desvio Padrão
+HOG Luminance    Média      Desvio Padrão
    Todos         89.419685  5.385949
   Aguçamento     90.349900  4.957448
   Borramento     88.192345  5.883145
@@ -54,6 +54,21 @@ HOG Luminance         Média      Desvio Padrão
   Saliência      89.422038  5.529887
  SMOTE           91.904057  4.951265
 Desbalanceado    88.192345  5.883145
+
+# praia montanha
+CCV Luma         Média      Desvio Padrão
+   Todos         64.425960  7.932999
+  Aguçamento     64.647290  6.785433
+  Borramento     61.768695  7.093587
+  Composição 16  63.262915  8.108386
+  Composição 4   64.473190  7.320042
+  Limiares       62.308295  7.632398
+  Mistura        59.979555  8.134610
+  Ruído          62.171690  7.800338
+  SMOTE Visual   60.371835  6.562603
+  Saliência      67.222670  5.514302
+ SMOTE           66.152585  5.035412
+Desbalanceado    59.640090  8.675836
 
 --------------------------------------------------------------------------------
 # shark-fish
@@ -84,67 +99,54 @@ HOG Luma         Média       Desvio Padrão
  SMOTE           55.772368  10.372273
 Desbalanceado    56.729255   8.149596
 
-# deer-ship (na verdade HOG + Gleam eh o melhor, esse é o segundo.. Estou executando)
-BIC Intensity         Média      Desvio Padrão
-   Todos         65.431370  2.799342
-  Aguçamento     65.188915  3.281004
-  Borramento     63.488553  3.503907
-  Composição 16  62.939457  4.973968
-  Composição 4   64.817532  3.000917
-  Limiares       65.302370  3.971531
-  Mistura        66.622320  2.168573
-  Ruído          65.252775  3.708126
-  SMOTE Visual   63.970098  4.387996
-  Saliência      61.360243  6.375795
- SMOTE           65.890510  2.580050
-Desbalanceado    61.324940  6.399931
+# deer-ship
 
-HOG Luminance         Média       Desvio Padrão
-   Todos         76.943262  11.987216
-  Aguçamento     88.543585   1.071653
-  Borramento     86.433785   1.237458
-  Composição 16  86.375845   1.283784
-  Composição 4   86.453155   1.490277
-  Limiares       88.765895   0.739739
-  Mistura        88.824668   0.778468
-  Ruído          70.955310  15.861263
-  SMOTE Visual   75.044527  13.370179
-  Saliência      86.364902   1.302785
- SMOTE           59.963027   4.079902
-Desbalanceado    86.347927   1.296021
+BIC Intensity    Média      Desvio Padrão
+   Todos         68.014415  0.980650
+  Aguçamento     68.316195  0.805162
+  Borramento     66.818710  1.098375
+  Composição 16  67.765980  0.951134
+  Composição 4   67.631380  0.973894
+  Limiares       69.093785  0.990086
+  Mistura        68.461075  1.078629
+  Ruído          68.802275  0.854582
+  SMOTE Visual   68.147100  1.184462
+  Saliência      67.584525  1.049048
+ SMOTE           68.283720  0.804066
+Desbalanceado    67.574775  1.053371
 
-# praia-montanha
-CCV Intensity         Média      Desvio Padrão
-   Todos         62.575862  9.905884
-  Aguçamento     63.814715  9.624739
-  Borramento     59.715540  9.573895
-  Composição 16  63.483600  9.254585
-  Composição 4   63.710293  9.712621
-  Limiares       62.672918  7.094490
-  Mistura        59.175832  9.285129
-  Ruído          62.400590  8.466055
-  SMOTE Visual   58.441063  9.922086
-  Saliência      63.798380  8.839500
- SMOTE           65.135558  9.063208
-Desbalanceado    56.746177  9.851582
-CCV Luma         Média      Desvio Padrão
-   Todos         65.731522  6.094579
-  Aguçamento     66.517217  6.472761
-  Borramento     64.771162  8.350224
-  Composição 16  66.469050  6.735943
-  Composição 4   65.975583  6.829901
-  Limiares       64.821310  7.326461
-  Mistura        64.342090  8.274514
-  Ruído          65.570220  7.817569
-  SMOTE Visual   64.258052  8.338041
-  Saliência      65.701602  5.742212
- SMOTE           67.829778  8.018073
-Desbalanceado    62.974503  8.351932
+HOG Gleam        Média      Desvio Padrão
+   Todos         88.939785  1.035462
+  Aguçamento     89.473075  0.961293
+  Borramento     88.150530  1.006920
+  Composição 16  88.086065  0.987147
+  Composição 4   88.360675  0.949842
+  Limiares       89.356875  0.942907
+  Mistura        89.445505  0.939809
+  Ruído          86.762190  1.165064
+  SMOTE Visual   88.395965  1.081594
+  Saliência      88.136675  0.988034
+ SMOTE           63.183905  2.355925
+Desbalanceado    88.121310  0.985599
+
+HOG Luminance    Média      Desvio Padrão
+   Todos         88.653880  0.813826
+  Aguçamento     89.248575  0.835802
+  Borramento     87.309680  0.938277
+  Composição 16  87.296770  0.905665
+  Composição 4   87.659990  0.905510
+  Limiares       89.036480  0.853427
+  Mistura        89.006620  0.729144
+  Ruído          86.546455  0.932451
+  SMOTE Visual   88.204755  0.831198
+  Saliência      87.298615  0.940479
+ SMOTE           63.548590  1.876178
+Desbalanceado    87.280425  0.934383
 
 --------------------------------------------------------------------------------
 
 # caltech
-CCV Luma           mean      Desvio Padrão
+CCV Luma         Média      Desvio Padrão
    Todos         32.310205  5.124719
   Aguçamento     32.323863  4.842180
   Borramento     32.098333  4.964983
@@ -157,7 +159,7 @@ CCV Luma           mean      Desvio Padrão
   Saliência      32.021265  4.866437
  SMOTE           32.609082  4.600097
 Desbalanceado    31.339258  4.904720
-HOG Intensity         Média      Desvio Padrão
+HOG Intensity    Média      Desvio Padrão
    Todos         77.591493  3.387543
   Aguçamento     76.982412  3.482750
   Borramento     75.736587  3.812333
@@ -172,7 +174,7 @@ HOG Intensity         Média      Desvio Padrão
 Desbalanceado    75.732382  3.833682
 
 # corel
-LBP Gleam                       mean       std
+LBP Gleam        Média      Desvio Padrão
    Todos         61.216388  2.205391
   Aguçamento     61.098384  2.275732
   Borramento     60.369376  2.254895
@@ -185,7 +187,7 @@ LBP Gleam                       mean       std
   Saliência      61.050988  2.271443
  SMOTE           61.368896  2.148675
 Desbalanceado    60.362256  2.290263
-LBP MSB                       mean       std
+LBP MSB          Média      Desvio Padrão
    Todos         57.210442  3.744924
   Aguçamento     57.088167  3.804031
   Borramento     56.733362  3.829360
@@ -200,7 +202,7 @@ LBP MSB                       mean       std
 Desbalanceado    56.554079  3.860002
 
 # dtd-3
-CCV MSB         Média      Desvio Padrão
+CCV MSB          Média      Desvio Padrão
    Todos         50.014875  6.920990
   Aguçamento     49.509720  7.668507
   Borramento     49.948920  7.685131
@@ -213,7 +215,7 @@ CCV MSB         Média      Desvio Padrão
   Saliência      51.553817  7.135818
  SMOTE           50.256637  6.988601
 Desbalanceado    47.045110  7.386726
-LBP Luminance         Média      Desvio Padrão
+LBP Luminance    Média      Desvio Padrão
    Todos         65.888525  5.160787
   Aguçamento     65.113232  4.791274
   Borramento     63.215212  6.113617
@@ -270,19 +272,18 @@ BIC Intensity                       mean       std
  SMOTE           49.199615  4.554478
 Desbalanceado    48.435470  4.529753
 LBP Luminance                       mean       std
-   Todos         78.905411  3.348997
-  Aguçamento     78.612489  3.300262
-  Borramento     78.593229  3.295912
-  Composição 16  78.616005  3.275804
-  Composição 4   78.628111  3.292501
-  Limiares       79.043149  3.300982
-  Mistura        79.173620  3.265524
+   Todos         78.996719  3.244853
+  Aguçamento     78.649003  3.287007
+  Borramento     78.601896  3.287302
+  Composição 16  78.627216  3.291905
+  Composição 4   78.621777  3.283837
+  Limiares       79.122887  3.220693
+  Mistura        79.239798  3.309218
   Ruído          78.611838  3.282242
-  SMOTE Visual   78.640565  3.299991
-  Saliência      79.082399  3.265916
- SMOTE           79.325838  3.291948
+  SMOTE Visual   78.641342  3.294647
+  Saliência      79.074926  3.355666
+ SMOTE           79.197638  3.282848
 Desbalanceado    78.611838  3.282242
-
 --------------------------------------------------------------------------------
 ## Naturalmente desbalanceados
 
@@ -399,21 +400,33 @@ HOG Luma         Média      Desvio Padrão
 Desbalanceado    89.424940  2.199974
 
 # BigBen + EiffelTower + PisaTower
-Calculando....
-aproximadamente:
-HOG Luma            mean      Desvio Padrão
-   Todos         83.496547  1.196155
-  Aguçamento     87.251637  1.133154
-  Borramento     87.599020  1.454053
-  Composição 16  87.581190  1.422815
-  Composição 4   87.511742  1.454026
-  Limiares       87.515533  1.750865
-  Mistura        87.673032  1.544966
-  Ruído          84.720972  0.945714
-  SMOTE Visual   82.112053  1.084733
-  Saliência      87.835032  1.537915
- SMOTE           85.031103  1.473573
-Desbalanceado    87.580400  1.418706
+LBP Intensity                       mean       std
+   Todos         67.760598  2.398980
+  Aguçamento     68.060298  2.156532
+  Borramento     68.168215  2.369960
+  Composição 16  68.339365  2.346606
+  Composição 4   68.386830  2.301022
+  Limiares       67.797922  2.212177
+  Mistura        68.249713  2.345068
+  Ruído          68.244437  2.364243
+  SMOTE Visual   67.617823  2.295574
+  Saliência      68.557078  2.239666
+ SMOTE           68.582857  2.381638
+Desbalanceado    68.602660  2.212402
+HOG Intensity                       mean       std
+   Todos         84.484077  1.263607
+  Aguçamento     87.758528  1.407163
+  Borramento     88.291397  1.464939
+  Composição 16  88.280242  1.472323
+  Composição 4   88.262078  1.486276
+  Limiares       88.088858  1.711609
+  Mistura        88.049632  1.427445
+  Ruído          85.714138  0.895389
+  SMOTE Visual   82.703635  0.871827
+  Saliência      88.291470  1.583846
+ SMOTE           85.299612  1.210397
+Desbalanceado    88.287100  1.467879
+
 
 # TrafalgarSquare + MadeleineChurch + Pantheon
 HOG Gleam           mean      Desvio Padrão

@@ -24,7 +24,7 @@ Descriptors:
 2. __Dimensionality reduction of feature vectors.__
 
 Dimensionality Reduction Techniques:
-    
+
     PCA
     Entropia
 
@@ -52,11 +52,11 @@ Before running the code, create a symbolic link to the images directory:
 Makefile will compile the code for you:
 
     make
-    
+
 To run all descriptors and generate the feature vectors:
 
     ./runAllDescriptors.sh
-    
+
 After the previous command, to reduce the vectors dimension and apply the classification run:
 
     ./dimensionReduction <VECTORS DIRECTORY> <TECHNIQUE> <PARAMETERS LIST>
@@ -65,7 +65,7 @@ Options for techniques and parameters:
 
     [0] None:
         Just the classifier is going to be used, with the extracted vectors without dimensionality reduction.
-    [1] PCA: 
+    [1] PCA:
         - <nAttributes>: number of attributes to keep on PCA
     [2] Entropy:
         - <tWindow>: window size
@@ -86,4 +86,3 @@ Compare SMOTE and Artificial Generation of Images performance:
 
     ./rebalanceTest Desbalanced/original/ features/
     python plot.py # Check this file before running, it may modify a previous image
-

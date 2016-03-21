@@ -96,6 +96,7 @@ int main(int argc, char const *argv[]) {
     Artificial Generation:
   0-Replication, 1-All, 2-Blur, 3-Blending, 4-Unsharp, 5-Composition, 6-Threshold, 7-Saliency, 8-SmoteImg, 9-Noise, 10-Composition  */
   std::vector <int> operations {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  // std::vector <int> operations {4, 6, 7};
 
   Rebalance r;
   r.extractor.ccvThreshold = 25;
@@ -127,7 +128,7 @@ int main(int argc, char const *argv[]) {
       for (minorityClass = r.data.classes.begin();
           minorityClass != r.data.classes.end();
           ++minorityClass) {
-        if (minorityClass->images.size() < biggest) {
+        if ((int) minorityClass->images.size() < biggest) {
           minorityClassSet.push_back(minorityClass->id);
         }
       }
@@ -145,7 +146,7 @@ int main(int argc, char const *argv[]) {
         }
 
         for (j = 0; j < number_trainings_minority; j++) {
-          if (r.data.isBalanced() && (j != i)){
+          if (r.data.isBalanced() && (j == i)){
             continue;
           }
           // Select which folds are going to be training and testing
@@ -376,9 +377,9 @@ int main(int argc, char const *argv[]) {
             }
             experiment++;
             // if (useAllCombinations) {
-              // str = "rm -rf \""+featuresDir+"\";";
-              // std::cout << str << std::endl;
-              // system(str.c_str());
+            str = "rm -rf \""+featuresDir+"\";";
+            std::cout << str << std::endl;
+            system(str.c_str());
             // }
           // }
         }
