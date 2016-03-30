@@ -9,13 +9,6 @@ python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/dua
 ./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha/ /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha/original/ 2 5 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha/saida_melhor.txt;
 python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha/artificial/ praia-montanha 1 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha/fscores.txt;
 
-./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/ /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/original/ > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/saida_todos.txt;
-python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/artificial/ praia-montanha-fine-tunning 0 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/fscores_general.txt;
-# best fscore CCV + Luma
-./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/ /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/original/ 2 5 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/saida_melhor.txt;
-python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/artificial/ praia-montanha-fine-tunning 1 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/fscores.txt;
-
-
 ./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/elefante-cavalo/ /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/elefante-cavalo/original/ > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/elefante-cavalo/saida_todos.txt;
 python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/elefante-cavalo/artificial/ elefante-cavalo 0 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/elefante-cavalo/fscores_general.txt;
 # best fscore ACC + Gleam
@@ -66,12 +59,6 @@ python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/nat
 ./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon/ /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon/original/ 6 2 > /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon/saida_melhor.txt;
 python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon/artificial/ TrafalgarSquare-MadeleineChurch-Pantheon 1 > /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon/fscores.txt;
 
-./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/ /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/original/ > /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/saida_todos.txt;
-python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/artificial/ TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning 0 > /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/fscores_general.txt;
-# best fscore HOG + GLeam
-./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/ /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/original/ 6 2 > /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/saida_melhor.txt;
-python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/artificial/ TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning 1 > /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon/fscores.txt;
-
 # Multiclasses
 
 ./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000/ /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000/original/ > /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000/saida_todos.txt;
@@ -79,12 +66,6 @@ python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/mul
 # best fscore LBP + Gleam
 ./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000/ /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000/original/ 5 2 > /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000/saida_melhor.txt;
 python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000/artificial/ corel 1 > /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000/fscores.txt;
-
-./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/ /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/original/ > /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/saida_todos.txt;
-python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/artificial/ corel-tunning 0 > /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/fscores_general.txt;
-# best fscore LBP + Gleam
-./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/ /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/original/ 5 2 > /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/saida_melhor.txt;
-python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/artificial/ corel-tunning 1 > /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/fscores.txt;
 
 ./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/tropical_fruits1400/ /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/tropical_fruits1400/original/ > /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/tropical_fruits1400/saida_todos.txt;
 python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/tropical_fruits1400/artificial/ tropical_fruits 0 > /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/tropical_fruits1400/fscores_general.txt;
@@ -125,3 +106,14 @@ python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/dua
 # best fscore HOG + Luminance
 ./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/muitas_imagens/deer-ship/ /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/muitas_imagens/deer-ship/original/ 6 1 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/muitas_imagens/deer-ship/saida_melhor.txt;
 python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/muitas_imagens/deer-ship/artificial/ deer-ship 1 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/muitas_imagens/deer-ship/fscores.txt;
+
+# Fine tunning
+
+./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/ /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/original/ 2 5 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/saida_melhor.txt;
+python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/artificial/ praia-montanha-fine-tunning 1 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/fscores.txt;
+
+./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/ /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/original/ 6 2 > /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/saida_melhor.txt;
+python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/artificial/ TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning 1 > /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/fscores.txt;
+
+./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/ /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/original/ 5 2 > /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/saida_melhor.txt;
+python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/artificial/ corel-tunning 1 > /media/gabi/Dados\ 1/data/experiments/datasets/multiclasses/Corel1000-fine-tunning/fscores.txt;
