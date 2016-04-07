@@ -31,6 +31,7 @@ class Artificial {
     cv::Mat generateThreshold(cv::Mat first, cv::Mat second);
     cv::Mat generateSaliency(cv::Mat first, cv::Mat second);
     cv::Mat generateSmoteImg(cv::Mat first, cv::Mat second);
+    cv::Mat generateFancyPCA(cv::Mat originalImage);
     cv::vector<int> generateImagesFromData(Data *original_data,
       std::string newDirectory, int whichOperation);
 };

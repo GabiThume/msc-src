@@ -31,6 +31,80 @@ int classesNumber(std::string diretorio){
 	return count;
 }
 
+//From http://docs.opencv.org/3.1.0/d2/dc0/pca_8cpp-example.html#gsc.tab=0
+static Mat formatImagesForPCA(const std::vector<cv::Mat> &data) {
+  Mat dst(static_cast<int>(data.size()), data[0].rows*data[0].cols, CV_32F);
+
+  for(unsigned int i = 0; i < data.size(); i++) {
+    Mat image_row = data[i].clone().reshape(1,1);
+    Mat row_i = dst.row(i);
+    image_row.convertTo(row_i,CV_32F);
+  }
+  return dst;
+}
+
+void prepareFancyPCA(std::vector<cv::Mat> images) {
+
+  std::random_device rd;
+  std::mt19937 normal_generator(rd());
+  // a random variable drawn from a Gaussian with mean zero and standard deviation 0.1
+  std::normal_distribution<double> dist(0, 0.1);
+  double normal_random;
+
+  cv::Mat generated;
+  int i, j, channel;
+
+  cv::Mat data = formatImagesForPCA(images);
+
+  // Data, none pre-computed mean vector, stored as matrix row, how many principal components to retain
+  cv::PCA pca(data, cv::Mat(), CV_PCA_DATA_AS_ROW, 0.95);
+
+  cv::Mat eigenvalues = pca.eigenvalues.clone();
+  cv::Mat eigenvectors = pca.eigenvectors.clone();
+
+  std::vector<cv::Mat> eigenvaluesColors(3);
+  std::vector<cv::Mat> eigenvectorsColors(3);
+  split(eigenvalues, eigenvaluesColors);
+  split(eigenvectors, eigenvectorsColors);
+
+  cv::Mat originalImage = images[0];
+  originalImage.copyTo(generated);
+  // Add multiples of the found principal components, with magnitudes proportional to the corresponding eigenvalues times
+
+  std::vector<cv::Mat> imColors(3);
+
+	split(generated, imColors);
+
+  for (i = 0; i < generated.rows; i++) {
+		for (j = 0; j < generated.cols; j++) {
+      for (channel = 0; channel < generated.channels(); channel++) {
+
+        normal_random = dist(normal_generator);
+
+    		imColors[channel].at<uchar>(i,j) =
+          cv::saturate_cast<uchar>(imColors[channel].at<uchar>(i,j) + eigenvectorsColors[channel].at<uchar>(i,j) * normal_random * eigenvaluesColors[channel].at<uchar>(i,j));
+  		}
+  	}
+  }
+
+  merge(imColors, generated);
+
+}
+
+/*******************************************************************************
+Artificial generation: Fancy-PCA from http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf
+
+> Captures an important property of natural images
+*******************************************************************************/
+// cv::Mat Artificial::generateFancyPCA(cv::Mat originalImage) {
+// 	cv::Mat generated;
+//
+//   // Add multiples of the found principal components, with magnitudes proportional to the corresponding eigenvalues times a random variable drawn from a Gaussian with mean zero and standard deviation 0.1
+//
+//
+// 	return generated;
+// }
+
 /*******************************************************************************
     Reduce the number of colors in a single channel image
 
