@@ -32,46 +32,57 @@ int classesNumber(std::string diretorio){
 }
 
 //From http://docs.opencv.org/3.1.0/d2/dc0/pca_8cpp-example.html#gsc.tab=0
-static Mat formatImagesForPCA(const std::vector<cv::Mat> &data) {
+static Mat formatImagesForPCA(const std::vector<cv::Mat> &data, int channel) {
+  std::vector<cv::Mat> imColors(3);
   Mat dst(static_cast<int>(data.size()), data[0].rows*data[0].cols, CV_32F);
 
   for(unsigned int i = 0; i < data.size(); i++) {
-    Mat image_row = data[i].clone().reshape(1,1);
+    split(data[i], imColors);
+    Mat image_row = imColors[channel].clone().reshape(1,1);
     Mat row_i = dst.row(i);
-    image_row.convertTo(row_i,CV_32F);
+    image_row.convertTo(row_i, CV_32F);
   }
+
   return dst;
 }
 
+/*******************************************************************************
+WIP: Artificial generation: Fancy-PCA from http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf
+
+> Captures an important property of natural images
+*******************************************************************************/
 void prepareFancyPCA(std::vector<cv::Mat> images) {
 
   std::random_device rd;
   std::mt19937 normal_generator(rd());
-  // a random variable drawn from a Gaussian with mean zero and standard deviation 0.1
   std::normal_distribution<double> dist(0, 0.1);
   double normal_random;
-
-  cv::Mat generated;
   int i, j, channel;
+  cv::Mat generated;
+  std::vector<cv::Mat> eigenvalues(3), eigenvectors(3), data(3), imColors(3);
+  std::vector<cv::PCA> pca(3);
 
-  cv::Mat data = formatImagesForPCA(images);
+  // // rows is the number of images and cols the number of features/pixels
+  data[0] = formatImagesForPCA(images, 0);
+  data[1] = formatImagesForPCA(images, 1);
+  data[2] = formatImagesForPCA(images, 2);
 
   // Data, none pre-computed mean vector, stored as matrix row, how many principal components to retain
-  cv::PCA pca(data, cv::Mat(), CV_PCA_DATA_AS_ROW, 0.95);
+  pca[0] = PCA(data[0], cv::Mat(), CV_PCA_DATA_AS_ROW);
+  pca[1] = PCA(data[1], cv::Mat(), CV_PCA_DATA_AS_ROW);
+  pca[2] = PCA(data[2], cv::Mat(), CV_PCA_DATA_AS_ROW);
 
-  cv::Mat eigenvalues = pca.eigenvalues.clone();
-  cv::Mat eigenvectors = pca.eigenvectors.clone();
+  eigenvalues[0] = pca[0].eigenvalues.clone();
+  eigenvalues[1] = pca[0].eigenvalues.clone();
+  eigenvalues[2] = pca[0].eigenvalues.clone();
+  eigenvectors[0] = pca[0].eigenvectors.clone();
+  eigenvectors[1] = pca[0].eigenvectors.clone();
+  eigenvectors[2] = pca[0].eigenvectors.clone();
 
-  std::vector<cv::Mat> eigenvaluesColors(3);
-  std::vector<cv::Mat> eigenvectorsColors(3);
-  split(eigenvalues, eigenvaluesColors);
-  split(eigenvectors, eigenvectorsColors);
+  double numComponents = data[0].cols;
 
   cv::Mat originalImage = images[0];
   originalImage.copyTo(generated);
-  // Add multiples of the found principal components, with magnitudes proportional to the corresponding eigenvalues times
-
-  std::vector<cv::Mat> imColors(3);
 
 	split(generated, imColors);
 
@@ -81,8 +92,15 @@ void prepareFancyPCA(std::vector<cv::Mat> images) {
 
         normal_random = dist(normal_generator);
 
-    		imColors[channel].at<uchar>(i,j) =
-          cv::saturate_cast<uchar>(imColors[channel].at<uchar>(i,j) + eigenvectorsColors[channel].at<uchar>(i,j) * normal_random * eigenvaluesColors[channel].at<uchar>(i,j));
+        // Add multiples of the found principal components, with magnitudes proportional to the corresponding eigenvalues times a random variable drawn from a Gaussian with mean zero and standard deviation 0.1
+
+        cout << "imColors " << (double)imColors[channel].at<uchar>(i,j) << endl;
+        cout << "i*generated.rows + j = " << i*generated.rows + j << endl;
+        cout << "eigenvectors " << eigenvectors[channel].at<double>(i*generated.rows + j, 0) << endl;
+        cout << "eigenvalues " << eigenvalues[channel].at<double>(i*generated.rows + j, 0) << endl;
+
+    		// imColors[channel].at<uchar>(i,j) =
+        //   cv::saturate_cast<uchar>((double)imColors[channel].at<uchar>(i,j) + (double)eigenvectors[channel].at<uchar>(i*j) * normal_random * (double)eigenvalues[channel].at<uchar>(i*j));
   		}
   	}
   }
@@ -91,11 +109,6 @@ void prepareFancyPCA(std::vector<cv::Mat> images) {
 
 }
 
-/*******************************************************************************
-Artificial generation: Fancy-PCA from http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf
-
-> Captures an important property of natural images
-*******************************************************************************/
 // cv::Mat Artificial::generateFancyPCA(cv::Mat originalImage) {
 // 	cv::Mat generated;
 //
@@ -567,6 +580,9 @@ void Artificial::GenerateImage(std::vector<cv::Mat> images, std::string name,
       case 11:
 		    generated = generateComposition(first, images, total, 4, 0);
 		    break;
+      case 12:
+        prepareFancyPCA(images);
+        break;
 			default:
 				break;
 		}
