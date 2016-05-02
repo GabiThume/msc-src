@@ -95,8 +95,9 @@ int main(int argc, char const *argv[]) {
   /*  Available methods
     Artificial Generation:
   0-Replication, 1-All, 2-Blur, 3-Blending, 4-Unsharp, 5-Composition, 6-Threshold, 7-Saliency, 8-SmoteImg, 9-Noise, 10-Composition  */
-  std::vector <int> operations {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  // std::vector <int> operations {4, 6, 7};
+  // std::vector <int> operations {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  // std::vector <int> operations {4, 7};
+  std::vector <int> operations {4};
 
   Rebalance r;
   r.extractor.ccvThreshold = 25;
@@ -377,9 +378,9 @@ int main(int argc, char const *argv[]) {
             }
             experiment++;
             // if (useAllCombinations) {
-            str = "rm -rf \""+featuresDir+"\";";
-            std::cout << str << std::endl;
-            system(str.c_str());
+            // str = "rm -rf \""+featuresDir+"\";";
+            // std::cout << str << std::endl;
+            // system(str.c_str());
             // }
           // }
         }

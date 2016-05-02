@@ -109,8 +109,8 @@ python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/dua
 
 # Fine tunning
 
-./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/ /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/original/ 2 5 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/saida_melhor.txt;
-python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/artificial/ praia-montanha-fine-tunning 1 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning/fscores.txt;
+./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning3/ /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning3/original/ 2 5 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning3/saida_melhor.txt;
+python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning3/artificial/ praia-montanha-fine-tunning3 1 > /media/gabi/Dados\ 1/data/experiments/datasets/duas_classes/praia-montanha-fine-tunning3/fscores.txt;
 
 ./bin/experiment /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/ /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/original/ 6 2 > /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/saida_melhor.txt;
 python scripts/plotFscores.py /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/artificial/ TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning 1 > /media/gabi/Dados\ 1/data/experiments/datasets/naturaly_unbalanced/TrafalgarSquare-MadeleineChurch-Pantheon-fine-tunning/fscores.txt;
